@@ -1,0 +1,1186 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>מאסטר בלוקי קוד</title>
+<meta name="description" content="קורס מתקדם ואינטראקטיבי לשימוש בבלוקי קוד ב-Markdown ובכל האינטגרציות: GitHub, GitLab, Slack, Discord, Notion, VS Code, Jupyter, Docusaurus, Quarto ו-Claude.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<style>
+:root{
+  --bg:#f6f7fb; --surface:#ffffff; --surface-2:#eef1f7; --text:#1b1f2a; --muted:#5b6475;
+  --border:#d9deea; --accent:#5b4bff; --accent-2:#00a88f; --warn:#c77700; --danger:#d13b4b;
+  --code-bg:#0d1117; --code-text:#e6edf3; --shadow:0 1px 2px rgba(0,0,0,.05),0 6px 24px rgba(20,30,60,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0b0e15; --surface:#131824; --surface-2:#1a2131; --text:#e7ebf3; --muted:#9aa4b8;
+    --border:#283147; --accent:#8f84ff; --accent-2:#2fd3b6; --warn:#f0a43a; --danger:#ff6b7a;
+    --code-bg:#0a0d14; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 28px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0b0e15; --surface:#131824; --surface-2:#1a2131; --text:#e7ebf3; --muted:#9aa4b8;
+  --border:#283147; --accent:#8f84ff; --accent-2:#2fd3b6; --warn:#f0a43a; --danger:#ff6b7a;
+  --code-bg:#0a0d14; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 28px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font-family:Heebo,system-ui,sans-serif;line-height:1.7;font-size:16px}
+code,pre,textarea.code{font-family:"JetBrains Mono",ui-monospace,monospace}
+a{color:var(--accent)}
+.layout{display:grid;grid-template-columns:290px 1fr;min-height:100vh}
+aside{background:var(--surface);border-inline-end:1px solid var(--border);padding:20px 16px;position:sticky;top:0;height:100vh;overflow:auto}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.15rem;margin-bottom:6px}
+.brand .logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:grid;place-items:center;color:#fff;font-family:"JetBrains Mono";font-size:.8rem}
+.sub{color:var(--muted);font-size:.85rem;margin-bottom:16px}
+.progress{height:8px;background:var(--surface-2);border-radius:99px;overflow:hidden;margin:6px 0 4px}
+.progress>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .4s}
+.progress-label{font-size:.8rem;color:var(--muted);margin-bottom:14px}
+nav ol{list-style:none;padding:0;margin:0}
+nav li button{all:unset;cursor:pointer;display:flex;gap:10px;align-items:center;width:100%;padding:9px 10px;border-radius:10px;font-size:.93rem;box-sizing:border-box}
+nav li button:hover{background:var(--surface-2)}
+nav li button.active{background:var(--surface-2);font-weight:700;color:var(--accent)}
+nav .num{width:24px;height:24px;border-radius:50%;border:1.5px solid var(--border);display:grid;place-items:center;font-size:.75rem;flex:none}
+nav li.done .num{background:var(--accent-2);border-color:var(--accent-2);color:#fff}
+.tools{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.btn{cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text);padding:8px 14px;border-radius:10px;font:inherit;font-size:.9rem}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+main{padding:32px 40px 80px;max-width:980px;width:100%;min-width:0}
+.topbar{display:none}
+.module{display:none}
+.module.active{display:block;animation:fade .25s}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+.eyebrow{color:var(--accent);font-weight:700;font-size:.85rem;letter-spacing:.04em}
+h1{font-size:2rem;margin:.2em 0 .3em;line-height:1.25}
+h2{font-size:1.35rem;margin:1.8em 0 .5em}
+h3{font-size:1.08rem;margin:1.3em 0 .4em}
+.lead{color:var(--muted);font-size:1.05rem}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow);margin:16px 0}
+.callout{border-inline-start:4px solid var(--accent);background:var(--surface);padding:12px 16px;border-radius:10px;margin:14px 0;border:1px solid var(--border);border-inline-start-width:4px}
+.callout.tip{border-inline-start-color:var(--accent-2)}
+.callout.warn{border-inline-start-color:var(--warn)}
+.callout.danger{border-inline-start-color:var(--danger)}
+.callout b:first-child{display:block;margin-bottom:2px}
+:not(pre)>code{background:var(--surface-2);border:1px solid var(--border);padding:.05em .4em;border-radius:6px;font-size:.88em;direction:ltr;unicode-bidi:isolate}
+.ex{direction:ltr;text-align:left;position:relative;margin:12px 0}
+.ex pre{margin:0;background:var(--code-bg);color:var(--code-text);padding:16px 18px;border-radius:12px;overflow:auto;font-size:.88rem;line-height:1.6;border:1px solid var(--border)}
+.ex .label{position:absolute;top:-10px;left:14px;background:var(--accent);color:#fff;font-size:.7rem;padding:1px 8px;border-radius:6px;font-family:Heebo}
+.ex .copy{position:absolute;top:8px;right:8px;font-size:.75rem;padding:3px 9px;border-radius:7px;background:#ffffff14;color:#e6edf3;border:1px solid #ffffff2a;cursor:pointer;font-family:Heebo}
+.ex .copy:hover{background:#ffffff26}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+table{width:100%;border-collapse:collapse;font-size:.92rem;margin:12px 0}
+th,td{border-bottom:1px solid var(--border);padding:8px 10px;text-align:start;vertical-align:top}
+th{background:var(--surface-2)}
+td code{white-space:nowrap}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.tabs button{cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:99px;padding:5px 14px;font:inherit;font-size:.88rem}
+.tabs button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.tabpane{display:none}.tabpane.on{display:block}
+/* playground */
+.play{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.play textarea{width:100%;min-height:300px;resize:vertical;background:var(--code-bg);color:var(--code-text);border:1px solid var(--border);border-radius:12px;padding:14px;font-size:.88rem;line-height:1.55;direction:ltr;text-align:left;tab-size:2}
+.preview{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 18px;min-height:300px;overflow:auto;direction:ltr;text-align:left;font-family:system-ui,sans-serif}
+.preview pre{background:var(--code-bg);border-radius:10px;padding:12px;overflow:auto}
+.preview pre code{background:none;border:0;padding:0}
+.preview .mermaid{background:#fff;border-radius:10px;padding:8px}
+.preset-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+/* quiz */
+.quiz .q{margin:14px 0}
+.quiz .opts{display:grid;gap:8px;margin-top:8px}
+.quiz label{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--border);border-radius:10px;padding:9px 12px;cursor:pointer;background:var(--surface)}
+.quiz label:hover{border-color:var(--accent)}
+.quiz label.right{border-color:var(--accent-2);background:color-mix(in srgb,var(--accent-2) 12%,var(--surface))}
+.quiz label.wrong{border-color:var(--danger);background:color-mix(in srgb,var(--danger) 10%,var(--surface))}
+.quiz .why{display:none;font-size:.9rem;color:var(--muted);margin-top:6px}
+.quiz .q.answered .why{display:block}
+.result{font-weight:700;margin-top:10px}
+/* challenge */
+.challenge textarea{width:100%;min-height:150px;background:var(--code-bg);color:var(--code-text);border-radius:12px;border:1px solid var(--border);padding:12px;direction:ltr;text-align:left;font-size:.88rem}
+.checks{list-style:none;padding:0;margin:10px 0}
+.checks li{padding:3px 0}
+.checks li::before{content:"○ ";color:var(--muted)}
+.checks li.ok::before{content:"✓ ";color:var(--accent-2);font-weight:700}
+.checks li.bad::before{content:"✗ ";color:var(--danger);font-weight:700}
+.navbtns{display:flex;justify-content:space-between;margin-top:40px;gap:10px}
+.badge{display:inline-block;font-size:.72rem;padding:1px 8px;border-radius:99px;background:var(--surface-2);border:1px solid var(--border);color:var(--muted);margin-inline-start:6px;vertical-align:middle}
+.levels{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0}
+.lvl{background:var(--surface);border:1px solid var(--border);border-top:4px solid var(--c);border-radius:12px;padding:12px;font-size:.88rem}
+.lvl b{display:block;color:var(--c);font-size:1rem}
+.l1{--c:#2fa36b}.l2{--c:#3b82f6}.l3{--c:#a855f7}.l4{--c:#e0533d}
+nav .grp{font-size:.72rem;font-weight:700;color:var(--muted);letter-spacing:.05em;margin:12px 10px 2px}
+.hero-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0}
+.hero-stats div{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center}
+.hero-stats b{display:block;font-size:1.5rem;color:var(--accent)}
+.hero-stats span{font-size:.82rem;color:var(--muted)}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  aside{position:fixed;inset:0 0 0 auto;width:86%;max-width:320px;z-index:20;transform:translateX(100%);transition:transform .25s;box-shadow:var(--shadow)}
+  aside.open{transform:none}
+  .topbar{display:flex;position:sticky;top:0;z-index:10;background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;align-items:center;justify-content:space-between}
+  main{padding:20px 16px 60px}
+  table{display:block;overflow-x:auto}
+  td code{white-space:normal}
+  .play,.grid2{grid-template-columns:1fr}
+  .hero-stats,.levels{grid-template-columns:repeat(2,1fr)}
+  h1{font-size:1.6rem}
+}
+</style>
+</head>
+<body>
+<div class="topbar"><b>מאסטר בלוקי קוד</b><button class="btn" id="menuBtn">☰ פרקים</button></div>
+<div class="layout">
+<aside id="side">
+  <div class="brand"><span class="logo">```</span>מאסטר בלוקי קוד</div>
+  <div class="sub">ממתחילים ועד מומחים · 14 פרקים · תרגול חי</div>
+  <div class="progress"><i id="pbar"></i></div>
+  <div class="progress-label" id="plabel">0% הושלם</div>
+  <nav><ol id="toc"></ol></nav>
+  <div class="tools">
+    <button class="btn" id="themeBtn">🌓 ערכת צבעים</button>
+    <button class="btn" id="resetBtn">↺ איפוס התקדמות</button>
+  </div>
+</aside>
+<main id="main">
+
+<!-- ========== 0 ========== -->
+<section class="module" data-level="פתיחה" data-title="פתיחה ומפת הקורס">
+  <div class="eyebrow"></div>
+  <h1>מאסטר בלוקי קוד: מהבסיס ועד אינטגרציות מקצועיות</h1>
+  <p class="lead">בלוק קוד הוא אחד הכלים הכי בסיסיים בכתיבה טכנית, ורוב האנשים מכירים ממנו רק את 10% הראשונים. בקורס הזה תלמדו את כל השאר: גדרות מקוננות, הדגשת שורות, diff, בלוקי הצעה ב-GitHub, דיאגרמות, קוד שרץ בתוך מחברות, ואיך כל פלטפורמה מתייחסת לבלוקים בדרך משלה.</p>
+  <div class="hero-stats">
+    <div><b>14</b><span>פרקים</span></div>
+    <div><b>25+</b><span>פלטפורמות וכלים</span></div>
+    <div><b>12</b><span>בחנים</span></div>
+    <div><b>4</b><span>אתגרים מעשיים</span></div>
+  </div>
+  <h2>מפת הלמידה</h2>
+  <div class="levels">
+    <div class="lvl l1"><b>מתחילים</b><span>מה זה בלוק, איך מקלידים <code>`</code> במקלדת עברית, קיצורי מקלדת, גדרות ושפות.</span></div>
+    <div class="lvl l2"><b>בינוני</b><span>בלוקים מקוננים, diff, רשימות, GitHub ו-GitLab, ו-Slack, Discord, Notion ו-VS Code.</span></div>
+    <div class="lvl l3"><b>מתקדמים</b><span>Docusaurus, MkDocs, VitePress, Jupyter, Quarto, ועבודה עם Claude ומודלי שפה.</span></div>
+    <div class="lvl l4"><b>מומחים</b><span>רינדור באפליקציה שלכם, אבטחה, שליחת בלוקים דרך API לשבע פלטפורמות, ותיעוד שנבדק ב-CI.</span></div>
+  </div>
+  <div class="callout"><b>מה מייחד את הקורס</b>הוא נכתב לדוברי עברית (כולל מקלדת עברית ו-RTL), משווה בין יותר מ-25 פלטפורמות בטבלאות אחידות, ומגיע עד הצד ההנדסי: צינורות רינדור, escaping לכל API ובדיקת דוגמאות קוד אוטומטית. אפשר לדלג ישר לרמה שלכם.</div>
+  <div class="card">
+    <h3 style="margin-top:0">איך הקורס עובד</h3>
+    <ul>
+      <li>כל פרק כולל הסבר, דוגמאות עם כפתור <b>העתקה</b>, ובוחן קצר בסוף.</li>
+      <li>בפרק "מגרש משחקים חי" יש <b>מגרש משחקים</b>: כותבים Markdown ורואים מיד את הרינדור, כולל הדגשת תחביר ו-Mermaid.</li>
+      <li>בפרק האחרון יש אתגרים שנבדקים אוטומטית.</li>
+      <li>ההתקדמות נשמרת בדפדפן. פרק מסומן כ"הושלם" כשעונים נכון על כל הבוחן שלו.</li>
+    </ul>
+  </div>
+  <div class="callout tip"><b>למי זה מיועד?</b>מפתחים, כותבי תיעוד, מנהלי מוצר ומי שעובד עם צ'אטבוטים ורוצה שהקוד שלו ייראה ויתנהג נכון בכל מקום.</div>
+</section>
+
+<!-- ========== beginner: keyboard ========== -->
+<section class="module" data-level="מתחילים" data-title="צעד ראשון: מה זה בלוק קוד ואיך מקלידים">
+  <div class="eyebrow"></div>
+  <h1>צעד ראשון: מה זה בלוק קוד, ואיך מקלידים אותו במקלדת עברית</h1>
+  <p class="lead">לפני כל הטריקים: מה הבעיה שבלוק קוד פותר, ואיך מקלידים את התו <code>`</code> כשהמקלדת שלכם בעברית.</p>
+
+  <h2>למה בכלל צריך בלוק קוד?</h2>
+  <div class="grid2">
+    <div class="card"><b>בלי בלוק</b><p style="margin:.4em 0 0">העורך "מתקן" את הטקסט: מרכאות הופכות למרכאות מעוצבות, <code>*</code> הופך להדגשה, רווחים בתחילת שורה נמחקים, והשורות נשברות במקום הלא נכון. מי שמעתיק את הקוד מקבל שגיאות.</p></div>
+    <div class="card"><b>עם בלוק</b><p style="margin:.4em 0 0">הטקסט נשמר בדיוק כפי שנכתב, בגופן ברוחב קבוע, משמאל לימין, עם צביעה לפי שפה ובדרך כלל גם עם כפתור העתקה. הקורא יודע בדיוק מה להעתיק.</p></div>
+  </div>
+
+  <h2>איפה הגרש ההפוך (backtick) במקלדת?</h2>
+  <p>במקלדת אנגלית התו <code>`</code> נמצא במקש שמשמאל ל-<code>1</code>, מעל Tab. <b>בפריסה העברית</b> אותו מקש מקליד <code>;</code>, ולכן הרבה ישראלים "לא מוצאים" אותו.</p>
+  <table>
+    <tr><th>מערכת</th><th>הדרך המהירה</th></tr>
+    <tr><td>Windows</td><td>מחליפים לאנגלית (<code>Alt+Shift</code> או <code>Win+Space</code>), ולוחצים על המקש שמשמאל ל-1.</td></tr>
+    <tr><td>macOS</td><td>מחליפים לאנגלית (<code>Ctrl+Space</code> או מקש 🌐), ולוחצים על המקש שמשמאל ל-1 (או ליד Shift השמאלי, בחלק מהמקלדות האירופיות).</td></tr>
+    <tr><td>Android / iOS</td><td>במקלדת האנגלית: מסך הסמלים (<code>?123</code> ואז <code>=\&lt;</code>), או לחיצה ארוכה על המקש של הגרש <code>'</code>.</td></tr>
+    <tr><td>Linux</td><td>מחליפים לאנגלית (בדרך כלל <code>Alt+Shift</code> או <code>Super+Space</code>), ואז אותו מקש.</td></tr>
+  </table>
+  <div class="callout tip"><b>טריק לחיסכון בזמן</b>בכל עורך שתומך בכך (VS Code, Obsidian, Notion, Espanso, AutoHotkey), הגדירו קיצור טקסט: מקלידים <code>;;;</code> והוא הופך ל-<code>```</code>. אין צורך להחליף שפה בכלל.</div>
+
+  <h2>קיצורי מקלדת מובנים לבלוק קוד</h2>
+  <p>הרבה כלים יוצרים בלוק בלי להקליד גרשים בכלל. חלק מהקיצורים משתנים בין גרסאות, אז אם קיצור לא עובד חפשו "code block" בתפריט העזרה.</p>
+  <table>
+    <tr><th>כלי</th><th>קוד בתוך שורה</th><th>בלוק קוד</th></tr>
+    <tr><td>Slack</td><td><code>Ctrl/⌘+Shift+C</code></td><td><code>Ctrl/⌘+Alt+Shift+C</code></td></tr>
+    <tr><td>Notion</td><td><code>Ctrl/⌘+E</code></td><td>מקלידים <code>/code</code> ואז Enter</td></tr>
+    <tr><td>Google Docs</td><td>אין (משתמשים בגופן Courier)</td><td>Insert → Building blocks → Code block, או <code>@code</code></td></tr>
+    <tr><td>Microsoft Teams</td><td>טקסט בין גרשים</td><td><code>```</code> ואז Enter, או תפריט העיצוב → Code snippet</td></tr>
+    <tr><td>Confluence</td><td><code>{{טקסט}}</code></td><td><code>/code</code></td></tr>
+    <tr><td>GitHub (עורך תגובות)</td><td><code>Ctrl/⌘+E</code></td><td>מסמנים כמה שורות ולוחצים <code>Ctrl/⌘+E</code></td></tr>
+  </table>
+
+  <h2>הבלוק הראשון שלכם, שלב אחרי שלב</h2>
+  <ol>
+    <li>שורה ריקה.</li>
+    <li>שלושה גרשים הפוכים ומיד אחריהם שם השפה, בלי רווח: <code>```js</code></li>
+    <li>הקוד עצמו, בדיוק כפי שהוא.</li>
+    <li>שלושה גרשים הפוכים בשורה נפרדת.</li>
+    <li>שורה ריקה.</li>
+  </ol>
+  <div class="ex"><span class="label">התוצאה</span><pre data-copy>```js
+console.log("שלום עולם");
+```</pre></div>
+  <div class="quiz" data-quiz="kb"></div>
+</section>
+
+<!-- ========== 1 ========== -->
+<section class="module" data-level="מתחילים" data-title="יסודות: inline, גדרות והזחה">
+  <div class="eyebrow"></div>
+  <h1>היסודות שכולם מפספסים</h1>
+  <p class="lead">ב-Markdown יש שלוש דרכים להציג קוד. חשוב להבין את ההבדלים, כי כל השאר נבנה עליהם.</p>
+
+  <h2>1. קוד בתוך שורה (inline)</h2>
+  <p>עוטפים בגרש הפוך אחד (backtick). מתאים לשמות פונקציות, משתנים, פקודות קצרות ונתיבים.</p>
+  <div class="ex"><pre data-copy>הריצו את `npm install` ואז ערכו את `config.json`.</pre></div>
+
+  <h2>2. בלוק מגודר (fenced code block)</h2>
+  <p>שלושה גרשים הפוכים (או יותר) בשורה נפרדת, מיד אחריהם <b>מזהה שפה</b>, ושורת סגירה עם אותו תו. זו הדרך המומלצת כמעט תמיד.</p>
+  <div class="ex"><span class="label">Markdown</span><pre data-copy>```python
+def greet(name: str) -> str:
+    return f"Hello, {name}!"
+```</pre></div>
+  <p>אפשר להשתמש גם ב-tilde (<code>~~~</code>) במקום גרשים. זה שימושי כשהקוד עצמו מכיל גרשים הפוכים:</p>
+  <div class="ex"><pre data-copy>~~~bash
+echo "the date is `date`"
+~~~</pre></div>
+
+  <h2>3. בלוק מוזח (indented)</h2>
+  <p>ארבעה רווחים או טאב בתחילת כל שורה. זו שיטה ישנה: אין בה מזהה שפה ולכן גם אין הדגשת תחביר, והיא נשברת בקלות בתוך רשימות. עדיף להימנע ממנה.</p>
+  <div class="ex"><pre data-copy>    for i in range(3):
+        print(i)</pre></div>
+
+  <h2>כללי הגדר לפי מפרט CommonMark</h2>
+  <table>
+    <tr><th>כלל</th><th>משמעות מעשית</th></tr>
+    <tr><td>גדר פותחת = לפחות 3 תווים זהים</td><td><code>```</code> או <code>~~~</code>, אסור לערבב ביניהם.</td></tr>
+    <tr><td>גדר סוגרת ארוכה או שווה לפותחת</td><td>אם פתחתם עם 4 גרשים, 3 גרשים לא יסגרו את הבלוק.</td></tr>
+    <tr><td>עד 3 רווחי הזחה לפני הגדר</td><td>4 רווחים כבר יהפכו את השורה לבלוק מוזח.</td></tr>
+    <tr><td>"info string" אחרי הגדר הפותחת</td><td>המילה הראשונה היא השפה, ושאר הטקסט זמין לכלים (כותרת, הדגשת שורות ועוד).</td></tr>
+    <tr><td>בלי גדר סוגרת</td><td>הבלוק נמשך עד סוף המסמך. זו טעות נפוצה מאוד.</td></tr>
+  </table>
+  <div class="callout warn"><b>שורה ריקה לפני הבלוק</b>חלק מהמנועים (ובמיוחד מנועים ישנים כמו של Jira או Bitbucket) דורשים שורה ריקה לפני הגדר הפותחת. תמיד השאירו שורה ריקה לפני הבלוק ואחריו.</div>
+
+  <div class="quiz" data-quiz="1"></div>
+</section>
+
+<!-- ========== 2 ========== -->
+<section class="module" data-level="מתחילים" data-title="הדגשת תחביר ומזהי שפה">
+  <div class="eyebrow"></div>
+  <h1>הדגשת תחביר: לבחור את המזהה הנכון</h1>
+  <p class="lead">מזהה השפה קובע את הצביעה. מזהה שגוי יגרום לצביעה מבלבלת או לא תהיה צביעה בכלל. רוב הפלטפורמות משתמשות ב-Linguist (ב-GitHub), Prism, highlight.js או Shiki.</p>
+  <h2>טבלת מזהים שימושיים</h2>
+  <table>
+    <tr><th>שפה / פורמט</th><th>מזהה מומלץ</th><th>כינויים מקובלים</th></tr>
+    <tr><td>JavaScript / TypeScript</td><td><code>js</code> / <code>ts</code></td><td><code>javascript</code>, <code>typescript</code>, <code>jsx</code>, <code>tsx</code></td></tr>
+    <tr><td>Python</td><td><code>python</code></td><td><code>py</code>, <code>pycon</code> (סשן אינטראקטיבי)</td></tr>
+    <tr><td>Shell</td><td><code>bash</code></td><td><code>sh</code>, <code>zsh</code>, <code>shell</code>, <code>console</code> (פקודה + פלט)</td></tr>
+    <tr><td>PowerShell</td><td><code>powershell</code></td><td><code>ps1</code>, <code>pwsh</code></td></tr>
+    <tr><td>JSON / JSON עם הערות</td><td><code>json</code> / <code>jsonc</code></td><td><code>json5</code></td></tr>
+    <tr><td>YAML / TOML</td><td><code>yaml</code> / <code>toml</code></td><td><code>yml</code></td></tr>
+    <tr><td>HTML / CSS / SCSS</td><td><code>html</code> / <code>css</code> / <code>scss</code></td><td><code>xml</code>, <code>svg</code></td></tr>
+    <tr><td>SQL</td><td><code>sql</code></td><td><code>postgresql</code>, <code>mysql</code>, <code>plsql</code></td></tr>
+    <tr><td>Docker / Make</td><td><code>dockerfile</code> / <code>makefile</code></td><td><code>docker</code>, <code>make</code></td></tr>
+    <tr><td>שינויים בקוד</td><td><code>diff</code></td><td><code>patch</code></td></tr>
+    <tr><td>טקסט ללא צביעה</td><td><code>text</code></td><td><code>plaintext</code>, <code>txt</code>, <code>nohighlight</code></td></tr>
+  </table>
+  <h2>טריק <code>console</code> מול <code>bash</code></h2>
+  <p>כשמציגים פקודה <b>יחד עם הפלט שלה</b>, השתמשו ב-<code>console</code> (או <code>shell-session</code>). המדגיש מבין שהשורה שמתחילה ב-<code>$</code> היא פקודה, ושאר השורות הן פלט.</p>
+  <div class="ex"><pre data-copy>```console
+$ node --version
+v22.11.0
+```</pre></div>
+  <div class="callout tip"><b>תמיד ציינו שפה</b>גם אם הקוד "ברור". מזהה שפה משפר נגישות, מאפשר לכלים (לינטרים, בדיקת דוגמאות, מודלי AI) להבין את התוכן, ומונע ניחוש אוטומטי שגוי. לקוד שלא צריך צביעה כתבו <code>text</code>.</div>
+  <div class="quiz" data-quiz="2"></div>
+</section>
+
+<!-- ========== 3 ========== -->
+<section class="module" data-level="בינוני" data-title="טכניקות מתקדמות">
+  <div class="eyebrow"></div>
+  <h1>טכניקות מתקדמות</h1>
+
+  <h2>גדרות מקוננות: בלוק בתוך בלוק</h2>
+  <p>כדי להציג Markdown שמכיל בלוק קוד, הגדר החיצונית צריכה להיות <b>ארוכה יותר</b> מהפנימית. אפשרות אחרת: להשתמש בתו שונה (<code>~~~</code> מבחוץ).</p>
+  <div class="ex"><span class="label">4 גרשים מבחוץ</span><pre data-copy>````markdown
+כך כותבים בלוק פייתון:
+
+```python
+print("hi")
+```
+````</pre></div>
+
+  <h2>גרשים הפוכים בתוך קוד inline</h2>
+  <p>השתמשו ביותר גרשים מאשר יש בתוכן, עם רווח מכל צד:</p>
+  <div class="ex"><pre data-copy>`` הפקודה `ls` מציגה קבצים ``
+``` `` ```</pre></div>
+
+  <h2>בלוקים בתוך רשימות</h2>
+  <p>הבלוק חייב להיות מוזח בדיוק לעמודת התוכן של פריט הרשימה. אחרת הוא "שובר" את הרשימה והמספור מתחיל מחדש.</p>
+  <div class="ex"><pre data-copy>1. התקינו את התלויות:
+
+   ```bash
+   npm ci
+   ```
+
+2. הריצו את השרת:
+
+   ```bash
+   npm run dev
+   ```</pre></div>
+  <div class="callout"><b>כלל אצבע</b>ברשימה ממוספרת <code>1.</code> מזיחים 3 רווחים, ברשימת תבליטים <code>-</code> מזיחים 2 רווחים.</div>
+
+  <h2>בלוקי diff</h2>
+  <p>שורה שמתחילה ב-<code>+</code> נצבעת בירוק, שורה שמתחילה ב-<code>-</code> נצבעת באדום. זה מעולה לקודי ריוויו ולמדריכי שדרוג.</p>
+  <div class="ex"><pre data-copy>```diff
+ function total(items) {
+-  return items.reduce((a, b) => a + b);
++  return items.reduce((a, b) => a + b, 0);
+ }
+```</pre></div>
+  <p>ב-GitHub אפשר גם לשלב diff עם הדגשת שפה בעזרת המזהה <code>diff-js</code> או <code>diff-python</code> (נתמך ב-Prism וב-Shiki עם תוסף).</p>
+
+  <h2>Info string עשיר (מטא-דאטה)</h2>
+  <p>הטקסט אחרי מזהה השפה עובר למנוע הרינדור. מחוללי תיעוד מודרניים מנצלים אותו:</p>
+  <div class="ex"><pre data-copy>```ts title="src/server.ts" {3-5} showLineNumbers
+import express from "express";
+const app = express();
+app.get("/health", (_req, res) => {
+  res.json({ ok: true });
+});
+app.listen(3000);
+```</pre></div>
+  <p>כאן: <code>title</code> מוסיף כותרת עם שם הקובץ, <code>{3-5}</code> מדגיש את שורות 3 עד 5, ו-<code>showLineNumbers</code> מציג מספרי שורות. התחביר המדויק משתנה בין כלים, כפי שנראה בפרק "מחוללי תיעוד ומחברות".</p>
+
+  <h2>רווחים, טאבים ו-RTL</h2>
+  <ul>
+    <li>ב-YAML ובפייתון ההזחה היא חלק מהתחביר. אל תערבבו טאבים ורווחים בתוך בלוק.</li>
+    <li>במסמכים בעברית, בלוקי קוד מוצגים משמאל לימין אוטומטית ברוב הפלטפורמות. אם לא, עטפו ב-<code>&lt;div dir="ltr"&gt;</code> (ב-GitHub יש להשאיר שורה ריקה אחרי התג).</li>
+    <li>הימנעו מגרשיים "חכמים" (<code>“ ”</code>) שעורכי טקסט מכניסים, כי הם שוברים קוד שמעתיקים.</li>
+  </ul>
+  <div class="quiz" data-quiz="3"></div>
+</section>
+
+<!-- ========== 4 ========== -->
+<section class="module" data-level="בינוני" data-title="GitHub ו-GitLab לעומק">
+  <div class="eyebrow"></div>
+  <h1>GitHub ו-GitLab: יכולות שרובם לא מכירים</h1>
+
+  <h2>בלוק suggestion: הצעת שינוי בלחיצה</h2>
+  <p>בתגובה על שורה ב-Pull Request ב-GitHub, בלוק <code>suggestion</code> מוצג ככפתור "Commit suggestion". מחבר ה-PR מאשר את התיקון בלחיצה אחת.</p>
+  <div class="ex"><pre data-copy>```suggestion
+const total = items.reduce((a, b) => a + b, 0);
+```</pre></div>
+  <div class="callout tip"><b>טיפ למקצוענים</b>בחרו כמה שורות בתצוגת ה-diff (גרירה על מספרי השורות) לפני שכותבים את ההצעה, וכך התיקון יחליף את כל הטווח. אפשר גם לאסוף כמה הצעות ולבצע commit אחד בעזרת "Add suggestion to batch".</div>
+
+  <h2>דיאגרמות ומפות שמרונדרות אוטומטית</h2>
+  <div class="tabs" data-tabs="gh">
+    <button class="on">mermaid</button><button>geojson / topojson</button><button>stl</button><button>math</button>
+  </div>
+  <div class="tabpane on" data-pane="gh"><div class="ex"><pre data-copy>```mermaid
+flowchart LR
+  A[Push] --> B{CI passes?}
+  B -- yes --> C[Deploy]
+  B -- no --> D[Fix]
+  D --> A
+```</pre></div></div>
+  <div class="tabpane" data-pane="gh"><div class="ex"><pre data-copy>```geojson
+{
+  "type": "Point",
+  "coordinates": [34.7818, 32.0853]
+}
+```</pre></div><p>GitHub מציג מפה אינטראקטיבית (הדוגמה מצביעה על תל אביב).</p></div>
+  <div class="tabpane" data-pane="gh"><div class="ex"><pre data-copy>```stl
+solid cube
+  facet normal 0 0 1
+    outer loop
+      vertex 0 0 1
+      vertex 1 0 1
+      vertex 1 1 1
+    endloop
+  endfacet
+endsolid
+```</pre></div><p>מודל תלת-ממדי שאפשר לסובב בדפדפן.</p></div>
+  <div class="tabpane" data-pane="gh"><div class="ex"><pre data-copy>```math
+\sum_{i=1}^{n} i = \frac{n(n+1)}{2}
+```</pre></div><p>נוסחאות LaTeX מרונדרות בעזרת MathJax.</p></div>
+
+  <h2>Permalink לקטע קוד</h2>
+  <p>הדביקו בתגובה, ב-Issue או ב-PR קישור קבוע לשורות בקובץ (עם hash של commit). GitHub יציג את הקוד עצמו בתור בלוק חי:</p>
+  <div class="ex"><pre data-copy>https://github.com/OWNER/REPO/blob/3f2a9c1/src/app.ts#L10-L24</pre></div>
+  <p>כדי לקבל קישור כזה: לוחצים על מספר שורה, מחזיקים Shift ולוחצים על שורת הסיום, ואז מקש <code>Y</code> הופך את הקישור לקבוע.</p>
+
+  <h2>GitLab</h2>
+  <ul>
+    <li>גם GitLab תומך ב-<code>suggestion</code>, ואף מאפשר להשפיע על שורות מסביב: <code>```suggestion:-2+1</code> מחליף 2 שורות מעל ושורה אחת מתחת.</li>
+    <li>תומך ב-<code>mermaid</code>, <code>plantuml</code> ו-<code>math</code>.</li>
+    <li>בקבצי <code>.gitlab-ci.yml</code> בתיעוד, השתמשו ב-<code>yaml</code> כדי לקבל צביעה ובדיקת תחביר.</li>
+  </ul>
+
+  <h2>Collapsible: בלוק ארוך שמתקפל</h2>
+  <div class="ex"><pre data-copy>&lt;details&gt;
+&lt;summary&gt;לוג מלא של השגיאה&lt;/summary&gt;
+
+```text
+Traceback (most recent call last):
+  ...
+```
+
+&lt;/details&gt;</pre></div>
+  <div class="callout warn"><b>חובה שורות ריקות</b>בלי שורה ריקה אחרי <code>&lt;/summary&gt;</code> ולפני <code>&lt;/details&gt;</code>, ה-Markdown שבפנים לא ירונדר.</div>
+  <div class="quiz" data-quiz="4"></div>
+</section>
+
+<!-- ========== 6 ========== -->
+<section class="module" data-level="בינוני" data-title="צ'אט וכלי עבודה">
+  <div class="eyebrow"></div>
+  <h1>Slack, Discord, Teams, Notion, Obsidian ו-VS Code</h1>
+  <p class="lead">לא כל פלטפורמה מממשת Markdown מלא. הנה מה שעובד בפועל בכל אחת מהן.</p>
+  <table>
+    <tr><th>פלטפורמה</th><th>בלוק מגודר</th><th>הדגשת תחביר</th><th>הערות</th></tr>
+    <tr><td><b>Slack</b></td><td>✓ <code>```</code></td><td>✗</td><td>מזהה השפה לא נתמך ומוצג כטקסט. כדי לשתף קובץ ארוך עם צביעה השתמשו ב-"Create a text snippet" (קיצור <code>Ctrl/⌘+Shift+Enter</code>).</td></tr>
+    <tr><td><b>Discord</b></td><td>✓</td><td>✓ (highlight.js)</td><td><code>```ansi</code> מאפשר צבעים בעזרת קודי ANSI, ו-<code>```diff</code> משמש להדגשת ירוק ואדום.</td></tr>
+    <tr><td><b>Microsoft Teams</b></td><td>✓</td><td>✓ בבורר השפה</td><td>מקלידים <code>```</code> ולוחצים Enter, או בוחרים "Code snippet" בתפריט העיצוב.</td></tr>
+    <tr><td><b>Notion</b></td><td>✓ <code>```</code> ואז רווח</td><td>✓ כולל Mermaid</td><td>אפשר לבחור "Wrap code" ולהוסיף כיתוב (caption). בבלוק mermaid יש מצב "Split" שמציג קוד ותצוגה זה לצד זה.</td></tr>
+    <tr><td><b>Obsidian</b></td><td>✓</td><td>✓ (Prism)</td><td>תומך ב-mermaid ו-math. תוספים כמו Dataview משתמשים בבלוק <code>```dataview</code> כשפת שאילתות חיה.</td></tr>
+    <tr><td><b>Jira / Confluence</b></td><td>חלקי</td><td>✓</td><td>בעורך הישן התחביר הוא <code>{code:java}...{code}</code>. העורך החדש מקבל <code>```</code>.</td></tr>
+    <tr><td><b>WhatsApp / Telegram</b></td><td>✓ <code>```</code></td><td>✗ / ✓ (טלגרם)</td><td>בווטסאפ מקבלים גופן מונוספייס בלבד. בטלגרם יש צביעה לפי שפה.</td></tr>
+  </table>
+
+  <h2>Discord: צבעים עם ANSI</h2>
+  <div class="ex"><pre data-copy>```ansi
+[2;32m✔ Build passed[0m
+[2;31m✖ 2 tests failed[0m
+```</pre></div>
+  <p>בפועל לפני כל <code>[</code> יש תו Escape בלתי נראה (<code>\u001b</code>). הדרך הקלה ליצור אותו היא בעזרת מחולל טקסט ANSI ייעודי ל-Discord.</p>
+
+  <h2>VS Code: עבודה חכמה עם בלוקים</h2>
+  <ul>
+    <li><b>תצוגה מקדימה:</b> <code>Ctrl/⌘+Shift+V</code> פותח תצוגה של קובץ Markdown, כולל צביעה.</li>
+    <li><b>Snippet מותאם:</b> הוסיפו ל-<code>markdown.json</code> קטע קוד שיוצר גדר עם בחירת שפה:</li>
+  </ul>
+  <div class="ex"><pre data-copy>{
+  "Fenced code block": {
+    "prefix": "fence",
+    "body": ["```${1|bash,python,ts,json,yaml,diff|}", "$0", "```"],
+    "description": "Insert fenced code block"
+  }
+}</pre></div>
+  <ul>
+    <li><b>הגדרה נדרשת:</b> <code>"[markdown]": { "editor.quickSuggestions": { "other": "on" } }</code> מאפשרת להפעיל את ה-snippet מהשלמה אוטומטית.</li>
+    <li><b>לינט:</b> התוסף markdownlint אוכף את הכללים MD040 (חובה לציין שפה), MD031 (שורות ריקות סביב בלוק) ו-MD046 (סגנון בלוק אחיד).</li>
+  </ul>
+  <div class="quiz" data-quiz="6"></div>
+</section>
+
+<!-- ========== 5 ========== -->
+<section class="module" data-level="מתקדמים" data-title="מחוללי תיעוד ומחברות">
+  <div class="eyebrow"></div>
+  <h1>Docusaurus, MkDocs, VitePress, Jupyter ו-Quarto</h1>
+  <p class="lead">באתרי תיעוד ובמחברות, בלוק קוד הוא רכיב עשיר: אפשר להוסיף לו כותרת, להדגיש שורות, להוסיף הסברים ממוספרים ואפילו להריץ אותו.</p>
+
+  <div class="tabs" data-tabs="docs">
+    <button class="on">Docusaurus</button><button>MkDocs Material</button><button>VitePress</button><button>Jupyter</button><button>Quarto / R Markdown</button>
+  </div>
+
+  <div class="tabpane on" data-pane="docs">
+    <div class="ex"><pre data-copy>```jsx title="src/components/Hello.jsx" showLineNumbers {2}
+export default function Hello() {
+  return &lt;h1&gt;Hello&lt;/h1&gt;;
+}
+```</pre></div>
+    <p>אפשר גם להדגיש בעזרת הערות בתוך הקוד: <code>// highlight-next-line</code>, או <code>// highlight-start</code> ו-<code>// highlight-end</code>. עם הרכיב <code>&lt;Tabs&gt;</code> אפשר להציג את אותה דוגמה ב-npm, ב-yarn וב-pnpm.</p>
+  </div>
+
+  <div class="tabpane" data-pane="docs">
+    <div class="ex"><pre data-copy>``` py title="app.py" linenums="1" hl_lines="2 3"
+def main():
+    data = load()   # (1)!
+    save(data)
+```
+
+1.  `load()` reads from the cache first.</pre></div>
+    <p>ה-<b>annotations</b> (<code># (1)!</code>) הופכים לבועות הסבר אינטראקטיביות. צריך להפעיל את <code>content.code.annotate</code> ואת <code>pymdownx.superfences</code> בקובץ <code>mkdocs.yml</code>.</p>
+  </div>
+
+  <div class="tabpane" data-pane="docs">
+    <div class="ex"><pre data-copy>```ts{2,4-5} [config.ts]
+export default {
+  title: 'My Docs',
+  lang: 'he-IL',
+  dir: 'rtl', // [!code focus]
+  base: '/docs/' // [!code ++]
+}
+```</pre></div>
+    <p>VitePress מבוסס על Shiki: <code>[!code ++]</code> ו-<code>[!code --]</code> מציגים diff, <code>[!code focus]</code> מטשטש את שאר השורות, ו-<code>::: code-group</code> יוצר לשוניות.</p>
+  </div>
+
+  <div class="tabpane" data-pane="docs">
+    <p>תא Markdown במחברת Jupyter הוא Markdown רגיל, ולכן בלוקים מגודרים עובדים כרגיל. הכוח האמיתי הוא ב"פקודות קסם" בתאי קוד:</p>
+    <div class="ex"><pre data-copy>%%bash
+ls -la
+
+%%writefile utils.py
+def add(a, b):
+    return a + b
+
+%timeit sum(range(10_000))</pre></div>
+    <p><code>%%writefile</code> כותב את תוכן התא לקובץ, וכך דוגמה במחברת הופכת למודול אמיתי.</p>
+  </div>
+
+  <div class="tabpane" data-pane="docs">
+    <p>ב-Quarto וב-R Markdown, סוגריים מסולסלים סביב שם השפה הופכים את הבלוק ל<b>קוד שרץ</b> בזמן הרינדור:</p>
+    <div class="ex"><pre data-copy>```{python}
+#| echo: false
+#| fig-cap: "התפלגות מכירות"
+import matplotlib.pyplot as plt
+plt.hist([1, 2, 2, 3, 3, 3])
+```</pre></div>
+    <p>בלי סוגריים (<code>```python</code>) הבלוק מוצג בלבד ולא מורץ. אפשרויות <code>#|</code> שולטות בהצגה: <code>echo</code>, <code>eval</code>, <code>output</code> ועוד.</p>
+  </div>
+
+  <h2>השוואה מהירה: הדגשת שורות</h2>
+  <table>
+    <tr><th>כלי</th><th>תחביר</th></tr>
+    <tr><td>Docusaurus / Rehype Pretty Code</td><td><code>```js {1,3-5}</code></td></tr>
+    <tr><td>MkDocs Material</td><td><code>``` py hl_lines="1 3-5"</code></td></tr>
+    <tr><td>VitePress</td><td><code>```js{1,3-5}</code></td></tr>
+    <tr><td>Hugo</td><td><code>```go {hl_lines=[1,"3-5"]}</code></td></tr>
+    <tr><td>Astro / Expressive Code</td><td><code>```js {1, 3-5}</code></td></tr>
+  </table>
+  <div class="quiz" data-quiz="5"></div>
+</section>
+
+
+<!-- ========== 7 ========== -->
+<section class="module" data-level="מתקדמים" data-title="בלוקי קוד ובינה מלאכותית">
+  <div class="eyebrow"></div>
+  <h1>בלוקי קוד בעבודה עם Claude ומודלי שפה</h1>
+  <p class="lead">מודלי שפה קוראים וכותבים Markdown באופן טבעי. כשמשתמשים בבלוקים נכון בפרומפט, התשובות מדויקות יותר וקל יותר לעבד אותן אוטומטית.</p>
+
+  <h2>1. הפרדה בין הוראות לנתונים</h2>
+  <p>עטפו קוד, לוגים וקבצים בבלוק עם שפה, כדי שהמודל ידע בדיוק איפה הם מתחילים ונגמרים:</p>
+  <div class="ex"><pre data-copy>מצא את הבאג בפונקציה הבאה והסבר אותו במשפט אחד:
+
+```python
+def avg(xs):
+    return sum(xs) / len(xs) - 1
+```
+
+הלוג מהריצה:
+
+```text
+AssertionError: expected 2.0, got 1.0
+```</pre></div>
+
+  <h2>2. בקשת פלט שקל לחלץ</h2>
+  <p>בקשו מהמודל להחזיר את התוצאה בבלוק אחד עם שפה מוגדרת, ואז חלצו אותו בקוד:</p>
+  <div class="ex"><span class="label">Python</span><pre data-copy>import re, json
+
+FENCE = re.compile(r"^(`{3,}|~{3,})[ \t]*(\w+)?[^\n]*\n(.*?)^\1[ \t]*$",
+                   re.S | re.M)
+
+def extract_blocks(text: str, lang: str | None = None):
+    """Return the contents of every fenced block, optionally filtered by language."""
+    return [m.group(3) for m in FENCE.finditer(text)
+            if lang is None or (m.group(2) or "").lower() == lang]
+
+data = json.loads(extract_blocks(reply, "json")[0])</pre></div>
+  <p>הביטוי משתמש ב-<code>\1</code> כדי שהגדר הסוגרת תהיה בדיוק אותו רצף כמו הפותחת. זה מספיק לרוב תשובות המודלים. כדי לטפל בכל מקרי הקצה של CommonMark (למשל גדר סוגרת ארוכה מהפותחת) השתמשו בפרסר אמיתי כמו <code>markdown-it-py</code>.</p>
+  <div class="callout tip"><b>טיפ: פלט מובנה</b>אם צריך JSON אמין לחלוטין, עדיף להשתמש ביכולת structured outputs או tool use של ה-API במקום לחלץ מבלוק. בלוקים מצוינים לקוד שמיועד לבני אדם.</div>
+
+  <h2>3. תבניות פרומפט עם גדרות מקוננות</h2>
+  <p>כשהפרומפט עצמו מכיל דוגמה של Markdown, השתמשו בגדר חיצונית ארוכה יותר (כמו בפרק "טכניקות מתקדמות"), או עטפו בתגיות XML כמו <code>&lt;example&gt;</code>. מודלים כמו Claude מבינים היטב את שתי השיטות.</p>
+
+  <h2>4. Claude Code ו-Artifacts</h2>
+  <ul>
+    <li>בקבצי <code>CLAUDE.md</code> כתבו פקודות build ובדיקה בבלוק <code>bash</code>, כך הסוכן יעתיק אותן במדויק.</li>
+    <li>כשמבקשים מסוכן לערוך קוד, הדביקו את הודעת השגיאה המלאה בבלוק <code>text</code> ולא כציטוט. הסימנים הנראים ב-Stack trace חשובים.</li>
+    <li>בלוק <code>diff</code> בפרומפט הוא דרך מצוינת לתאר "מה בדיוק אני רוצה שישתנה".</li>
+  </ul>
+  <div class="quiz" data-quiz="7"></div>
+</section>
+
+<!-- ========== expert: render in your app ========== -->
+<section class="module" data-level="מומחים" data-title="הטמעת בלוקי קוד באפליקציה שלכם">
+  <div class="eyebrow"></div>
+  <h1>הטמעת בלוקי קוד באתר או באפליקציה שלכם</h1>
+  <p class="lead">כאן עוברים מצד הכותב לצד הבונה: איך לרנדר Markdown עם בלוקים יפים, מהירים, נגישים ובטוחים.</p>
+
+  <h2>בחירת מנוע הדגשה</h2>
+  <table>
+    <tr><th>מנוע</th><th>איפה רץ</th><th>חוזקה</th><th>מתי לבחור</th></tr>
+    <tr><td><b>Shiki</b></td><td>בזמן build או בשרת</td><td>אותה דקדוקיות (TextMate) כמו VS Code, צבעים מדויקים, ערכות בהירה וכהה יחד</td><td>אתרי תיעוד ובלוגים סטטיים, Next.js, Astro</td></tr>
+    <tr><td><b>Prism</b></td><td>בדפדפן או ב-build</td><td>קל, הרבה תוספים (מספרי שורות, diff, copy)</td><td>אתר קיים שרוצים לשדרג מהר</td></tr>
+    <tr><td><b>highlight.js</b></td><td>בדפדפן</td><td>זיהוי שפה אוטומטי</td><td>תוכן של משתמשים, כשהשפה לא ידועה</td></tr>
+    <tr><td><b>CodeMirror / Monaco</b></td><td>בדפדפן</td><td>עורך מלא ולא רק תצוגה</td><td>כשהקורא צריך לערוך ולהריץ</td></tr>
+  </table>
+
+  <h2>צינור מודרני: unified + rehype-pretty-code</h2>
+  <div class="ex"><span class="label">JavaScript</span><pre data-copy>import { unified } from "unified";
+import remarkParse from "remark-parse";
+import remarkRehype from "remark-rehype";
+import rehypePrettyCode from "rehype-pretty-code";
+import rehypeStringify from "rehype-stringify";
+
+const html = String(
+  await unified()
+    .use(remarkParse)
+    .use(remarkRehype)
+    .use(rehypePrettyCode, {
+      theme: { light: "github-light", dark: "github-dark" },
+    })
+    .use(rehypeStringify)
+    .process(markdown)
+);</pre></div>
+  <p>התוצאה: HTML סטטי עם צבעים מוטמעים, תמיכה ב-<code>title="..."</code> ו-<code>{1,3-5}</code>, ובלי JavaScript בצד הלקוח.</p>
+
+  <h2>שלושה דברים שכל בלוק טוב צריך</h2>
+  <h3>1. כפתור העתקה שמעתיק רק את הקוד</h3>
+  <div class="ex"><pre data-copy>document.querySelectorAll("pre &gt; code").forEach((code) =&gt; {
+  const btn = document.createElement("button");
+  btn.textContent = "Copy";
+  btn.ariaLabel = "Copy code";
+  btn.onclick = () =&gt; navigator.clipboard.writeText(code.innerText);
+  code.parentElement.append(btn);
+});</pre></div>
+  <h3>2. מספרי שורות שלא מועתקים</h3>
+  <p>הוסיפו את המספרים ב-CSS ולא בטקסט, כך הם לא נכנסים ללוח ההעתקה:</p>
+  <div class="ex"><pre data-copy>code { counter-reset: line; }
+code .line::before {
+  counter-increment: line;
+  content: counter(line);
+  display: inline-block; width: 2.5ch; margin-right: 1.5ch;
+  text-align: right; color: #6e7681;
+  user-select: none;
+}</pre></div>
+  <h3>3. נגישות</h3>
+  <ul>
+    <li>לבלוק עם גלילה אופקית תנו <code>tabindex="0"</code>, כדי שאפשר יהיה לגלול אותו מהמקלדת.</li>
+    <li>יחס ניגודיות של לפחות 4.5:1 בין צבעי הטוקנים לרקע, בשתי הערכות.</li>
+    <li>במסמך RTL: <code>dir="ltr"</code> על ה-<code>&lt;pre&gt;</code>, ו-<code>unicode-bidi: isolate</code> לקוד בתוך שורה.</li>
+  </ul>
+
+  <h2>אבטחה: בלוקים הם קלט של משתמשים</h2>
+  <div class="callout danger"><b>XSS דרך Markdown</b>אם אתם מרנדרים Markdown שמשתמשים כתבו, כל HTML גולמי, קישור <code>javascript:</code> או SVG של Mermaid הוא פתח להזרקת קוד. תמיד העבירו את הפלט דרך סניטייזר (<code>DOMPurify</code> או <code>rehype-sanitize</code>), והריצו את Mermaid עם <code>securityLevel: "strict"</code>.</div>
+  <div class="ex"><pre data-copy>import DOMPurify from "dompurify";
+container.innerHTML = DOMPurify.sanitize(marked.parse(userMarkdown));</pre></div>
+  <div class="quiz" data-quiz="app"></div>
+</section>
+
+<!-- ========== expert: APIs ========== -->
+<section class="module" data-level="מומחים" data-title="שליחת בלוקי קוד דרך API">
+  <div class="eyebrow"></div>
+  <h1>אינטגרציות דרך API: לשלוח בלוק קוד לכל פלטפורמה</h1>
+  <p class="lead">בוטים, התראות CI וסוכני AI שולחים קוד לפלטפורמות דרך API. לכל פלטפורמה יש פורמט משלה, ומה שעובד באחת נשבר בשנייה. זה הפרק שרוב המדריכים מדלגים עליו.</p>
+
+  <div class="tabs" data-tabs="api">
+    <button class="on">GitHub</button><button>Slack</button><button>Discord</button><button>Telegram</button><button>Notion</button><button>Jira</button><button>Teams</button>
+  </div>
+
+  <div class="tabpane on" data-pane="api">
+    <p>תגובה על Issue או PR היא Markdown רגיל (GFM). שימו לב ל-escaping של המחרוזת ב-JSON:</p>
+    <div class="ex"><pre data-copy>curl -X POST \
+  -H "Authorization: Bearer $GITHUB_TOKEN" \
+  -H "Accept: application/vnd.github+json" \
+  https://api.github.com/repos/OWNER/REPO/issues/42/comments \
+  -d '{"body":"Build failed:\n\n```text\nError: tests failed\n```"}'</pre></div>
+    <p>מגבלה: 65,536 תווים לתגובה. לוג ארוך יותר שלחו כקובץ Gist ותנו קישור.</p>
+  </div>
+
+  <div class="tabpane" data-pane="api">
+    <p>ב-<code>chat.postMessage</code> עם <code>mrkdwn</code>, הגדר <code>```</code> עובדת אבל מזהה השפה מוצג כטקסט. ב-Block Kit משתמשים באלמנט <code>rich_text_preformatted</code>:</p>
+    <div class="ex"><pre data-copy>{
+  "channel": "C0123456",
+  "blocks": [{
+    "type": "rich_text",
+    "elements": [{
+      "type": "rich_text_preformatted",
+      "elements": [{ "type": "text", "text": "npm ERR! code ELIFECYCLE" }]
+    }]
+  }]
+}</pre></div>
+    <p>ב-mrkdwn של Slack צריך לבצע escape רק לשלושה תווים: <code>&amp;</code>, <code>&lt;</code> ו-<code>&gt;</code>.</p>
+  </div>
+
+  <div class="tabpane" data-pane="api">
+    <p>Webhook של Discord מקבל Markdown רגיל, כולל מזהה שפה. המגבלה הקשוחה היא 2,000 תווים ל-<code>content</code> ו-4,096 ל-<code>description</code> של embed.</p>
+    <div class="ex"><pre data-copy>import requests
+
+code = open("error.log").read()[-1800:]   # stay under 2000 chars
+requests.post(WEBHOOK_URL, json={
+    "content": f"```py\n{code}\n```"
+})</pre></div>
+    <p>אם הקוד עצמו מכיל <code>```</code>, הוסיפו zero-width space ביניהם (<code>`​``</code>) כדי שהבלוק לא ייסגר באמצע.</p>
+  </div>
+
+  <div class="tabpane" data-pane="api">
+    <p>ב-<code>parse_mode: "MarkdownV2"</code> טלגרם תומך בבלוק עם שפה. בתוך בלוק קוד חייבים escape רק ל-<code>`</code> ול-<code>\</code>, אבל מחוץ לבלוק יש 18 תווים שמחייבים escape:</p>
+    <div class="ex"><pre data-copy>import re
+
+def esc_code(s: str) -&gt; str:          # inside ``` or `
+    return s.replace("\\", "\\\\").replace("`", "\\`")
+
+def esc_text(s: str) -&gt; str:          # everywhere else
+    return re.sub(r"([_*\[\]()~`&gt;#+\-=|{}.!\\])", r"\\\1", s)
+
+text = esc_text("Result:") + "\n```python\n" + esc_code(code) + "\n```"
+bot.send_message(chat_id, text, parse_mode="MarkdownV2")</pre></div>
+    <p>חלופה פשוטה יותר: <code>parse_mode: "HTML"</code> עם <code>&lt;pre&gt;&lt;code class="language-python"&gt;...&lt;/code&gt;&lt;/pre&gt;</code>, ואז צריך escape רק ל-<code>&lt; &gt; &amp;</code>.</p>
+  </div>
+
+  <div class="tabpane" data-pane="api">
+    <p>ב-Notion API בלוק קוד הוא אובייקט עם <code>language</code> מתוך רשימה סגורה. כל <code>rich_text</code> מוגבל ל-2,000 תווים, אז קוד ארוך מפצלים לכמה מקטעים:</p>
+    <div class="ex"><pre data-copy>{
+  "object": "block",
+  "type": "code",
+  "code": {
+    "language": "python",
+    "caption": [{ "type": "text", "text": { "content": "app.py" } }],
+    "rich_text": [{ "type": "text", "text": { "content": "print('hi')" } }]
+  }
+}</pre></div>
+    <p>שמות השפות של Notion לא תמיד זהים ל-Markdown: למשל <code>"plain text"</code> במקום <code>text</code> ו-<code>"shell"</code> במקום <code>sh</code>. בנו טבלת המרה.</p>
+  </div>
+
+  <div class="tabpane" data-pane="api">
+    <p>ב-Jira Cloud (API v3) התוכן נכתב ב-Atlassian Document Format ולא ב-Markdown:</p>
+    <div class="ex"><pre data-copy>{
+  "body": {
+    "type": "doc", "version": 1,
+    "content": [{
+      "type": "codeBlock",
+      "attrs": { "language": "java" },
+      "content": [{ "type": "text", "text": "System.out.println(1);" }]
+    }]
+  }
+}</pre></div>
+    <p>ב-API v2 (וב-Jira Server) עדיין משתמשים ב-wiki markup: <code>{code:java}...{code}</code>.</p>
+  </div>
+
+  <div class="tabpane" data-pane="api">
+    <p>ב-Adaptive Cards של Teams יש אלמנט <code>CodeBlock</code> ייעודי עם הדגשה ומספרי שורות:</p>
+    <div class="ex"><pre data-copy>{
+  "type": "AdaptiveCard",
+  "version": "1.5",
+  "body": [{
+    "type": "CodeBlock",
+    "language": "Python",
+    "codeSnippet": "def add(a, b):\n    return a + b",
+    "startLineNumber": 1
+  }]
+}</pre></div>
+  </div>
+
+  <h2>שכבת המרה אחת לכל הפלטפורמות</h2>
+  <p>הטריק של מערכות התראות מקצועיות: שומרים את התוכן פעם אחת כמבנה נתונים (שפה + קוד), וכותבים "מתאם" לכל יעד:</p>
+  <div class="ex"><span class="label">Python</span><pre data-copy>from dataclasses import dataclass
+
+@dataclass
+class CodeBlock:
+    code: str
+    lang: str = "text"
+
+    def to_markdown(self) -&gt; str:          # GitHub, GitLab, Discord
+        fence = "`" * max(3, longest_backtick_run(self.code) + 1)
+        return f"{fence}{self.lang}\n{self.code}\n{fence}"
+
+    def to_slack(self) -&gt; dict:            # Block Kit
+        return {"type": "rich_text", "elements": [{
+            "type": "rich_text_preformatted",
+            "elements": [{"type": "text", "text": self.code}]}]}
+
+    def to_notion(self) -&gt; dict:
+        chunks = [self.code[i:i + 2000] for i in range(0, len(self.code), 2000)]
+        return {"type": "code", "code": {
+            "language": NOTION_LANGS.get(self.lang, "plain text"),
+            "rich_text": [{"type": "text", "text": {"content": c}} for c in chunks]}}
+
+def longest_backtick_run(s: str) -&gt; int:
+    import re
+    return max((len(m) for m in re.findall(r"`+", s)), default=0)</pre></div>
+  <div class="callout tip"><b>הפרט הקטן שעושה את ההבדל</b><code>to_markdown</code> מחשב את אורך הגדר לפי רצף הגרשים הארוך ביותר בקוד. כך הבלוק לעולם לא נשבר, גם אם הקוד עצמו מכיל <code>```</code>.</div>
+  <div class="quiz" data-quiz="api"></div>
+</section>
+
+<!-- ========== expert: tested docs ========== -->
+<section class="module" data-level="מומחים" data-title="תיעוד שרץ ונבדק (Docs as Code)">
+  <div class="eyebrow"></div>
+  <h1>תיעוד שרץ ונבדק: דוגמאות קוד שלא מתיישנות</h1>
+  <p class="lead">הבעיה הכי נפוצה בתיעוד היא דוגמת קוד שהפסיקה לעבוד לפני שנתיים. הפתרון: להתייחס לבלוקים כאל קוד אמיתי שנבדק ב-CI.</p>
+
+  <h2>1. בדיקת הבלוקים עצמם</h2>
+  <div class="tabs" data-tabs="dt">
+    <button class="on">Python</button><button>Rust</button><button>Go</button><button>Node / כללי</button>
+  </div>
+  <div class="tabpane on" data-pane="dt">
+    <p>pytest יכול להריץ דוגמאות בסגנון doctest (<code>&gt;&gt;&gt;</code>) מתוך קבצי Markdown:</p>
+    <div class="ex"><pre data-copy>```pycon
+&gt;&gt;&gt; from mylib import add
+&gt;&gt;&gt; add(2, 3)
+5
+```</pre></div>
+    <div class="ex"><pre data-copy>pytest --doctest-glob="*.md" docs/</pre></div>
+    <p>לבלוקי <code>```python</code> רגילים יש את התוסף <code>pytest-markdown-docs</code>, שמריץ כל בלוק כבדיקה.</p>
+  </div>
+  <div class="tabpane" data-pane="dt">
+    <p>ב-Rust כל בלוק בתיעוד (<code>///</code>) הוא בדיקה כברירת מחדל, ו-<code>cargo test</code> מריץ אותו. ה-info string שולט בהתנהגות:</p>
+    <table>
+      <tr><th>מזהה</th><th>משמעות</th></tr>
+      <tr><td><code>```rust</code></td><td>מקמפל ומריץ</td></tr>
+      <tr><td><code>```no_run</code></td><td>מקמפל בלבד, לא מריץ (למשל קוד רשת)</td></tr>
+      <tr><td><code>```should_panic</code></td><td>הבדיקה עוברת רק אם הקוד קורס</td></tr>
+      <tr><td><code>```compile_fail</code></td><td>מוכיח שקוד שגוי לא מתקמפל</td></tr>
+      <tr><td><code>```ignore</code></td><td>מדלג</td></tr>
+    </table>
+    <p>שורה שמתחילה ב-<code># </code> בתוך הבלוק רצה, אבל מוסתרת מהקורא. כך מסתירים קוד הכנה.</p>
+  </div>
+  <div class="tabpane" data-pane="dt">
+    <p>ב-Go דוגמאות נכתבות כפונקציות <code>Example</code>. הן מופיעות בתיעוד ב-pkg.go.dev, ו-<code>go test</code> משווה את הפלט להערת <code>// Output:</code>:</p>
+    <div class="ex"><pre data-copy>func ExampleAdd() {
+	fmt.Println(Add(2, 3))
+	// Output: 5
+}</pre></div>
+  </div>
+  <div class="tabpane" data-pane="dt">
+    <ul>
+      <li><b>Runme</b>: הופך את README לנוטבוק שאפשר להריץ ממנו כל בלוק <code>bash</code>, וגם ב-CI.</li>
+      <li><b>markdown-magic / embedme</b>: מסנכרנים בלוק בתיעוד עם קובץ קוד אמיתי במאגר.</li>
+      <li><b>Expressive Code / Codapi</b>: הופכים בלוק לבלוק שאפשר להריץ בדפדפן.</li>
+    </ul>
+  </div>
+
+  <h2>2. מקור אמת אחד: לייבא קוד במקום להעתיק</h2>
+  <p>במקום להדביק קוד בתיעוד, מייבאים אותו מקובץ שנבדק בטסטים:</p>
+  <div class="ex"><span class="label">MkDocs (pymdownx.snippets)</span><pre data-copy>```python
+--8&lt;-- "examples/quickstart.py"
+```</pre></div>
+  <div class="ex"><span class="label">Docusaurus (MDX)</span><pre data-copy>import CodeBlock from "@theme/CodeBlock";
+import Source from "!!raw-loader!../examples/quickstart.py";
+
+&lt;CodeBlock language="python" title="quickstart.py"&gt;{Source}&lt;/CodeBlock&gt;</pre></div>
+
+  <h2>3. לינט ב-CI</h2>
+  <div class="ex"><span class="label">.github/workflows/docs.yml</span><pre data-copy>name: docs
+on: [pull_request]
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DavidAnson/markdownlint-cli2-action@v16
+        with:
+          globs: "**/*.md"
+      - run: pip install pytest &amp;&amp; pytest --doctest-glob="*.md" docs/</pre></div>
+  <div class="ex"><span class="label">.markdownlint.jsonc</span><pre data-copy>{
+  "MD040": true,                          // every fence has a language
+  "MD031": true,                          // blank lines around fences
+  "MD046": { "style": "fenced" },         // no indented code blocks
+  "MD048": { "style": "backtick" }        // ``` rather than ~~~
+}</pre></div>
+  <div class="quiz" data-quiz="test"></div>
+</section>
+
+<!-- ========== 8 ========== -->
+<section class="module" data-level="תרגול" data-title="מגרש משחקים חי">
+  <div class="eyebrow"></div>
+  <h1>מגרש משחקים חי</h1>
+  <p class="lead">כתבו Markdown בעורך הכהה וראו את התוצאה מיד בחלון התצוגה. התצוגה תומכת בהדגשת תחביר וב-Mermaid. התחילו מתבנית מוכנה:</p>
+  <div class="preset-row" id="presets"></div>
+  <div class="play">
+    <textarea id="mdIn" spellcheck="false" aria-label="Markdown input"></textarea>
+    <div class="preview" id="mdOut"></div>
+  </div>
+  <div class="callout"><b>שימו לב</b>התצוגה משתמשת ב-marked ו-highlight.js, שמתנהגים כמו רוב הפלטפורמות. תכונות ייחודיות כמו <code>suggestion</code> או <code>{1,3}</code> מוצגות כאן כבלוק רגיל.</div>
+</section>
+
+<!-- ========== 9 ========== -->
+<section class="module" data-level="מבחן גמר" data-title="אתגרים ושיטות עבודה">
+  <div class="eyebrow"></div>
+  <h1>אתגרים מעשיים</h1>
+  <p class="lead">כל אתגר נבדק אוטומטית. כשכל הבדיקות עוברות, האתגר מסומן כהושלם.</p>
+  <div id="challenges"></div>
+
+  <h2>צ'קליסט מקצועי לכל בלוק קוד</h2>
+  <div class="card">
+    <ol>
+      <li>יש מזהה שפה, ו-<code>text</code> כשאין צביעה.</li>
+      <li>יש שורה ריקה לפני הבלוק ואחריו.</li>
+      <li>הגדר הסוגרת קיימת ואורכה לפחות כאורך הפותחת.</li>
+      <li>הקוד ניתן להעתקה ולהרצה: בלי <code>$</code> בבלוק <code>bash</code>, בלי גרשיים חכמים ובלי <code>...</code> באמצע.</li>
+      <li>בפקודה עם פלט משתמשים ב-<code>console</code>. בפקודה להעתקה משתמשים ב-<code>bash</code>.</li>
+      <li>בלוק ארוך (מעל 30 שורות) מתקפל בתוך <code>&lt;details&gt;</code>, או שמקצרים אותו.</li>
+      <li>שם קובץ (<code>title</code>) והדגשת שורות כשהכלי תומך בהם.</li>
+      <li>אין סודות! מחליפים טוקנים ב-<code>&lt;YOUR_API_KEY&gt;</code>.</li>
+    </ol>
+  </div>
+  <div class="callout danger"><b>אבטחה</b>כל בלוק קוד שמתפרסם (ב-Issue, בצ'אט או בתיעוד) עלול להישמר ולהיסרק גם אם מוחקים אותו אחר כך. לפני שמדביקים לוג, עברו עליו וחפשו מפתחות, כתובות פנימיות ופרטים אישיים.</div>
+  <div class="quiz" data-quiz="9"></div>
+</section>
+
+<div class="navbtns">
+  <button class="btn" id="prevBtn">→ הפרק הקודם</button>
+  <button class="btn primary" id="nextBtn">הפרק הבא ←</button>
+</div>
+</main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+(function(){
+const BT = "`", F = BT + BT + BT;
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+const KEY = "cbm-progress-v2";
+let done = store.get(KEY, {});
+const modules = [...document.querySelectorAll(".module")];
+const toc = document.getElementById("toc");
+let current = Math.min(store.get("cbm-current", 0), modules.length - 1);
+modules.forEach((m,i)=>{ const e = m.querySelector(".eyebrow"); if(e) e.textContent = "פרק " + i + " · " + m.dataset.level; });
+
+// ---------- quizzes ----------
+const QUIZ = {
+  1: [
+    {q:"פתחתם בלוק עם 4 גרשים הפוכים. מה יסגור אותו?", o:["3 גרשים","4 גרשים או יותר","4 טילדות","כל שורה ריקה"], a:1, w:"הגדר הסוגרת חייבת להיות מאותו תו ובאורך שווה או גדול יותר."},
+    {q:"למה עדיף בלוק מגודר על פני בלוק מוזח?", o:["הוא מהיר יותר לרינדור","אפשר לציין בו שפה, והוא יציב בתוך רשימות","בלוק מוזח לא נתמך ב-GitHub","אין הבדל"], a:1, w:"בבלוק מוזח אין info string, ולכן אין הדגשה, והוא מתנגש עם הזחה של רשימות."},
+    {q:"מה קורה אם שוכחים את הגדר הסוגרת?", o:["שגיאת רינדור","הבלוק נסגר אוטומטית בשורה הריקה הבאה","כל שאר המסמך הופך לקוד","הגדר הפותחת מוצגת כטקסט"], a:2, w:"לפי CommonMark, בלוק פתוח נמשך עד סוף המסמך."}
+  ],
+  2: [
+    {q:"איזה מזהה מתאים להצגת פקודה יחד עם הפלט שלה?", o:["bash","console","text","output"], a:1, w:"console (או shell-session) מבחין בין שורת $ לבין שורות פלט."},
+    {q:"מה המזהה המומלץ לבלוק בלי צביעה?", o:["להשאיר ריק","none","text","raw"], a:2, w:"text מבטא כוונה מפורשת ומונע ניחוש אוטומטי שגוי."},
+    {q:"איזה מזהה יתאים לקובץ tsconfig.json עם הערות?", o:["json","jsonc","js","yaml"], a:1, w:"JSON רגיל לא מתיר הערות, ולכן jsonc יציג אותן בלי סימון שגיאה."}
+  ],
+  3: [
+    {q:"איך מציגים בלוק Markdown שמכיל בתוכו בלוק עם 3 גרשים?", o:["מוסיפים \\ לפני כל גרש","גדר חיצונית של 4 גרשים או ~~~","אי אפשר","עוטפים ב-<pre>"], a:1, w:"גדר חיצונית ארוכה יותר, או מתו אחר, לא נסגרת על ידי הגדר הפנימית."},
+    {q:"בתוך פריט ברשימה '1.' כמה רווחים מזיחים את הבלוק?", o:["0","2","3","8"], a:2, w:"צריך ליישר לעמודת התוכן של הפריט, ואחרי '1. ' זה 3 תווים."},
+    {q:"מה עושה {3-5} ב-info string ב-Docusaurus?", o:["מסתיר שורות 3-5","מדגיש שורות 3-5","מריץ שורות 3-5","מתחיל מספור מ-3"], a:1, w:"זו הדגשת טווח שורות. התחביר המדויק משתנה בין כלים."}
+  ],
+  4: [
+    {q:"מה מיוחד בבלוק suggestion בתגובה על PR ב-GitHub?", o:["הוא נצבע בצהוב","הוא מאפשר commit של התיקון בלחיצה","הוא מריץ את הקוד","הוא שולח מייל לבודק"], a:1, w:"GitHub מציג כפתור Commit suggestion, ואפשר גם לאסוף כמה הצעות ל-commit אחד."},
+    {q:"איזה מזהה יציג ב-GitHub מפה אינטראקטיבית?", o:["map","geojson","leaflet","gps"], a:1, w:"GitHub מרנדר geojson ו-topojson כמפה."},
+    {q:"מה הופך קישור לשורות קוד ב-GitHub לקבוע (permalink)?", o:["מקש Y","מקש P","הוספת ?raw=1","אין דרך"], a:0, w:"Y מחליף את שם הענף ב-hash של ה-commit."}
+  ],
+  5: [
+    {q:"ב-Quarto, מה ההבדל בין ```python ל-```{python}?", o:["אין הבדל","הגרסה עם סוגריים מסולסלים מורצת בזמן הרינדור","הגרסה עם סוגריים מסולסלים מוסתרת","הגרסה עם סוגריים מסולסלים היא Python 2"], a:1, w:"הסוגריים המסולסלים הופכים את הבלוק ל-chunk שמורץ."},
+    {q:"באיזה כלי '[!code ++]' בתוך הקוד מסמן שורה שנוספה?", o:["MkDocs","VitePress / Shiki","Jupyter","Slack"], a:1, w:"זו תכונה של Shiki transformers, ש-VitePress משתמש בהם."},
+    {q:"מה עושה %%writefile בתא Jupyter?", o:["שומר את המחברת","כותב את תוכן התא לקובץ","מדפיס קובץ","מוחק קובץ"], a:1, w:"פקודת הקסם הזו כותבת את גוף התא לקובץ בשם שציינתם."}
+  ],
+  6: [
+    {q:"ב-Slack, מה קורה למזהה השפה אחרי ```?", o:["הקוד נצבע","המזהה מוצג כטקסט רגיל, בלי צביעה","ההודעה נדחית","Slack ממיר ל-snippet"], a:1, w:"Slack לא תומך בהדגשה בבלוקים. לשם כך יש text snippets."},
+    {q:"איזה בלוק ב-Discord מאפשר טקסט צבעוני חופשי?", o:["```color","```ansi","```rgb","```css"], a:1, w:"Discord מפרש קודי Escape של ANSI בבלוק ansi."},
+    {q:"איזה כלל של markdownlint מחייב לציין שפה?", o:["MD001","MD013","MD040","MD099"], a:2, w:"MD040: fenced-code-language."}
+  ],
+  7: [
+    {q:"למה כדאי לעטוף לוג שגיאה בבלוק text בפרומפט?", o:["זה מקצר את הטוקנים","זה מפריד בבירור נתונים מהוראות ושומר על התווים המדויקים","המודל לא קורא טקסט רגיל","חובה לפי ה-API"], a:1, w:"בלוק מגדיר גבולות ברורים ומונע פירוש של תווים כמו * או _ כעיצוב."},
+    {q:"מה תפקיד \\1 בביטוי הרגולרי לחילוץ בלוקים?", o:["מספר את הבלוקים","מוודא שהגדר הסוגרת תואמת לפותחת","מסנן לפי שפה","מסיר רווחים"], a:1, w:"הפניה לאחור (backreference) לקבוצה הראשונה, כלומר לרצף הגדר."},
+    {q:"כשצריך JSON אמין לחלוטין מ-API של מודל, מה עדיף?", o:["לחלץ מבלוק json","structured outputs או tool use","לבקש יפה","לחפש סוגריים מסולסלים"], a:1, w:"פלט מובנה מבטיח עמידה בסכמה, בלי פרסינג שביר."}
+  ],
+  kb: [
+    {q:"מה מקליד במקלדת בפריסה עברית המקש שמשמאל ל-1?", o:["`","; (נקודה-פסיק)","ק","שום דבר"], a:1, w:"בפריסה העברית המקש הזה מקליד ;, ולכן צריך לעבור לאנגלית כדי לקבל `."},
+    {q:"מה הבעיה העיקרית בהדבקת קוד בלי בלוק?", o:["הוא נראה פחות יפה","העורך משנה תווים (מרכאות, *, רווחים) והקוד נשבר","הוא לוקח יותר מקום","אין בעיה"], a:1, w:"עיצוב אוטומטי משנה תווים, ומי שמעתיק מקבל קוד שגוי."},
+    {q:"איך יוצרים בלוק קוד ב-Notion בלי גרשים?", o:["Ctrl+B","/code ואז Enter","Ctrl+K","אי אפשר"], a:1, w:"פקודת הסלאש /code יוצרת בלוק קוד."}
+  ],
+  app: [
+    {q:"איזה מנוע משתמש באותם דקדוקים כמו VS Code ומתאים לרינדור בזמן build?", o:["highlight.js","Shiki","Prism","Monaco"], a:1, w:"Shiki משתמש בדקדוקי TextMate ומפיק HTML סטטי."},
+    {q:"איך מוסיפים מספרי שורות שלא נכנסים להעתקה?", o:["כותבים אותם בטקסט","CSS counters עם user-select: none","טבלה","תמונה"], a:1, w:"המספרים נוצרים ב-::before ולא חלק מטקסט הקוד."},
+    {q:"מרנדרים Markdown של משתמשים. מה חובה?", o:["להשתמש ב-highlight.js","להעביר את הפלט דרך סניטייזר כמו DOMPurify","לכבות Mermaid","להסיר את כל הבלוקים"], a:1, w:"HTML גולמי וקישורי javascript: עלולים לגרום ל-XSS."}
+  ],
+  api: [
+    {q:"מה קורה למזהה השפה בבלוק ``` שנשלח ל-Slack?", o:["נצבע","מוצג כטקסט בלי צביעה","נמחק בשקט","ההודעה נדחית"], a:1, w:"Slack לא מדגיש תחביר. בשביל מבנה מסודר משתמשים ב-rich_text_preformatted."},
+    {q:"ב-Telegram MarkdownV2, אילו תווים חייבים escape בתוך בלוק קוד?", o:["כל 18 התווים","רק ` ו-\\","אף תו","רק *"], a:1, w:"בתוך pre/code מספיק לבצע escape ל-` ול-\\. מחוץ לבלוק צריך escape לרשימה ארוכה של תווים."},
+    {q:"איך מבטיחים שבלוק Markdown לא יישבר כשהקוד עצמו מכיל ```?", o:["מוחקים את הגרשים","גדר ארוכה ברצף אחד יותר מהרצף הארוך בקוד","שולחים כתמונה","מוסיפים רווח בסוף"], a:1, w:"גדר באורך max(3, הרצף הארוך + 1) לעולם לא נסגרת על ידי התוכן."}
+  ],
+  test: [
+    {q:"ב-Rust, מה עושה ```no_run בתיעוד?", o:["לא מקמפל","מקמפל אבל לא מריץ","מריץ פעמיים","מסתיר את הבלוק"], a:1, w:"no_run מוודא שהקוד מתקמפל בלי להריץ אותו, מה שמתאים לקוד עם רשת או קבצים."},
+    {q:"איזה כלל markdownlint אוסר בלוקים מוזחים כשמגדירים style: fenced?", o:["MD040","MD046","MD031","MD013"], a:1, w:"MD046 (code-block-style)."},
+    {q:"מה היתרון של ייבוא קוד מקובץ (snippets או raw-loader) במקום הדבקה?", o:["טעינה מהירה","מקור אמת אחד שנבדק בטסטים","צבעים יפים יותר","אין יתרון"], a:1, w:"הקוד בתיעוד הוא הקוד שרץ בבדיקות, ולכן הוא לא מתיישן."}
+  ],
+  9: [
+    {q:"איזה בלוק הכי מתאים להעתקה ישירה לטרמינל?", o:["```console עם $","```bash בלי $","```text","בלוק מוזח"], a:1, w:"$ בתחילת שורה נכשל כשמדביקים בטרמינל. console מתאים להצגה בלבד."},
+    {q:"מה עושים עם מפתח API שמופיע בלוג שרוצים לשתף?", o:["משאירים, כי הבלוק פרטי","מחליפים ב-placeholder כמו <YOUR_API_KEY>","מצבעים באדום","מוחקים אחרי יום"], a:1, w:"תוכן שפורסם עלול להישמר במטמון גם אחרי מחיקה. במקרה כזה צריך גם להחליף את המפתח."},
+    {q:"בלוק של 200 שורות ב-Issue. מה הפתרון הכי נכון?", o:["להשאיר","לעטוף ב-<details> או לקשר ל-permalink או gist","לפצל ל-20 תגובות","להמיר לתמונה"], a:1, w:"מתקפל או קישור שומרים על קריאות הדיון, בלי לאבד את המידע."}
+  ]
+};
+
+function renderQuiz(el){
+  const id = el.dataset.quiz, qs = QUIZ[id]; if(!qs) return;
+  el.innerHTML = '<h2>בוחן</h2>' + qs.map((x,i)=>
+    '<div class="q" data-i="'+i+'"><b>'+(i+1)+'. '+esc(x.q)+'</b><div class="opts">'+
+    x.o.map((o,j)=>'<label><input type="radio" name="q'+id+'_'+i+'" value="'+j+'"> <span>'+esc(o)+'</span></label>').join("")+
+    '</div><div class="why">'+esc(x.w)+'</div></div>').join("") + '<div class="result" aria-live="polite"></div>';
+  el.addEventListener("change", e=>{
+    const qd = e.target.closest(".q"); if(!qd) return;
+    const x = qs[+qd.dataset.i], pick = +e.target.value;
+    qd.classList.add("answered");
+    qd.querySelectorAll("label").forEach((l,j)=>{ l.classList.toggle("right", j===x.a); l.classList.toggle("wrong", j===pick && pick!==x.a); });
+    qd.dataset.ok = pick===x.a ? "1" : "0";
+    const answered = el.querySelectorAll(".q.answered").length, ok = el.querySelectorAll('.q[data-ok="1"]').length;
+    const r = el.querySelector(".result");
+    if(answered === qs.length){
+      r.textContent = ok===qs.length ? "מצוין! " + ok + "/" + qs.length + " · הפרק הושלם ✓" : ok + "/" + qs.length + " · נסו שוב את השאלות השגויות";
+      if(ok===qs.length) markDone(modules.indexOf(el.closest(".module")));
+    }
+  });
+}
+function esc(s){ return String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+// ---------- nav & progress ----------
+function buildToc(){
+  let grp = "";
+  toc.innerHTML = modules.map((m,i)=>(m.dataset.level!==grp ? '<li class="grp">'+esc(grp=m.dataset.level)+'</li>' : '')+'<li class="'+(done[i]?"done":"")+'"><button data-i="'+i+'" class="'+(i===current?"active":"")+'"><span class="num">'+(done[i]?"✓":i)+'</span>'+esc(m.dataset.title)+'</button></li>').join("");
+  const n = Object.keys(done).length, pct = Math.round(n / modules.length * 100);
+  document.getElementById("pbar").style.width = pct + "%";
+  document.getElementById("plabel").textContent = pct + "% הושלם · " + n + "/" + modules.length + " פרקים";
+}
+function show(i){
+  current = Math.max(0, Math.min(modules.length-1, i));
+  modules.forEach((m,j)=>m.classList.toggle("active", j===current));
+  if(current===0) markDone(0, true);
+  store.set("cbm-current", current);
+  buildToc();
+  document.getElementById("prevBtn").style.visibility = current ? "visible" : "hidden";
+  document.getElementById("nextBtn").style.visibility = current < modules.length-1 ? "visible" : "hidden";
+  document.getElementById("side").classList.remove("open");
+  window.scrollTo({top:0});
+  if(modules[current].dataset.title === "מגרש משחקים חי"){ markDone(current, true); render(); }
+}
+function markDone(i, silent){ if(!done[i]){ done[i]=1; store.set(KEY, done); buildToc(); } }
+toc.addEventListener("click", e=>{ const b = e.target.closest("button"); if(b) show(+b.dataset.i); });
+document.getElementById("prevBtn").onclick = ()=>show(current-1);
+document.getElementById("nextBtn").onclick = ()=>show(current+1);
+document.getElementById("menuBtn").onclick = ()=>document.getElementById("side").classList.toggle("open");
+document.getElementById("resetBtn").onclick = ()=>{ if(confirm("לאפס את כל ההתקדמות?")){ done={}; store.set(KEY, done); location.reload(); } };
+document.getElementById("themeBtn").onclick = ()=>{
+  const r = document.documentElement, dark = r.dataset.theme ? r.dataset.theme==="dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  r.dataset.theme = dark ? "light" : "dark"; store.set("cbm-theme", r.dataset.theme);
+};
+const savedTheme = store.get("cbm-theme", null); if(savedTheme) document.documentElement.dataset.theme = savedTheme;
+
+// ---------- copy buttons ----------
+document.querySelectorAll("pre[data-copy]").forEach(pre=>{
+  const b = document.createElement("button"); b.className="copy"; b.textContent="העתקה";
+  b.onclick = async ()=>{
+    try{ await navigator.clipboard.writeText(pre.textContent); b.textContent="הועתק ✓"; }
+    catch(e){ const r=document.createRange(); r.selectNodeContents(pre); const s=getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent="סמנו ו-Ctrl+C"; }
+    setTimeout(()=>b.textContent="העתקה", 1500);
+  };
+  pre.parentElement.appendChild(b);
+});
+
+// ---------- tabs ----------
+document.querySelectorAll("[data-tabs]").forEach(t=>{
+  const key = t.dataset.tabs, panes = document.querySelectorAll('[data-pane="'+key+'"]');
+  t.querySelectorAll("button").forEach((b,i)=>b.onclick=()=>{
+    t.querySelectorAll("button").forEach(x=>x.classList.toggle("on", x===b));
+    panes.forEach((p,j)=>p.classList.toggle("on", j===i));
+  });
+});
+
+// ---------- playground ----------
+const PRESETS = {
+  "בסיס": "# Hello code blocks\n\nInline: `const x = 1`\n\n"+F+"python\ndef fib(n):\n    a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n    return a\n"+F+"\n",
+  "diff": "## Fix off-by-one\n\n"+F+"diff\n function total(items) {\n-  return items.reduce((a, b) => a + b);\n+  return items.reduce((a, b) => a + b, 0);\n }\n"+F+"\n",
+  "מקונן": BT+F+"markdown\nThis is how you write a block:\n\n"+F+"bash\nnpm run build\n"+F+"\n"+BT+F+"\n",
+  "Mermaid": F+"mermaid\nsequenceDiagram\n  participant U as User\n  participant C as Claude\n  U->>C: prompt + code block\n  C-->>U: answer in fenced block\n"+F+"\n",
+  "רשימה": "1. Install:\n\n   "+F+"bash\n   npm ci\n   "+F+"\n\n2. Run:\n\n   "+F+"bash\n   npm run dev\n   "+F+"\n",
+  "console": F+"console\n$ git status\nOn branch main\nnothing to commit, working tree clean\n"+F+"\n"
+};
+const mdIn = document.getElementById("mdIn"), mdOut = document.getElementById("mdOut");
+const pr = document.getElementById("presets");
+Object.keys(PRESETS).forEach(k=>{ const b=document.createElement("button"); b.className="btn"; b.textContent=k; b.onclick=()=>{ mdIn.value=PRESETS[k]; render(); }; pr.appendChild(b); });
+mdIn.value = store.get("cbm-play", PRESETS["בסיס"]);
+let mermaidReady = false;
+if(window.mermaid){ try{ mermaid.initialize({startOnLoad:false, securityLevel:"strict", theme:"default"}); mermaidReady = true; }catch(e){} }
+if(window.marked){
+  // raw HTML in the playground is shown as text, never injected
+  marked.use({ renderer:{ html:(html)=>esc(html) } });
+  marked.setOptions({ gfm:true, headerIds:false, mangle:false, highlight:(code, lang)=>{
+    if(!window.hljs) return esc(code);
+    if(lang && hljs.getLanguage(lang)) return hljs.highlight(code, {language:lang}).value;
+    return hljs.highlightAuto(code).value;
+  }});
+}
+let mermaidCount = 0;
+function render(){
+  store.set("cbm-play", mdIn.value);
+  if(!window.marked){ mdOut.textContent = "לא ניתן לטעון את מנוע הרינדור (נדרש חיבור לאינטרנט)."; return; }
+  mdOut.innerHTML = marked.parse(mdIn.value);
+  mdOut.querySelectorAll("pre code").forEach(c=>c.classList.add("hljs"));
+  mdOut.querySelectorAll("code.language-mermaid").forEach(async c=>{
+    const src = c.textContent, holder = document.createElement("div"); holder.className="mermaid";
+    c.parentElement.replaceWith(holder);
+    if(!mermaidReady){ holder.textContent = src; return; }
+    try{ const out = await mermaid.render("mmd"+(++mermaidCount), src); holder.innerHTML = out.svg; }
+    catch(e){ holder.textContent = "Mermaid error: " + (e.message||e); }
+  });
+}
+let t; mdIn.addEventListener("input", ()=>{ clearTimeout(t); t=setTimeout(render, 200); });
+mdIn.addEventListener("keydown", e=>{ if(e.key==="Tab"){ e.preventDefault(); const s=mdIn.selectionStart; mdIn.setRangeText("  ", s, mdIn.selectionEnd, "end"); } });
+
+// ---------- challenges ----------
+const CH = [
+  { t:"אתגר 1: בלוק פייתון תקין",
+    d:"כתבו בלוק מגודר עם מזהה python שמכיל פונקציה (def) ונסגר כראוי.",
+    start:"",
+    tests:[
+      ["פתיחה עם ```python", s=>/^```python[ \t]*$/m.test(s)],
+      ["מכיל def", s=>/^```python[\s\S]*\bdef\s+\w+\(/m.test(s)],
+      ["הבלוק נסגר", s=>/^```python[^\n]*\n[\s\S]*?\n```[ \t]*$/m.test(s)]
+    ]},
+  { t:"אתגר 2: diff לקוד ריוויו",
+    d:"כתבו בלוק diff שמכיל לפחות שורה אחת שהוסרה (-) ושורה אחת שנוספה (+).",
+    start:"",
+    tests:[
+      ["פתיחה עם ```diff", s=>/^```diff[ \t]*$/m.test(s)],
+      ["שורה שמתחילה ב- ‎-", s=>{ const b=block(s,"diff"); return b!=null && /^-(?!--)/m.test(b); }],
+      ["שורה שמתחילה ב- ‎+", s=>{ const b=block(s,"diff"); return b!=null && /^\+(?!\+\+)/m.test(b); }],
+      ["הבלוק נסגר", s=>block(s,"diff")!=null]
+    ]},
+  { t:"אתגר 3: גדר מקוננת",
+    d:"הציגו בלוק markdown (עם 4 גרשים מבחוץ) שבתוכו בלוק bash רגיל של 3 גרשים.",
+    start:"",
+    tests:[
+      ["גדר חיצונית ````markdown", s=>/^````markdown[ \t]*$/m.test(s)],
+      ["בלוק ```bash פנימי", s=>/^````markdown[\s\S]*^```bash[ \t]*$/m.test(s)],
+      ["הבלוק הפנימי נסגר עם ```", s=>/^```bash[^\n]*\n[\s\S]*?^```[ \t]*$/m.test(s)],
+      ["הגדר החיצונית נסגרת עם ````", s=>/^````markdown[\s\S]*^````[ \t]*$/m.test(s)]
+    ]}
+,
+  { t:"אתגר 4: פקודה עם פלט",
+    d:"הציגו פקודה יחד עם הפלט שלה בבלוק console: שורת פקודה שמתחילה ב-$ ולפחות שורת פלט אחת.",
+    start:"",
+    tests:[
+      ["פתיחה עם ```console", s=>/^```console[ \t]*$/m.test(s)],
+      ["שורה שמתחילה ב-$ ורווח", s=>{ const b=block(s,"console"); return b!=null && /^\$ \S/m.test(b); }],
+      ["לפחות שורת פלט אחת (בלי $)", s=>{ const b=block(s,"console"); return b!=null && /^(?!\$)\S/m.test(b); }],
+      ["הבלוק נסגר", s=>block(s,"console")!=null]
+    ]}
+];
+function block(s, lang){ const m = new RegExp("^```"+lang+"[^\\n]*\\n([\\s\\S]*?)^```[ \\t]*$","m").exec(s); return m ? m[1] : null; }
+const chWrap = document.getElementById("challenges");
+const chDone = store.get("cbm-ch", {});
+CH.forEach((c,i)=>{
+  const d = document.createElement("div"); d.className="card challenge";
+  d.innerHTML = '<h3 style="margin-top:0">'+esc(c.t)+'</h3><p>'+esc(c.d)+'</p><textarea spellcheck="false"></textarea><ul class="checks">'+c.tests.map(x=>'<li>'+esc(x[0])+'</li>').join("")+'</ul><button class="btn primary">בדיקה</button> <span class="r"></span>';
+  const ta = d.querySelector("textarea"); ta.value = store.get("cbm-ch-"+i, c.start);
+  d.querySelector("button").onclick = ()=>{
+    store.set("cbm-ch-"+i, ta.value);
+    const lis = d.querySelectorAll(".checks li"); let all = true;
+    c.tests.forEach((x,j)=>{ let ok=false; try{ ok = !!x[1](ta.value); }catch(e){} lis[j].className = ok?"ok":"bad"; all = all && ok; });
+    d.querySelector(".r").textContent = all ? "עבר ✓" : "עדיין לא, תקנו את מה שמסומן ב-✗";
+    if(all){ chDone[i]=1; store.set("cbm-ch", chDone); }
+  };
+  chWrap.appendChild(d);
+});
+
+document.querySelectorAll(".quiz").forEach(renderQuiz);
+show(current);
+})();
+</script>
+</body>
+</html>
