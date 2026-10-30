@@ -10,7 +10,7 @@
   --bg:#f2f5f4; --surface:#ffffff; --surface-2:#e7edeb; --ink:#13201d; --muted:#55635f; --line:#d2dbd8;
   --accent:#0d7568; --accent-ink:#ffffff; --amber:#9c5600; --red:#b42335; --ok:#16794a;
   --term-bg:#0f1816; --term-ink:#d6e4df; --term-dim:#7d958f; --term-green:#5fd3a8; --term-amber:#f2b45a; --term-line:#24332f;
-  --lv1:#16794a; --lv2:#1d63c9; --lv3:#7b3fc4; --lv4:#b8431f; --lv5:#0d7568; --lv6:#9c5600;
+  --lv1:#16794a; --lv2:#1d63c9; --lv3:#7b3fc4; --lv4:#b8431f; --lv5:#0d7568; --lv6:#9c5600; --lv7:#b0256f; --lv8:#2b6f8c;
   --display:"Secular One","Assistant",system-ui,sans-serif; --body:"Assistant","Segoe UI",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
   --shadow:0 1px 2px rgba(10,30,25,.05),0 8px 24px rgba(10,30,25,.06);
 }
@@ -18,14 +18,14 @@
   :root:not([data-theme="light"]){
     --bg:#0c1211; --surface:#131b1a; --surface-2:#1a2523; --ink:#e3ebe8; --muted:#93a39e; --line:#26332f;
     --accent:#3cc8b0; --accent-ink:#04201b; --amber:#f0a845; --red:#ff7487; --ok:#4fd28e;
-    --lv1:#4fd28e; --lv2:#6aa5ff; --lv3:#b48cff; --lv4:#ff8a63; --lv5:#3cc8b0; --lv6:#f0a845;
+    --lv1:#4fd28e; --lv2:#6aa5ff; --lv3:#b48cff; --lv4:#ff8a63; --lv5:#3cc8b0; --lv6:#f0a845; --lv7:#ff7ab8; --lv8:#6cc7e0;
     --shadow:0 1px 2px rgba(0,0,0,.35),0 8px 24px rgba(0,0,0,.3); color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --bg:#0c1211; --surface:#131b1a; --surface-2:#1a2523; --ink:#e3ebe8; --muted:#93a39e; --line:#26332f;
   --accent:#3cc8b0; --accent-ink:#04201b; --amber:#f0a845; --red:#ff7487; --ok:#4fd28e;
-  --lv1:#4fd28e; --lv2:#6aa5ff; --lv3:#b48cff; --lv4:#ff8a63; --lv5:#3cc8b0; --lv6:#f0a845;
+  --lv1:#4fd28e; --lv2:#6aa5ff; --lv3:#b48cff; --lv4:#ff8a63; --lv5:#3cc8b0; --lv6:#f0a845; --lv7:#ff7ab8; --lv8:#6cc7e0;
   --shadow:0 1px 2px rgba(0,0,0,.35),0 8px 24px rgba(0,0,0,.3); color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -89,6 +89,42 @@ th,td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:start;vert
 th{background:var(--surface-2);font-weight:700}
 .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.tricks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:8px}
+.trick{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:12px 14px;min-width:0}
+.trick h3{margin:.4em 0 .2em}
+.trick p{margin:0 0 .3em;font-size:.95rem}
+.trick.got{border-color:var(--ok)}
+.trick.got h3::before{content:"✓ ";color:var(--ok)}
+.chat{list-style:none;padding:0;margin:14px 0;display:grid;gap:10px;counter-reset:st}
+.chat li{display:grid;grid-template-columns:72px minmax(0,1fr);gap:10px;align-items:start;counter-increment:st}
+.chat .who{font-weight:800;font-size:.82rem;padding-top:6px}
+.chat .who::before{content:counter(st) ". ";color:var(--muted);font-weight:400}
+.chat li.you .who{color:var(--lv2)} .chat li.claude .who{color:var(--accent)}
+.chat li.claude>div{background:var(--surface-2);border-radius:10px;padding:8px 12px}
+
+.chat code.say{display:block;background:var(--term-bg);color:var(--term-ink);border:0;border-radius:10px;padding:8px 12px;font-size:.86rem;white-space:pre-wrap;unicode-bidi:plaintext;text-align:start}
+.deck-wrap{margin:12px 0;background:var(--bg)}
+.deck-wrap:fullscreen{display:flex;flex-direction:column;justify-content:center;padding:24px;background:var(--bg)}
+.deck{container-type:inline-size;aspect-ratio:16/9;max-width:100%;background:var(--term-bg);color:var(--term-ink);border-radius:14px;position:relative;overflow:hidden;cursor:pointer;box-shadow:var(--shadow);border:1px solid var(--term-line)}
+.deck-wrap:fullscreen .deck{max-height:calc(100vh - 110px);margin:0 auto;width:min(100%,calc((100vh - 110px)*16/9))}
+.sl{position:absolute;inset:0;padding:6cqw 7cqw 8cqw;display:flex;flex-direction:column;justify-content:center;gap:1.6cqw;animation:in .3s ease-out}
+.sl h3{font-family:var(--display);font-weight:400;font-size:4.4cqw;margin:0;color:var(--term-green)}
+.sl ul{margin:0;padding-inline-start:3cqw;font-size:2.7cqw;line-height:1.55}
+.sl li{max-width:none}
+.sl pre{margin:0;direction:ltr;text-align:left;font-size:2.1cqw;background:rgba(255,255,255,.05);border:1px solid var(--term-line);border-radius:1cqw;padding:2cqw;white-space:pre-wrap}
+.sl blockquote{margin:0;font-family:var(--display);font-size:4cqw;line-height:1.35;border-inline-start:.6cqw solid var(--term-amber);padding-inline-start:2.5cqw}
+.sl-big{text-align:center}
+.sl-big h2{font-family:var(--display);font-weight:400;font-size:8cqw;margin:0;color:var(--term-green)}
+.sl-big p{font-size:3cqw;color:var(--term-ink);max-width:none;margin:1cqw auto 0}
+.sl-flow{display:flex;flex-wrap:wrap;gap:1.4cqw;align-items:center;font-size:3.2cqw}
+.sl-flow span{border:1px solid var(--term-green);border-radius:1cqw;padding:1cqw 2cqw}
+.sl-flow i{color:var(--term-amber);font-style:normal}
+.sl-foot{position:absolute;bottom:2.4cqw;inset-inline:7cqw;font-size:1.6cqw;color:var(--term-dim)}
+.deck-ctrl{display:flex;gap:8px;justify-content:center;align-items:center;margin-top:10px;font-variant-numeric:tabular-nums}
+.dots{display:flex;gap:6px;justify-content:center;margin-top:8px;flex-wrap:wrap}
+.dots button{width:9px;height:9px;border-radius:50%;border:0;background:var(--line);padding:0;cursor:pointer}
+.dots button.on{background:var(--accent);width:22px;border-radius:5px}
 .levels .lv{border:1px solid var(--line);border-top:4px solid var(--c);border-radius:10px;padding:12px;background:var(--surface)}
 .levels .lv b{color:var(--c);display:block;font-size:1.02rem}
 .levels .lv span{font-size:.9rem;color:var(--muted)}
@@ -176,7 +212,9 @@ th{background:var(--surface-2);font-weight:700}
   .topbar{display:flex;position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line);padding:8px 16px;justify-content:space-between;align-items:center;font-family:var(--display)}
   body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:21;background:var(--surface)}
   main{padding:18px 16px 70px}
-  .hero,.sim,.grid2,.grid3{grid-template-columns:minmax(0,1fr)}
+  .hero,.sim,.grid2,.grid3,.tricks{grid-template-columns:minmax(0,1fr)}
+  .grid4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .chat li{grid-template-columns:minmax(0,1fr);gap:2px}
   h1{font-size:1.65rem}
 }
 </style>
@@ -210,17 +248,19 @@ th{background:var(--surface-2);font-weight:700}
     <div>
       <h1>Claude Code ברמה הכי גבוהה, בעברית ובתרגול אמיתי</h1>
       <p class="lead">Claude Code הוא סוכן תכנות שעובד בתוך הטרמינל, ה-IDE, הדפדפן וה-CI שלכם: קורא קוד, עורך קבצים, מריץ פקודות ופותח PR. הקורס הזה לוקח אתכם מההתקנה הראשונה ועד בניית סוכנים, אוטומציות ואינטגרציות משלכם.</p>
-      <div class="row"><button class="btn pri" type="button" data-go="install">להתחיל מההתחלה</button><button class="btn" type="button" data-go="sim">ישר לסימולטור</button><button class="btn" type="button" data-go="exam">למבחן הגמר</button></div>
+      <div class="row"><button class="btn pri" type="button" data-go="install">להתחיל מההתחלה</button><button class="btn" type="button" data-go="tricks">40 טריקים</button><button class="btn" type="button" data-go="slides">מצגות</button><button class="btn" type="button" data-go="sim">סימולטור</button><button class="btn" type="button" data-go="exam">למבחן הגמר</button></div>
     </div>
     <div class="term" aria-hidden="true"><div class="tb"><i></i><i></i><i></i></div><div class="body" id="heroTerm"></div></div>
   </div>
 
   <h2>מפת הלמידה</h2>
-  <div class="grid3 levels">
+  <div class="grid4 levels">
     <div class="lv" style="--c:var(--lv1)"><b>מתחילים</b><span>התקנה, ממשק וקיצורים, ואיך עובדים נכון: לחקור, לתכנן, לבצע ולוודא.</span></div>
     <div class="lv" style="--c:var(--lv2)"><b>בינוני</b><span>CLAUDE.md וזיכרון, הרשאות והגדרות, ניהול הקשר ופקודות מותאמות.</span></div>
     <div class="lv" style="--c:var(--lv3)"><b>מתקדמים</b><span>Skills, Subagents, Hooks, שרתי MCP ו-Plugins: להרחיב את Claude לכל צורך.</span></div>
     <div class="lv" style="--c:var(--lv4)"><b>מומחים</b><span>מצב headless ו-CI, Agent SDK, עבודה מקבילית ובענן, אבטחה ועלויות, ובניית מערכת שלמה.</span></div>
+    <div class="lv" style="--c:var(--lv7)"><b>מאסטר</b><span>40 טריקים של מקצוענים, 6 דוגמאות מלאות מקצה לקצה וספריית פרומפטים מוכנים.</span></div>
+    <div class="lv" style="--c:var(--lv8)"><b>מצגות</b><span>6 מצגות שמסכמות את הקורס, עם מסך מלא. מתאימות גם להצגה לצוות.</span></div>
     <div class="lv" style="--c:var(--lv5)"><b>סדנת תרגול</b><span>סימולטור טרמינל, מחוללי קבצים, אתגרים שנבדקים אוטומטית וכרטיסיות חזרה.</span></div>
     <div class="lv" style="--c:var(--lv6)"><b>מבחן גמר</b><span>15 שאלות אקראיות מכל הקורס. עוברים ב-80% ומקבלים תעודה על המסך.</span></div>
   </div>
@@ -944,6 +984,52 @@ git worktree remove ../app-feature-a  # when done</pre></div>
   <div class="quiz" data-q="ideas"></div>
 </section>
 
+<!-- ================= MASTER ================= -->
+<section class="mod" id="tricks" data-level="מאסטר" data-title="טריקים ויכולות סודיות">
+  <div class="eyebrow"></div>
+  <h1>40 טריקים של מקצוענים</h1>
+  <p class="lead">היכולות שרוב המשתמשים לא מגלים לבד. לכל טריק יש הסבר קצר ודוגמה להעתקה. סמנו "למדתי" כדי לצבור XP, וסננו לפי נושא.</p>
+  <div class="row" style="margin:6px 0 4px"><input class="search" id="trSearch" type="search" placeholder="חיפוש טריק…" aria-label="חיפוש טריקים" style="max-width:280px;margin:0"><span class="hint" id="trCount"></span></div>
+  <div class="tabs" id="trFilter"></div>
+  <div class="tricks" id="trList"></div>
+  <div class="quiz" data-q="tricks"></div>
+</section>
+
+<section class="mod" id="cases" data-level="מאסטר" data-title="דוגמאות מלאות מקצה לקצה">
+  <div class="eyebrow"></div>
+  <h1>דוגמאות מקצה לקצה: סשנים אמיתיים, צעד אחר צעד</h1>
+  <p class="lead">שש משימות אמיתיות שמראות איך כל הכלים מתחברים: מה כותבים, מה Claude עושה, ואיפה מתערבים. בחרו תרחיש.</p>
+  <div class="tabs" id="caseTabs"></div>
+  <div id="caseBody"></div>
+  <div class="quiz" data-q="cases"></div>
+</section>
+
+<section class="mod" id="prompts" data-level="מאסטר" data-title="ספריית פרומפטים">
+  <div class="eyebrow"></div>
+  <h1>ספריית פרומפטים מוכנים</h1>
+  <p class="lead">פרומפטים שנבדקו בעבודה אמיתית. החליפו את מה שבסוגריים המרובעים והעתיקו ל-Claude Code. כדאי להפוך את מה שאתם משתמשים בו הרבה לפקודה מותאמת.</p>
+  <div class="row" style="margin:6px 0 4px"><input class="search" id="prSearch" type="search" placeholder="חיפוש פרומפט…" aria-label="חיפוש פרומפטים" style="max-width:280px;margin:0"><span class="hint" id="prCount"></span></div>
+  <div class="tabs" id="prFilter"></div>
+  <div id="prList"></div>
+</section>
+
+<section class="mod" id="slides" data-level="מצגות" data-title="מצגות">
+  <div class="eyebrow"></div>
+  <h1>מצגות</h1>
+  <p class="lead">שש מצגות שמסכמות את הקורס, ומתאימות גם להצגה לצוות. החצים במקלדת מעבירים שקפים, ומקש F (או הכפתור) עובר למסך מלא.</p>
+  <div class="tabs" id="deckTabs"></div>
+  <div class="deck-wrap">
+    <div class="deck" id="deck" tabindex="0" aria-roledescription="מצגת" aria-live="polite"></div>
+    <div class="deck-ctrl">
+      <button class="btn sm" id="dPrev" type="button" aria-label="שקף קודם">→</button>
+      <span class="hint" id="dNum"></span>
+      <button class="btn sm" id="dNext" type="button" aria-label="שקף הבא">←</button>
+      <button class="btn sm" id="dFull" type="button">מסך מלא</button>
+    </div>
+    <div class="dots" id="dDots"></div>
+  </div>
+</section>
+
 <!-- ================= PRACTICE ================= -->
 <section class="mod" id="sim" data-level="סדנת תרגול" data-title="סימולטור טרמינל">
   <div class="eyebrow"></div>
@@ -1087,7 +1173,7 @@ const store = {
   get(k, d){ try{ const v = localStorage.getItem("cca-"+k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
   set(k, v){ try{ localStorage.setItem("cca-"+k, JSON.stringify(v)); }catch(e){} }
 };
-const LEVEL_COLOR = {"פתיחה":"var(--lv5)","מתחילים":"var(--lv1)","בינוני":"var(--lv2)","מתקדמים":"var(--lv3)","מומחים":"var(--lv4)","סדנת תרגול":"var(--lv5)","מבחן גמר":"var(--lv6)"};
+const LEVEL_COLOR = {"פתיחה":"var(--lv5)","מתחילים":"var(--lv1)","בינוני":"var(--lv2)","מתקדמים":"var(--lv3)","מומחים":"var(--lv4)","מאסטר":"var(--lv7)","מצגות":"var(--lv8)","סדנת תרגול":"var(--lv5)","מבחן גמר":"var(--lv6)"};
 const mods = $$(".mod");
 const ids = mods.map(m => m.id);
 let state = store.get("state", {done:{}, xp:0, awarded:{}, days:[]});
@@ -1139,7 +1225,7 @@ function show(id, push){
   $("#rail").classList.remove("open");
   if(push !== false && location.hash !== "#"+ids[i]){ try{ history.replaceState(null, "", "#"+ids[i]); }catch(e){ location.hash = ids[i]; } }
   window.scrollTo(0,0);
-  if(["sim","builders","cards"].includes(ids[i])) markDone(ids[i]);
+  if(["sim","builders","cards","prompts","slides"].includes(ids[i])) markDone(ids[i]);
   if(ids[i] === "sim") setTimeout(()=>$("#simIn").focus({preventScroll:true}), 50);
 }
 document.addEventListener("click", e => { const g = e.target.closest("[data-go]"); if(g){ e.preventDefault(); show(g.dataset.go); } });
@@ -1311,6 +1397,17 @@ const Q = {
     ["README זדוני מבקש מ-Claude לשלוח את .env לשרת. מה מגן?", ["כלום","deny על .env, הגבלת curl ו-WebFetch, sandbox ובדיקה לפני אישור","מודל גדול יותר","מצב כהה"], 1, "הגנה בשכבות מול prompt injection."],
     ["איזה מודל מתאים ל-Subagent שמחפש בקוד?", ["opus תמיד","haiku: מהיר וזול","אין מודל","רק sonnet"], 1, "משימות פשוטות במודל זול."],
     ["מה עושה opusplan?", ["Opus בכל מקום","Opus לתכנון ו-Sonnet לביצוע","מבטל תכנון","Haiku לתכנון"], 1, "שילוב חכם."]
+  ],
+  tricks: [
+    ["איך מעבירים לוג ל-Claude בלי להעתיק?", ["אי אפשר","tail log | claude -p \"...\"","מצלמים את המסך","שולחים במייל"], 1, "pipe מעביר כל פלט ישירות."],
+    ["מה עושה Esc פעמיים?", ["יוצא מהתוכנה","חוזר להודעה קודמת לעריכה או לנקודת שמירה","מוחק את הפרויקט","מחליף מודל"], 1, "עריכת הודעה קודמת, וממנה השיחה ממשיכה."],
+    ["למה לכתוב מפרט בסשן אחד ולממש בסשן נקי?", ["זה זול יותר","ההקשר של הדיון לא מסיח את המימוש","חובה טכנית","אין סיבה"], 1, "‏/clear ומימוש לפי הקובץ בלבד."],
+    ["איך מקבלים התראה לטלפון כש-Claude מחכה?", ["אי אפשר","Notification hook שקורא לשירות התראות","Stop hook","‏/notify"], 1, "Hook על Notification."]
+  ],
+  cases: [
+    ["בתרחיש הבאג מ-Sentry, מה עשו לפני התיקון?", ["כלום","כתבו בדיקה שמשחזרת את השגיאה","פרסו לפרודקשן","מחקו את ה-release"], 1, "שחזור בבדיקה מבטיח שהתיקון באמת פותר."],
+    ["במיגרציה של 300 קבצים, מה הצעד הראשון?", ["להריץ על הכול מיד","להמיר קובץ אחד ולכתוב כללי המרה","לכתוב מחדש את הבדיקות","לבקש עזרה"], 1, "מוכיחים על קובץ אחד, ואחר כך מריצים fan-out."],
+    ["באירוע production, מי מריץ את ה-rollback?", ["Claude עם bypassPermissions","אתם, אחרי ש-Claude ניתח והציע","אף אחד","הלקוח"], 1, "פעולות קריטיות נשארות בידיים אנושיות."]
   ],
   ideas: [
     ["איזה מנגנון מבטיח שClaude לא יסיים עם בדיקות אדומות?", ["CLAUDE.md","Hook על Stop שמחזיר 2 אם הבדיקות נכשלו","Output style","Status line"], 1, "Stop hook יכול לחסום סיום ולבקש להמשיך."],
@@ -1581,7 +1678,7 @@ const CARDS = [
   ["claude mcp add --transport http","הוספת שרת MCP מרוחק"],[".mcp.json","שרתי MCP משותפים לצוות (scope project)"],["plugin.json","מטא-דאטה של Plugin, בתיקייה .claude-plugin"],
   ["claude -p","מצב headless לסקריפטים ול-CI"],["--output-format json","פלט שאפשר לעבד: תוצאה, עלות ו-session_id"],["--max-turns","הגבלת סבבים בריצה אוטומטית"],
   ["claude-agent-sdk","ספריית Python לבניית סוכנים על אותו מנוע"],["git worktree","תיקיית עבודה נפרדת לכל סשן מקביל"],["opusplan","Opus לתכנון ו-Sonnet לביצוע"],
-  ["/install-github-app","מגדיר את Claude ב-GitHub לתגובה ל-@claude"],["/statusline","שורת סטטוס מותאמת מסקריפט"]
+  ["/install-github-app","מגדיר את Claude ב-GitHub לתגובה ל-@claude"],["claude --add-dir","גישה לתיקייה נוספת באותו סשן"],["ultrathink","בקשה לחשיבה מעמיקה במיוחד לבעיה קשה"],["/security-review","סריקת אבטחה מובנית של השינויים בענף"],["\"ראיין אותי\"","Claude שואל שאלות עד שהדרישות ברורות ואז כותב מפרט"],["Ctrl+O","תצוגת transcript מלאה של כל הפעולות"],["env ב-settings.json","משתני סביבה לכל סשן בפרויקט"],["/statusline","שורת סטטוס מותאמת מסקריפט"]
 ];
 let boxes = store.get("cards", {}), fcI = -1;
 function nextCard(){
@@ -1625,6 +1722,280 @@ function showCert(score){
   $("#certBox").innerHTML = '<div class="form" style="max-width:340px;margin-top:16px"><label>השם שיופיע על התעודה<input id="certName" value="'+esc(nm)+'"></label></div><div class="cert"><div class="hint">אקדמיית Claude Code</div><h2>תעודת סיום</h2><p>מוענקת בזאת ל</p><div class="nm" id="certNm">'+esc(nm || "השם שלכם")+'</div><p>על השלמת מבחן הגמר בציון '+score+'/15<br>ברמת מומחים: Skills, Subagents, Hooks, MCP, CI ו-Agent SDK</p><div class="hint">'+new Date().toLocaleDateString("he-IL")+' · '+state.xp+' XP</div></div><p class="hint">אפשר לצלם את התעודה ולשתף.</p>';
   $("#certName").addEventListener("input", e => { store.set("name", e.target.value); $("#certNm").textContent = e.target.value || "השם שלכם"; });
 }
+
+// ---------------- tricks ----------------
+const TRICKS = [
+  ["קלט והקשר","להזין לוגים ישירות בצינור","כל פלט של פקודה אפשר להעביר ל-Claude דרך pipe, בלי להעתיק ולהדביק.","tail -n 300 server.log | claude -p \"what is causing the timeouts?\"\ngit diff main | claude -p \"write a PR description\""],
+  ["קלט והקשר","! מכניס פלט להקשר","פקודה עם ! רצה מיד והפלט נשאר בשיחה. מצוין כדי להראות ל-Claude מצב אמיתי לפני שמבקשים משהו.","!npm test -- auth\nfix the failing test above"],
+  ["קלט והקשר","הדבקת צילומי מסך","Ctrl+V (גם ב-Mac זה Ctrl ולא Cmd) או גרירת קובץ תמונה. עובד מצוין לשגיאות UI, לעיצוב מ-Figma ולגרפים.","[Ctrl+V screenshot]\nmatch this design exactly, then screenshot the result with Playwright and compare"],
+  ["קלט והקשר","@ לתיקייה שלמה","@ עובד גם על תיקיות. Claude מקבל את רשימת הקבצים ומחליט מה לקרוא.","explain how @src/payments/ is structured"],
+  ["קלט והקשר","גישה לתיקייה נוספת","כשהקוד מפוצל לכמה מאגרים, נותנים גישה לתיקייה נוספת בלי להחליף סשן.","claude --add-dir ../shared-lib\n# or inside a session:\n/add-dir ../shared-lib"],
+  ["קלט והקשר","משאבי MCP עם @","שרתי MCP שחושפים משאבים (resources) מופיעים בהשלמה של @, כך אפשר לצרף טיקט או מסמך כמו קובץ.","summarize @linear:issue://ENG-412 and propose a plan"],
+  ["מקלדת וממשק","Esc פעמיים: לערוך הודעה קודמת","חוזרים להודעה מוקדמת, משנים אותה וממשיכים משם. השיחה מתפצלת מאותה נקודה.","Esc Esc → choose message → edit → Enter"],
+  ["מקלדת וממשק","Shift+Tab ישר למצב תכנון","לפני כל שינוי גדול. Claude קורא ומציע תוכנית, ולא נוגע בקבצים עד שמאשרים.","claude --permission-mode plan   # start a session already in plan mode"],
+  ["מקלדת וממשק","שורה חדשה בלי לשלוח","\\ ואז Enter תמיד עובד. אחרי /terminal-setup גם Shift+Enter עובד ברוב הטרמינלים.","/terminal-setup"],
+  ["מקלדת וממשק","מצב Vim","למי שרגיל לעריכה מודאלית בתיבת הקלט.","/vim"],
+  ["מקלדת וממשק","Ctrl+R לחיפוש היסטוריה","מחפש פרומפטים קודמים, כמו בטרמינל.","Ctrl+R → type \"migration\" → Enter"],
+  ["מקלדת וממשק","Ctrl+O לראות הכול","תצוגת transcript מלאה: כל קריאת כלי, כל פלט וכל החלטה. מעולה כדי להבין למה Claude עשה משהו.","Ctrl+O"],
+  ["זרימת עבודה","\"ראיין אותי\" לפני מפרט","במקום לכתוב מפרט ארוך, בקשו מ-Claude לשאול אתכם שאלות עד שהתמונה ברורה, ואז לכתוב את המפרט לקובץ.","I want to add team invitations. Interview me with questions one at a time until you fully understand, then write the spec to docs/specs/invites.md"],
+  ["זרימת עבודה","מפרט בסשן אחד, מימוש בסשן נקי","הסשן שכתב את המפרט מלא בהקשר של דיון. /clear ואז מימוש לפי הקובץ בלבד נותן תוצאה ממוקדת יותר.","/clear\nimplement @docs/specs/invites.md step by step, run tests after each step"],
+  ["זרימת עבודה","בדיקות קודם, ואסור לגעת בהן","Claude כותב בדיקות שנכשלות, אתם מאשרים אותן, ואז הוא מממש עד שהן עוברות בלי לשנות אותן.","write failing tests for parseInvoice from the spec. Do not implement yet.\n...\nnow implement until all tests pass. Do NOT modify the tests."],
+  ["זרימת עבודה","לולאת צילום מסך","עם Playwright MCP, Claude מצלם את הדף, משווה לעיצוב ומתקן שוב ושוב. 2 עד 3 סבבים משפרים מאוד את התוצאה.","claude mcp add playwright -- npx -y @playwright/mcp@latest\n\nopen localhost:3000/pricing, screenshot, compare to the attached design, fix, repeat until it matches"],
+  ["זרימת עבודה","חשיבה מעמיקה לפי דרישה","לבעיות קשות בקשו במפורש חשיבה עמוקה. בגרסאות רבות המילה ultrathink מגדילה את תקציב החשיבה לאותה הודעה.","ultrathink: why does the cache return stale data only under load?"],
+  ["זרימת עבודה","Subagents לחקירה במקביל","שאלה רחבה על קוד גדול? בקשו כמה Subagents במקביל. כל אחד מחפש בהקשר נפרד ורק המסקנות חוזרות.","use 4 parallel subagents to map how auth, billing, email and search each read user settings. Report a table."],
+  ["זרימת עבודה","Claude כותב את ה-commit וה-PR","Claude מכיר את git ואת gh. ההודעות שהוא כותב מתארות את השינוי בפועל, לא רק את הקבצים.","commit in logical chunks with conventional commit messages, push, and open a PR with gh using our template"],
+  ["זרימת עבודה","לבקש ביקורת על הפתרון של עצמו","אחרי שהקוד עובד: \"עכשיו תהיה סוקר קשוח\". Claude מוצא בעיות בפתרון של עצמו, במיוחד אחרי /clear.","/clear\nreview the diff on this branch as a strict senior reviewer. List real bugs only, with file:line."],
+  ["סשנים","להמשיך מאיפה שעצרתם","‏-c ממשיך את השיחה האחרונה בתיקייה, ו-r- פותח רשימה לבחירה.","claude -c\nclaude -r"],
+  ["סשנים","PLAN.md כזיכרון חיצוני","במשימה של כמה שעות, התוכנית והסטטוס בקובץ שורדים כל /clear וכל סשן חדש.","write the plan to PLAN.md as a checklist. After each step, tick it and note decisions.\n...\n/clear\ncontinue from @PLAN.md"],
+  ["סשנים","/compact עם הוראות","אומרים מה חשוב לשמור, ושאר הפרטים מתקצרים. אפשר גם להגדיר ב-CLAUDE.md הוראות קבועות לסיכום.","/compact keep the list of changed files, the open bugs and the API decisions"],
+  ["סשנים","rewind לקוד בלבד או לשיחה בלבד","‏/rewind מאפשר לבחור: להחזיר את הקוד, את השיחה, או את שניהם. שימושי כדי \"לנסות שוב\" גישה אחרת.","/rewind → pick a point → restore code only"],
+  ["סשנים","worktree לכל משימה","שני Claude באותה תיקייה ידרסו זה את זה. worktree נותן לכל אחד תיקייה וענף משלו.","git worktree add ../app-search -b feat/search && cd ../app-search && claude"],
+  ["סשנים","לייצא שיחה","שומרים שיחה טובה כתיעוד, או משתפים עם עמית.","/export"],
+  ["אוטומציה","פלט JSON + jq","בסקריפטים מחלצים רק את התוצאה, את העלות או את מזהה הסשן.","claude -p \"list TODOs as JSON\" --output-format json | jq -r '.result'"],
+  ["אוטומציה","Fan-out על מאות קבצים","לולאה שמריצה משימה קטנה ומוגבלת על כל קובץ, במקביל.","find src -name '*.js' | xargs -P 4 -I{} claude -p \"convert {} to TypeScript, keep behavior\" --allowedTools \"Read,Edit\" --max-turns 5"],
+  ["אוטומציה","Hook ש\"לא נותן לסיים\"","Stop hook שמריץ בדיקות ומחזיר 2 אם הן נכשלות. Claude ממשיך לתקן לבד עד שהכול ירוק.","{ \"hooks\": { \"Stop\": [ { \"hooks\": [ { \"type\": \"command\", \"command\": \".claude/hooks/stop-tests.sh\" } ] } ] } }"],
+  ["אוטומציה","התראה לטלפון","Notification hook שקורא ל-ntfy או לשירות דומה, כך יודעים מתי Claude מחכה גם כשלא ליד המחשב.","{ \"hooks\": { \"Notification\": [ { \"hooks\": [ { \"type\": \"command\", \"command\": \"curl -s -d 'Claude needs you' ntfy.sh/my-topic\" } ] } ] } }"],
+  ["אוטומציה","@claude בכל Issue","/install-github-app ומאותו רגע מתייגים @claude ב-Issue, וחוזר PR. אפשר לחלק משימות קטנות ישר מהטלפון.","@claude the date picker ignores the user's timezone. Fix it and add a test."],
+  ["הגדרות","משתני סביבה בהגדרות","המפתח env ב-settings.json מגדיר משתנים לכל סשן בפרויקט.","{ \"env\": { \"NODE_ENV\": \"development\", \"DEBUG\": \"app:*\" } }"],
+  ["הגדרות","מודל ברירת מחדל לפרויקט","פרויקט מסובך? opus כברירת מחדל. סקריפטים פשוטים? sonnet. או opusplan לשילוב.","{ \"model\": \"opusplan\" }"],
+  ["הגדרות","שורת סטטוס עם אחוז הקשר","לראות כל הזמן כמה הקשר נוצל, באיזה ענף ובאיזה מודל, כדי לדעת מתי לעשות /compact.","/statusline show model, git branch and context usage percent"],
+  ["הגדרות","סגנון פלט ללמידה","‏Output style של Learning משאיר לכם חלקים לממש בעצמכם, עם הסבר. מעולה ללימוד שפה או framework חדשים.","/output-style"],
+  ["איכות","/security-review לפני merge","פקודה מובנית שסורקת את השינויים בענף ומחפשת בעיות אבטחה.","/security-review"],
+  ["איכות","CLAUDE.md שמשתפר לבד","כל טעות שחוזרת הופכת לכלל. בקשו מ-Claude לעדכן את הקובץ בעצמו.","you used moment.js again. Add a rule to CLAUDE.md: use date-fns only."],
+  ["איכות","דוגמה קיימת במקום הסבר","הצביעו על קובץ שעשוי נכון, ו-Claude יעתיק את הסגנון, את המבנה ואת הבדיקות.","build a Settings page following the exact patterns of @src/pages/Profile.tsx and its tests"],
+  ["הרחבות","פקודה שמריצה bash מראש","‏!`cmd` בקובץ פקודה מכניס מצב חי (ענף, diff, סטטוס) לפני שהפרומפט נשלח.","Changes: !`git diff --stat`\nReview these changes for bugs."],
+  ["הרחבות","פרומפטים של שרת MCP כפקודות","שרתי MCP יכולים לחשוף prompts, והם מופיעים כפקודות /mcp__שרת__שם.","/mcp__[server]__[prompt] [args]"]
+];
+(function(){
+  const cats = ["הכול", ...new Set(TRICKS.map(t=>t[0]))];
+  let f = "הכול"; const learned = () => store.get("tricks", {});
+  const draw = () => {
+    const q = ($("#trSearch").value||"").toLowerCase(), L = learned();
+    $("#trFilter").innerHTML = cats.map(c => '<button type="button" class="'+(c===f?"on":"")+'">'+esc(c)+'</button>').join("");
+    const list = TRICKS.map((t,i)=>[t,i]).filter(([t]) => (f==="הכול"||t[0]===f) && (!q || t.join(" ").toLowerCase().includes(q)));
+    $("#trList").innerHTML = list.map(([t,i]) => '<div class="trick'+(L[i]?" got":"")+'"><div class="row" style="justify-content:space-between"><span class="pill">'+esc(t[0])+'</span><button class="btn sm" type="button" data-learn="'+i+'">'+(L[i]?"✓ למדתי":"למדתי")+'</button></div><h3>'+esc(t[1])+'</h3><p>'+esc(t[2])+'</p><div class="code" data-lang="text"><pre>'+esc(t[3])+'</pre></div></div>').join("");
+    $$("#trList .code").forEach(decorate);
+    $("#trCount").textContent = Object.keys(L).length + "/" + TRICKS.length + " נלמדו";
+  };
+  $("#trFilter").addEventListener("click", e => { const b = e.target.closest("button"); if(b){ f = b.textContent; draw(); } });
+  $("#trSearch").addEventListener("input", draw);
+  $("#trList").addEventListener("click", e => { const b = e.target.closest("[data-learn]"); if(!b) return; const L = learned(), i = b.dataset.learn; if(L[i]) delete L[i]; else { L[i] = 1; award("trick-"+i, 5); } store.set("tricks", L); draw(); });
+  draw();
+})();
+
+// ---------------- case studies ----------------
+// isolate Latin/code runs inside Hebrew sentences so flags and paths keep their order
+const ltr = t => { let o = "", last = 0; const re = /(?<![\u0590-\u05FF])[\w!@.\/"'~-][\w!@.\/"'(),:*=\-\[\]&|>~]*(?:\s+[\w!@.\/"'(),:*=\-\[\]&|>~]+)*/g; let m;
+  while((m = re.exec(t))){ o += esc(t.slice(last, m.index)) + (/[A-Za-z]/.test(m[0]) ? '<bdi dir="ltr">'+esc(m[0])+'</bdi>' : esc(m[0])); last = re.lastIndex; }
+  return o + esc(t.slice(last)); };
+const CASES = [
+  {t:"באג בפרודקשן מ-Sentry", goal:"שגיאה חדשה ב-Sentry: TypeError בעמוד התשלום. לתקן, להוסיף בדיקה ולפתוח PR תוך 20 דקות.", tools:"MCP של Sentry · מצב תכנון · TDD · gh", steps:[
+    ["you","מה השגיאה הכי נפוצה ב-Sentry ב-24 השעות האחרונות בפרויקט web? הבא את ה-stack trace המלא"],
+    ["claude","קורא ל-Sentry דרך MCP: ‏TypeError: Cannot read 'currency' of undefined ב-checkout/summary.ts:48. ‏1,240 אירועים, התחיל אחרי release 4.12."],
+    ["you","!git log --oneline v4.11..v4.12 -- src/checkout"],
+    ["you","אל תתקן עדיין. מצא מה השתנה ב-4.12 שגורם לזה, וכתוב בדיקה שמשחזרת את השגיאה"],
+    ["claude","מוצא ש-commit a81f3 הפך את price לאופציונלי בעגלה ריקה. כותב tests/checkout/summary.test.ts. הבדיקה נכשלת עם אותה שגיאה ✓"],
+    ["you","תקן בצורה מינימלית, הרץ את כל בדיקות ה-checkout והלינטר"],
+    ["claude","מוסיף בדיקה לעגלה ריקה ב-summary.ts. ‏38 בדיקות עוברות, לינט נקי."],
+    ["you","צור commit שמפנה ל-Sentry issue ופתח PR עם הסבר על שורש הבעיה"]
+  ], lesson:"מתחילים מנתונים אמיתיים (MCP), משחזרים בבדיקה לפני שמתקנים, ומשאירים תיעוד בשביל הסוקר."},
+  {t:"פיצ'ר חדש מעיצוב Figma", goal:"לבנות עמוד מחירים לפי עיצוב, רספונסיבי ונגיש, עם התאמה ויזואלית.", tools:"MCP של Figma · Playwright · מצב תכנון · לולאת צילום מסך", steps:[
+    ["you","[Shift+Tab ×2 → מצב תכנון] קרא את הפריים Pricing מ-Figma, ואת הרכיבים שכבר קיימים ב-@src/components/ui. תכנן בלי לכתוב קוד"],
+    ["claude","מציע תוכנית: 3 רכיבים חדשים, שימוש חוזר ב-Button וב-Card, טוקנים מ-tokens.ts, נקודת שבירה ב-768px."],
+    ["you","שנה: אין צורך ב-PricingToggle חדש, יש כבר SegmentedControl. אחרי זה תבצע"],
+    ["claude","מממש, ואז פותח localhost:3000/pricing ב-Playwright ומצלם ב-1440px וב-390px."],
+    ["you","השווה לצילומי המסך מ-Figma ותקן את ההבדלים. חזור על זה עד שאין הבדל משמעותי"],
+    ["claude","סבב 1: ריווח בין כרטיסים, משקל גופן. סבב 2: יישור תגית \"מומלץ\". סבב 3: מתאים."],
+    ["you","בדוק נגישות: ניווט במקלדת, ניגודיות ו-aria. ואז /review"]
+  ], lesson:"תכנון לפני ביצוע חוסך שכתובים, ולולאת צילום מסך הופכת \"בערך דומה\" ל\"זהה\"."},
+  {t:"היכרות עם קוד שלא מכירים", goal:"הצטרפתם לפרויקט של 400 אלף שורות. להבין אותו ביום אחד.", tools:"Subagents במקביל · /init · שאלות ממוקדות", steps:[
+    ["you","/init"],
+    ["you","השתמש ב-5 subagents במקביל כדי למפות: מבנה תיקיות, זרימת בקשה מקצה לקצה, מודל הנתונים, תהליך ה-build וה-deploy, ואיפה הבדיקות. החזר סיכום של עמוד אחד"],
+    ["claude","5 סוכנים רצים במקביל, כל אחד בהקשר משלו. חוזר סיכום מאוחד עם דיאגרמת זרימה בטקסט."],
+    ["you","עקוב אחרי מה שקורה כשמשתמש לוחץ \"שמור\" בעמוד ההגדרות, מהכפתור ועד מסד הנתונים. ציין קבצים ושורות"],
+    ["you","מה החלקים הכי מסוכנים לשינוי בקוד הזה, ולמה?"],
+    ["you","כתוב את כל זה ל-docs/onboarding.md, ועדכן את CLAUDE.md עם מה שחסר בו"]
+  ], lesson:"Subagents ממפים מהר בלי לפוצץ את ההקשר, והידע נשמר בקבצים לבאים אחריכם."},
+  {t:"מיגרציה של 300 קבצים", goal:"להעביר בדיקות מ-Jest ל-Vitest בכל המאגר.", tools:"headless · fan-out · worktree · Hooks", steps:[
+    ["you","git worktree add ../app-vitest -b chore/vitest && cd ../app-vitest && claude"],
+    ["you","העבר רק את tests/utils/date.test.ts ל-Vitest. אחרי שזה עובד, כתוב ל-MIGRATION.md את כל כללי ההמרה שהשתמשת בהם"],
+    ["claude","ממיר, מריץ, ובודק. כותב MIGRATION.md עם 9 כללים (jest.fn ל-vi.fn, timers, mocks של מודולים, ועוד)."],
+    ["you","כתוב סקריפט migrate.sh שמריץ במקביל על כל קובץ בדיקה את הפקודה:\nclaude -p --allowedTools \"Read,Edit,Bash(npx vitest run:*)\" --max-turns 8\nובסוף מדפיס אילו קבצים נכשלו"],
+    ["you","!./migrate.sh"],
+    ["claude","‏287 עברו, 13 נכשלו. מטפל בהם אחד אחד בסשן האינטראקטיבי, ומוסיף ל-MIGRATION.md שני כללים חדשים."],
+    ["you","הרץ את כל הסוויטה פעמיים כדי לתפוס בדיקות לא יציבות, ואז פתח PR"]
+  ], lesson:"קודם מוכיחים על קובץ אחד וכותבים כללים, אחר כך מריצים fan-out בהרשאות מוגבלות, ואת השארית מטפלים ידנית."},
+  {t:"ריוויו אוטומטי לכל PR", goal:"כל PR מקבל ריוויו לפי הסטנדרטים של הצוות, תוך דקות.", tools:"GitHub Action · Subagent · CLAUDE.md", steps:[
+    ["you","/install-github-app"],
+    ["you","צור .claude/agents/code-reviewer.md לפי הצ'קליסט ב-@docs/review-checklist.md, עם כלים לקריאה בלבד"],
+    ["you","צור workflow שרץ על pull_request, מפעיל את הסוכן code-reviewer ומגביל את מספר הסבבים:\nanthropics/claude-code-action@v1 + --max-turns 12"],
+    ["claude","יוצר .github/workflows/claude-review.yml עם permissions מינימליות, ומסביר איך להוסיף את ANTHROPIC_API_KEY ל-secrets."],
+    ["you","פתח PR קטן לבדיקה ובדוק שהתגובה מגיעה"],
+    ["you","הריוויו מעיר על סגנון יותר מדי. עדכן את הסוכן: רק באגים, אבטחה וחוסר בבדיקות"]
+  ], lesson:"אותו סוכן משמש מקומית וב-CI. מכווננים אותו לפי משוב אמיתי."},
+  {t:"אירוע ב-production בלילה", goal:"‏API מחזיר 500 ב-5% מהבקשות. למצוא סיבה ולייצב מהר, בבטחה.", tools:"צינור לוגים · מצב תכנון · deny · rewind", steps:[
+    ["you","kubectl logs deploy/api --since=30m | grep ERROR | claude -p \"group these errors by root cause, most frequent first\""],
+    ["claude","‏82%: ‏connection pool exhausted, מאז 02:10. ‏18%: ‏timeouts שנגזרים מהבעיה הראשונה."],
+    ["you","[מצב תכנון] מה השתנה ב-02:10? בדוק את ה-deploy האחרון ואת ה-config של ה-pool. אל תשנה כלום"],
+    ["claude","ה-deploy של 02:05 הוריד את pool.max מ-50 ל-10 (שינוי ב-config/db.ts). מציע שתי אפשרויות: rollback או תיקון ה-config."],
+    ["you","תכין את תיקון ה-config כ-PR קטן, עם בדיקה שמוודאת את הערך. אני אריץ את ה-rollback בעצמי"],
+    ["you","כתוב postmortem קצר ל-docs/incidents/ עם ציר זמן, סיבה, ומה מונע הישנות"]
+  ], lesson:"בלחץ: Claude מנתח ומציע, ואתם מחליטים ומבצעים פעולות בסביבת production. ההרשאות שומרות על הגבול."}
+];
+(function(){
+  let c = 0;
+  const draw = () => {
+    $("#caseTabs").innerHTML = CASES.map((x,i) => '<button type="button" class="'+(i===c?"on":"")+'" data-i="'+i+'">'+esc(x.t)+'</button>').join("");
+    const x = CASES[c];
+    $("#caseBody").innerHTML = '<div class="box"><b>המטרה:</b> '+esc(x.goal)+'<br><b>כלים:</b> '+esc(x.tools)+'</div><ol class="chat">'+
+      x.steps.map(s => '<li class="'+s[0]+'"><span class="who">'+(s[0]==="you"?"אתם":"Claude")+'</span><div>'+(s[0]==="you"?'<code class="say">'+ltr(s[1])+'</code>':ltr(s[1]))+'</div></li>').join("")+
+      '</ol><div class="note"><b>השיעור</b>'+esc(x.lesson)+'</div>';
+  };
+  $("#caseTabs").addEventListener("click", e => { const b = e.target.closest("button"); if(b){ c = +b.dataset.i; draw(); award("case-"+c, 5); } });
+  draw();
+})();
+
+// ---------------- prompt library ----------------
+const PROMPTS = [
+  ["הבנת קוד","סקירת פרויקט","Give me an overview of this codebase: main modules, how a request flows end to end, how to run it locally, and the 3 things a new developer must know."],
+  ["הבנת קוד","מעקב אחרי זרימה","Trace what happens when [user action], from the UI event to the database and back. List each file:line in order."],
+  ["הבנת קוד","למה זה כתוב ככה","Why is [function] implemented this way? Check git log and blame for the history and explain the trade-off."],
+  ["הבנת קוד","מפת סיכונים","Which parts of this codebase are the riskiest to change and why? Consider coupling, missing tests and complexity."],
+  ["באגים","שחזור לפני תיקון","Bug: [description + error]. Don't fix yet. Find the root cause, write a failing test that reproduces it, show me, then wait."],
+  ["באגים","באג לא יציב","The test [name] fails about 1 in 10 runs. Run it 30 times, find the source of nondeterminism and fix it properly (no retries, no longer timeouts)."],
+  ["באגים","ניתוח לוג","Here is a log excerpt. Group errors by root cause, most frequent first, and propose the smallest fix for the top one."],
+  ["באגים","בדיקה בין גרסאות","This worked in [v1] and is broken in [v2]. Use git bisect with the test [command] to find the commit, then explain the change."],
+  ["פיצ'רים","ראיון לפני מפרט","I want to build [feature]. Interview me one question at a time until you understand it fully, then write a spec with acceptance criteria to docs/specs/[name].md."],
+  ["פיצ'רים","מימוש לפי מפרט","Implement @docs/specs/[name].md in small steps. After each step run typecheck and related tests, and tick the step in the spec."],
+  ["פיצ'רים","לפי דוגמה קיימת","Build [new thing] following exactly the patterns, naming and test style of @[existing similar file]."],
+  ["Refactor","refactor בטוח","Refactor [module] to [goal] without changing behavior. First make sure tests cover the current behavior; add tests where missing. Then refactor in steps, running tests each time."],
+  ["Refactor","הסרת קוד מת","Find dead code in [dir]: unused exports, unreachable branches, unused dependencies. List them with evidence before deleting anything."],
+  ["Refactor","פישוט פונקציה","Simplify [function]. Keep the public signature. Explain each change in one line."],
+  ["בדיקות","כיסוי מקרי קצה","Write tests for [function] covering: empty input, boundaries, invalid input, and concurrency if relevant. No mocks of the unit under test. Run them."],
+  ["בדיקות","מבדיקות ידניות לאוטומטיות","Here are the manual QA steps for [flow]. Turn them into Playwright tests that run headless in CI."],
+  ["ביצועים","צוואר בקבוק","[endpoint] takes 2s. Profile it, find the bottleneck with evidence (queries, timings), propose 2 fixes with expected gains, implement the best one and measure again."],
+  ["ביצועים","שאילתות N+1","Look for N+1 queries in [dir]. For each, show the code, the query count, and the fix."],
+  ["אבטחה","סקירת אבטחה","Review [dir or diff] for security issues: injection, auth bypass, secrets, unsafe deserialization, SSRF. Only real findings, with file:line and a fix."],
+  ["אבטחה","עדכון תלויות","Run the audit for this project, list vulnerable dependencies by severity, upgrade the safe ones and run tests. List what needs manual decisions."],
+  ["Git ו-PR","commits הגיוניים","Split my uncommitted changes into logical commits with conventional commit messages. Show me the plan before committing."],
+  ["Git ו-PR","תיאור PR","Write a PR description for this branch: what, why, how tested, risks, screenshots needed. Follow .github/pull_request_template.md."],
+  ["Git ו-PR","פתרון קונפליקטים","Merge main into this branch and resolve conflicts. For each conflict explain which side you kept and why. Run tests at the end."],
+  ["Git ו-PR","מענה לריוויו","Address the review comments on PR #[n]: fix what's valid, and draft a reply for anything you disagree with."],
+  ["תיעוד","README שעובד","Rewrite README.md so a new developer can run the project in 10 minutes. Verify every command actually works."],
+  ["תיעוד","דיאגרמה","Draw a Mermaid sequence diagram of [flow] based on the actual code, and add it to docs/architecture.md."],
+  ["תיעוד","הסבר למצטרף","Explain @[file] to a junior developer: purpose, key concepts, gotchas. Under 300 words."],
+  ["DevOps","Dockerfile","Write a production Dockerfile for this app: multi-stage, non-root user, small image, healthcheck. Build it and report the image size."],
+  ["DevOps","CI מאפס","Create a GitHub Actions workflow: install with cache, lint, typecheck, test with coverage, and build on every PR."],
+  ["DevOps","תיקון CI","The CI job [name] fails. Read the log, reproduce locally, fix the root cause. No skipping tests."],
+  ["Claude Code","שיפור CLAUDE.md","Review CLAUDE.md: remove what's obvious or outdated, add what you had to discover yourself in this session, keep it under 80 lines."],
+  ["Claude Code","יצירת Subagent","Create a subagent in .claude/agents for [role]: minimal tools, clear description with when to use it, and a step-by-step prompt."],
+  ["Claude Code","Hook מתיאור","Create a hook that [behavior]. Put the script in .claude/hooks, make it executable, register it in .claude/settings.json, and test it."]
+];
+(function(){
+  const cats = ["הכול", ...new Set(PROMPTS.map(p=>p[0]))]; let f = "הכול";
+  const draw = () => {
+    const q = ($("#prSearch").value||"").toLowerCase();
+    $("#prFilter").innerHTML = cats.map(c => '<button type="button" class="'+(c===f?"on":"")+'">'+esc(c)+'</button>').join("");
+    const list = PROMPTS.filter(p => (f==="הכול"||p[0]===f) && (!q || p.join(" ").toLowerCase().includes(q)));
+    $("#prList").innerHTML = '<div class="grid2">' + list.map(p => '<div><b>'+esc(p[1])+'</b> <span class="pill">'+esc(p[0])+'</span><div class="code" data-lang="prompt"><pre style="white-space:pre-wrap">'+esc(p[2])+'</pre></div></div>').join("") + '</div>';
+    $$("#prList .code").forEach(decorate);
+    $("#prCount").textContent = list.length + " פרומפטים";
+  };
+  $("#prFilter").addEventListener("click", e => { const b = e.target.closest("button"); if(b){ f = b.textContent; draw(); } });
+  $("#prSearch").addEventListener("input", draw);
+  draw();
+})();
+
+// ---------------- slide decks ----------------
+const DECKS = [
+  {t:"Claude Code במבט על", s:[
+    {big:"Claude Code", sub:"סוכן תכנות שעובד איפה שאתם עובדים: טרמינל, IDE, ענן ו-CI"},
+    {h:"מה הוא עושה", b:["קורא ומבין קוד בכל גודל","עורך קבצים ומריץ פקודות","עובד עם git: commits, ענפים, PR","מתחבר לכלים חיצוניים דרך MCP"]},
+    {h:"איך מתחילים", code:"curl -fsSL https://claude.ai/install.sh | bash\ncd my-project\nclaude\n/init"},
+    {h:"שלושת התווים", b:["/  פקודות","@  קבצים ותיקיות","!  פקודת shell ישירה"]},
+    {h:"שלושה מצבים", b:["רגיל: שואל לפני שינוי","acceptEdits: עורך בלי לשאול","plan: רק קורא ומתכנן","Shift+Tab מחליף ביניהם"]},
+    {h:"הזרימה המנצחת", b:["לחקור","לתכנן","לבצע","לוודא"], flow:true},
+    {h:"הסוד הגדול", quote:"תנו ל-Claude דרך לבדוק את עצמו: בדיקות, build, צילום מסך."},
+    {big:"מתחילים היום", sub:"‏/init · CLAUDE.md · הרשאות בסיס · פרומפט ספציפי"}
+  ]},
+  {t:"זרימת עבודה של מקצוענים", s:[
+    {big:"עובדים כמו מקצוענים", sub:"מה מבדיל בין \"עוזר\" ל\"מכפיל כוח\""},
+    {h:"לפני שכותבים קוד", b:["\"אל תכתוב קוד עדיין\": חקירה","מצב תכנון ותיקון התוכנית","מפרט בקובץ, לא רק בשיחה"]},
+    {h:"בזמן העבודה", b:["Esc ברגע שהכיוון שגוי","צעדים קטנים, ובדיקות אחרי כל צעד","צילומי מסך לעבודת UI"]},
+    {h:"ניהול הקשר", b:["‏/clear בין משימות","‏/compact עם הנחיה","PLAN.md כזיכרון חיצוני","Subagents לחיפוש"]},
+    {h:"מקביליות", b:["worktree לכל משימה","סשן כותב וסשן סוקר","משימות רקע עם Ctrl+B"]},
+    {h:"סגירה", b:["בדיקות ולינט","commits הגיוניים","PR עם תיאור","ביקורת עצמית אחרי /clear"]},
+    {h:"תבנית מנצחת", code:"explore → plan (Shift+Tab) → implement in steps → test → /clear → review → PR"}
+  ]},
+  {t:"מערכת ההרחבות", s:[
+    {big:"להרחיב את Claude", sub:"שש שכבות, וכל אחת פותרת בעיה אחרת"},
+    {h:"CLAUDE.md", b:["תמיד בהקשר","פקודות, ארכיטקטורה ומוסכמות","קצר: כל שורה עולה טוקנים"]},
+    {h:"פקודות ו-Skills", b:["פקודה: תהליך שמפעילים ידנית","Skill: מומחיות שנטענת לפי צורך","שניהם: קובץ Markdown"]},
+    {h:"Subagents", b:["הקשר נפרד","כלים ומודל משלהם","רק הסיכום חוזר","ריוויו, בדיקות, חקירה"]},
+    {h:"Hooks", b:["חוק ולא בקשה","PreToolUse חוסם","PostToolUse מפרמט","Stop דורש בדיקות ירוקות"]},
+    {h:"MCP", b:["GitHub, Jira, Sentry, DB, דפדפן, Figma","claude mcp add","‏.mcp.json לצוות","רק ממקורות מוכרים"]},
+    {h:"Plugins", b:["אורזים הכול לחבילה","marketplace ארגוני","התקנה בפקודה אחת"]},
+    {h:"מתי מה", code:"fact/rule        → CLAUDE.md\nmanual workflow  → command\nexpertise+files  → skill\nisolated task    → subagent\nmust always run  → hook\nexternal system  → MCP\nshare with team  → plugin"}
+  ]},
+  {t:"אוטומציה ו-CI", s:[
+    {big:"Claude בלי מסך", sub:"סקריפטים, צינורות ו-GitHub Actions"},
+    {h:"מצב print", code:"claude -p \"task\" \\\n  --output-format json \\\n  --allowedTools \"Read,Edit\" \\\n  --max-turns 10"},
+    {h:"צינורות", code:"git diff | claude -p \"write release notes\"\ntail app.log | claude -p \"root cause?\""},
+    {h:"GitHub", b:["‏/install-github-app","‏@claude בכל Issue או PR","ריוויו אוטומטי לכל PR","anthropics/claude-code-action@v1"]},
+    {h:"Agent SDK", b:["Python ו-TypeScript","אותו מנוע כמו Claude Code","כלים, Hooks ו-MCP בקוד","לסוכנים בתוך מוצרים"]},
+    {h:"כללי בטיחות", b:["תמיד --max-turns","הרשאות מינימליות","סודות ב-secrets בלבד","בדיקה אנושית לפני merge"]}
+  ]},
+  {t:"טריקים בשקפים", s:[
+    {big:"טריקים מהירים", sub:"דברים קטנים שחוסכים הרבה"},
+    {h:"קלט", b:["pipe של לוגים: cat log | claude -p","‏!cmd מכניס פלט להקשר","Ctrl+V לצילום מסך","@ גם לתיקיות"]},
+    {h:"ממשק", b:["Esc Esc לעריכת הודעה קודמת","Ctrl+R לחיפוש בהיסטוריה","Ctrl+O לתצוגה מלאה","Ctrl+B למשימות רקע"]},
+    {h:"סשנים", b:["claude -c להמשך","claude -r לבחירה","‏/rewind לקוד או לשיחה","‏/export לשמירה"]},
+    {h:"פרומפטים", b:["\"ראיין אותי\" לפני מפרט","\"אל תכתוב קוד עדיין\"","\"לפי הדוגמה ב-@file\"","\"ultrathink\" לבעיות קשות"]},
+    {h:"אוטומציה", b:["Stop hook לבדיקות ירוקות","Notification hook לטלפון","fan-out עם xargs -P","‏/security-review לפני merge"]}
+  ]},
+  {t:"אבטחה ובטיחות", s:[
+    {big:"עובדים מהר ובטוח", sub:"שכבות הגנה ל-Claude Code"},
+    {h:"האיומים", b:["Prompt injection מתוכן חיצוני","דליפת סודות","פקודות הרסניות","הרחבות זדוניות"]},
+    {h:"הרשאות", code:"\"deny\": [\n  \"Read(./.env)\",\n  \"Read(./secrets/**)\",\n  \"Bash(rm -rf:*)\",\n  \"Bash(curl:*)\"\n]"},
+    {h:"שכבות נוספות", b:["sandbox לפקודות","Hooks שחוסמים","worktree וענפים","git לפני כל ניסוי"]},
+    {h:"כלל הזהב", quote:"bypassPermissions רק בקונטיינר מבודד, בלי סודות ובלי גישה ל-production."}
+  ]}
+];
+(function(){
+  let d = 0, s = 0;
+  const deck = $("#deck");
+  function slideHTML(x){
+    if(x.big) return '<div class="sl-big"><h2>'+esc(x.big)+'</h2><p>'+esc(x.sub||"")+'</p></div>';
+    let h = '<h3>'+esc(x.h)+'</h3>';
+    if(x.flow) h += '<div class="sl-flow">'+x.b.map((t,i)=>'<span>'+(i+1)+'. '+esc(t)+'</span>').join('<i>←</i>')+'</div>';
+    else if(x.b) h += '<ul>'+x.b.map(t=>'<li>'+esc(t)+'</li>').join("")+'</ul>';
+    if(x.code) h += '<pre>'+esc(x.code)+'</pre>';
+    if(x.quote) h += '<blockquote>'+esc(x.quote)+'</blockquote>';
+    return h;
+  }
+  function draw(){
+    const D = DECKS[d];
+    $("#deckTabs").innerHTML = DECKS.map((x,i) => '<button type="button" class="'+(i===d?"on":"")+'" data-i="'+i+'">'+esc(x.t)+'</button>').join("");
+    deck.innerHTML = '<div class="sl">'+slideHTML(D.s[s])+'</div><div class="sl-foot">'+esc(D.t)+' · אקדמיית Claude Code</div>';
+    $("#dNum").textContent = (s+1) + " / " + D.s.length;
+    $("#dDots").innerHTML = D.s.map((_,i) => '<button type="button" aria-label="שקף '+(i+1)+'" class="'+(i===s?"on":"")+'" data-s="'+i+'"></button>').join("");
+    if(s === D.s.length-1) award("deck-"+d, 10, "סיימתם מצגת");
+  }
+  const go = n => { const L = DECKS[d].s.length; s = Math.max(0, Math.min(L-1, n)); draw(); };
+  $("#deckTabs").addEventListener("click", e => { const b = e.target.closest("button"); if(b){ d = +b.dataset.i; s = 0; draw(); } });
+  $("#dDots").addEventListener("click", e => { const b = e.target.closest("button"); if(b) go(+b.dataset.s); });
+  $("#dNext").onclick = () => go(s+1); $("#dPrev").onclick = () => go(s-1);
+  deck.addEventListener("click", e => { const r = deck.getBoundingClientRect(); go(e.clientX < r.left + r.width/2 ? s+1 : s-1); });
+  const full = () => { const el = deck.parentElement; try{ document.fullscreenElement ? document.exitFullscreen() : el.requestFullscreen().catch(()=>toast("מסך מלא לא זמין כאן")); }catch(e){ toast("מסך מלא לא זמין כאן"); } };
+  $("#dFull").onclick = full;
+  document.addEventListener("keydown", e => {
+    if(ids[cur] !== "slides" || /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) return;
+    if(e.key === "ArrowLeft" || e.key === " " || e.key === "PageDown"){ e.preventDefault(); go(s+1); }
+    else if(e.key === "ArrowRight" || e.key === "PageUp"){ e.preventDefault(); go(s-1); }
+    else if(e.key === "f" || e.key === "F") full();
+  });
+  draw();
+})();
 
 renderStats();
 show(ids.includes(location.hash.slice(1)) ? location.hash.slice(1) : store.get("last", "intro"), false);
