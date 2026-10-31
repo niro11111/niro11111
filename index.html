@@ -160,6 +160,26 @@ body.has-tutor .code .ask{display:inline-block}
 .tutor-sugg{display:flex;gap:6px;flex-wrap:wrap;padding:0 12px 8px}
 .tutor-in{border-top:1px solid var(--line);padding:8px 12px;display:grid;gap:6px}
 .tutor-in textarea{font:inherit;border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:var(--bg);color:var(--ink);resize:none}
+.trick.locked{opacity:.6;border-style:dashed;text-align:center;display:grid;place-content:center;min-height:140px}
+.phases{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:10px 0}
+.phase{display:flex;gap:10px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--surface);min-width:0}
+.phase .pn{flex:none;width:28px;height:28px;border-radius:50%;background:var(--lv9);color:var(--surface);display:grid;place-items:center;font-weight:800}
+.phase span{font-size:.92rem;color:var(--muted)}
+.phase code{font-size:.78rem}
+.score{display:flex;align-items:baseline;gap:8px}
+.score b{font-family:var(--display);font-weight:400;font-size:2.6rem;color:var(--accent);font-variant-numeric:tabular-nums}
+.pal{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.45);display:flex;align-items:flex-start;justify-content:center;padding:calc(10vh + env(safe-area-inset-top,0px)) 16px 16px}
+.pal[hidden]{display:none}
+.pal-box{width:min(640px,100%);background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:0 20px 60px rgba(0,0,0,.35);max-height:75vh;overflow:auto}
+.pal-box input{width:100%;font:inherit;font-size:1.05rem;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+#palList{list-style:none;padding:0;margin:8px 0;display:grid;gap:2px}
+#palList li{padding:8px 10px;border-radius:8px;cursor:pointer}
+#palList li.on,#palList li:hover{background:var(--surface-2)}
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-top:10px}
+.badge{border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center;opacity:.5}
+.badge.got{opacity:1;border-color:var(--amber)}
+.badge span{font-size:1.8rem;display:block}
+.badge small{display:block;color:var(--muted);line-height:1.35}
 .levels .lv{border:1px solid var(--line);border-top:4px solid var(--c);border-radius:10px;padding:12px;background:var(--surface)}
 .levels .lv b{color:var(--c);display:block;font-size:1.02rem}
 .levels .lv span{font-size:.9rem;color:var(--muted)}
@@ -207,7 +227,7 @@ main{overflow-wrap:break-word}
 .missions li.ok::before{content:"✓ ";color:var(--ok);font-weight:800}
 .hint{font-size:.82rem;color:var(--muted)}
 /* builders / forms */
-.form{display:grid;gap:10px}
+.form{display:grid;gap:10px;align-content:start}
 .form label{display:grid;gap:3px;font-weight:600;font-size:.92rem}
 .form input,.form select,.form textarea{font:inherit;font-weight:400;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);width:100%}
 .form textarea{min-height:90px}
@@ -249,7 +269,7 @@ main{overflow-wrap:break-word}
   .topbar{display:flex;position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line);padding:8px 16px;justify-content:space-between;align-items:center;font-family:var(--display)}
   body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:21;background:var(--surface)}
   main{padding:18px 16px 70px}
-  .hero,.sim,.grid2,.grid3,.tricks{grid-template-columns:minmax(0,1fr)}
+  .hero,.sim,.grid2,.grid3,.tricks,.phases{grid-template-columns:minmax(0,1fr)}
   .grid4{grid-template-columns:repeat(2,minmax(0,1fr))}
   .tutor{left:8px;right:8px;width:auto;bottom:calc(66px + env(safe-area-inset-bottom,0px))}
   .chat li{grid-template-columns:minmax(0,1fr);gap:2px}
@@ -287,7 +307,7 @@ main{overflow-wrap:break-word}
     <div>
       <h1>Claude Code ברמה הכי גבוהה, בעברית ובתרגול אמיתי</h1>
       <p class="lead">Claude Code הוא סוכן תכנות שעובד בתוך הטרמינל, ה-IDE, הדפדפן וה-CI שלכם: קורא קוד, עורך קבצים, מריץ פקודות ופותח PR. הקורס הזה לוקח אתכם מההתקנה הראשונה ועד בניית סוכנים, אוטומציות ואינטגרציות משלכם.</p>
-      <div class="row"><button class="btn pri" type="button" data-go="install">להתחיל מההתחלה</button><button class="btn" type="button" data-go="tricks">40 טריקים</button><button class="btn" type="button" data-go="slides">מצגות</button><button class="btn" type="button" data-go="sim">סימולטור</button><button class="btn" type="button" data-go="exam">למבחן הגמר</button></div>
+      <div class="row"><button class="btn pri" type="button" data-go="install">להתחיל מההתחלה</button><button class="btn" type="button" data-go="tricks">40 טריקים</button><button class="btn" type="button" data-go="slides">מצגות</button><button class="btn" type="button" data-go="generator">מחולל פרויקטים</button><button class="btn" type="button" data-go="hidden">חדר הסודות</button><button class="btn" type="button" data-go="sim">סימולטור</button><button class="btn" type="button" data-go="exam">למבחן הגמר</button></div>
     </div>
     <div class="term" aria-hidden="true"><div class="tb"><i></i><i></i><i></i></div><div class="body" id="heroTerm"></div></div>
   </div>
@@ -299,9 +319,9 @@ main{overflow-wrap:break-word}
     <div class="lv" style="--c:var(--lv3)"><b>מתקדמים</b><span>Skills, Subagents, Hooks, שרתי MCP ו-Plugins: להרחיב את Claude לכל צורך.</span></div>
     <div class="lv" style="--c:var(--lv4)"><b>מומחים</b><span>מצב headless ו-CI, Agent SDK, עבודה מקבילית ובענן, אבטחה ועלויות, ובניית מערכת שלמה.</span></div>
     <div class="lv" style="--c:var(--lv7)"><b>מאסטר</b><span>40 טריקים של מקצוענים, 6 דוגמאות מלאות מקצה לקצה וספריית פרומפטים מוכנים.</span></div>
-    <div class="lv" style="--c:var(--lv9)"><b>סודות מתקדמים</b><span>שרת MCP משלכם, לולאות אוטונומיות, צוות סוכנים, Hooks ברמת מאסטר, בוט SDK, סוכני לילה, ניטור ארגוני ועבודה שאינה קוד.</span></div>
+    <div class="lv" style="--c:var(--lv9)"><b>סודות מתקדמים</b><span>שרת MCP משלכם, לולאות אוטונומיות, צוות סוכנים, Hooks ברמת מאסטר, בוט SDK, סוכני לילה, ניטור ארגוני, מדריך פקודות מלא, חדר הסודות ופיתוח פרויקטים מלאים.</span></div>
     <div class="lv" style="--c:var(--lv8)"><b>מצגות</b><span>6 מצגות שמסכמות את הקורס, עם מסך מלא. מתאימות גם להצגה לצוות.</span></div>
-    <div class="lv" style="--c:var(--lv5)"><b>סדנת תרגול</b><span>סימולטור, מחוללים, אתגרים, כרטיסיות, פרויקט גמר מודרך, בודק הגדרות, מילון ואתגר יומי.</span></div>
+    <div class="lv" style="--c:var(--lv5)"><b>סדנת תרגול</b><span>סימולטור (20 משימות), מחוללים, מחולל פרויקט מלא, מעבדת פרומפטים, אתגרים, כרטיסיות, פרויקט גמר, בודק הגדרות, מילון ואתגר יומי.</span></div>
     <div class="lv" style="--c:var(--lv6)"><b>מבחן גמר</b><span>15 שאלות אקראיות מכל הקורס. עוברים ב-80% ומקבלים תעודה על המסך.</span></div>
   </div>
 
@@ -1516,6 +1536,46 @@ export OTEL_RESOURCE_ATTRIBUTES="team=payments,department=rnd"</pre></div>
   <div class="quiz" data-q="noncode"></div>
 </section>
 
+<!-- ================= MAX: reference, hidden, projects ================= -->
+<section class="mod" id="reference" data-level="סודות מתקדמים" data-title="מדריך פקודות מלא">
+  <div class="eyebrow"></div>
+  <h1>מדריך הפקודות המלא</h1>
+  <p class="lead">כל פקודה, דגל, קיצור, משתנה סביבה, מפתח הגדרה ואירוע Hook במקום אחד, עם חיפוש. Claude Code מתעדכן מהר, ולכן אם משהו לא קיים אצלכם, הריצו <code>claude update</code> ובדקו ב-<code>/help</code> וב-<code>claude --help</code>.</p>
+  <div class="row" style="margin:6px 0"><input class="search" id="refSearch" type="search" placeholder="חיפוש: resume, mcp, timeout…" aria-label="חיפוש במדריך" style="max-width:300px;margin:0"><span class="hint" id="refCount"></span></div>
+  <div class="tabs" id="refFilter"></div>
+  <div class="tbl"><table id="refTable"></table></div>
+  <div class="quiz" data-q="reference"></div>
+</section>
+
+<section class="mod" id="hidden" data-level="סודות מתקדמים" data-title="חדר הסודות: פיצ'רים נסתרים">
+  <div class="eyebrow"></div>
+  <h1>חדר הסודות</h1>
+  <p class="lead">יכולות שכמעט אף אחד לא מכיר. חלק פתוחות מההתחלה, והשאר נפתחות בהדרגה ככל שצוברים XP. כל סוד שנפתח מגיע עם דוגמה מעשית.</p>
+  <div class="row" style="justify-content:space-between"><span class="hint" id="secCount"></span><span class="hint" id="secNext"></span></div>
+  <div class="tricks" id="secList"></div>
+  <div class="quiz" data-q="hidden"></div>
+</section>
+
+<section class="mod" id="fullproj" data-level="סודות מתקדמים" data-title="פיתוח פרויקטים מלאים">
+  <div class="eyebrow"></div>
+  <h1>פיתוח פרויקט מלא מאפס ועד production</h1>
+  <p class="lead">איך מפתחים מערכת שלמה עם Claude Code ולא רק פיצ'ר: שיטה בעשרה שלבים, ותוכניות מפורטות לשישה סוגי פרויקטים. כדי לקבל קבצי פתיחה מותאמים לפרויקט שלכם, עברו ל<a href="#generator">מחולל הפרויקטים</a>.</p>
+  <h2>השיטה: 10 שלבים</h2>
+  <div class="phases" id="phaseList"></div>
+  <h2>תוכניות לפי סוג פרויקט</h2>
+  <div class="tabs" id="bpTabs"></div>
+  <div id="bpBody"></div>
+  <h2>חמשת הכללים לפרויקט גדול</h2>
+  <ol>
+    <li><b>פרוסות אנכיות</b>: כל שלב מוסיף יכולת אחת שעובדת מקצה לקצה (מסד נתונים, API, UI ובדיקה), ולא "קודם כל ה-backend".</li>
+    <li><b>כל ההחלטות בקבצים</b>: <code>docs/spec.md</code>, <code>docs/decisions/</code> ו-PLAN.md. השיחה נמחקת, הקבצים נשארים.</li>
+    <li><b>בדיקות כרשת ביטחון</b>: אף שלב לא נגמר בלי בדיקות ירוקות ו-CI ירוק.</li>
+    <li><b>סשן חדש לכל שלב</b>: <code>/clear</code>, ואז "המשך לפי @PLAN.md". הקשר נקי נותן תוצאה טובה יותר.</li>
+    <li><b>אתם הארכיטקטים</b>: Claude מציע ומממש, ואתם מאשרים תוכניות, סוקרים diffs ומחליטים על אבטחה ועל production.</li>
+  </ol>
+  <div class="quiz" data-q="fullproj"></div>
+</section>
+
 <section class="mod" id="slides" data-level="מצגות" data-title="מצגות">
   <div class="eyebrow"></div>
   <h1>מצגות</h1>
@@ -1689,6 +1749,44 @@ Do not change test expectations to make them pass.</textarea></label>
   <div id="notesAll"></div>
 </section>
 
+<section class="mod" id="generator" data-level="סדנת תרגול" data-title="מחולל פרויקט מלא">
+  <div class="eyebrow"></div>
+  <h1>מחולל פרויקט מלא</h1>
+  <p class="lead">בוחרים סוג פרויקט, סטאק ויכולות, ומקבלים ערכת פתיחה: PLAN.md עם שלבים ומשימות, CLAUDE.md, הגדרות הרשאות ו-Hooks, רצף פרומפטים להתחלה, וסקריפט לולאה אופציונלי. מעתיקים לתיקייה ריקה ומתחילים.</p>
+  <div class="grid2">
+    <div class="form">
+      <label>שם הפרויקט<input id="gName" class="ltr" value="taskflow"></label>
+      <label>סוג<select id="gType"></select></label>
+      <label>סטאק<select id="gStack"></select></label>
+      <b>יכולות</b><div class="chk" id="gFeat"></div>
+      <label>פריסה<select id="gDeploy"><option>Vercel</option><option>Docker + Fly.io</option><option>AWS</option><option>Cloudflare</option><option>App stores</option><option>npm registry</option><option>Chrome Web Store</option><option>ללא</option></select></label>
+      <label class="tick"><input type="checkbox" id="gLoop" checked> כולל loop.sh לעבודה אוטונומית</label>
+      <label>תיאור קצר<textarea id="gDesc" class="ltr">A task manager for small teams: projects, tasks with status and due dates, comments and email reminders.</textarea></label>
+    </div>
+    <div>
+      <div class="tabs" data-tabs="gen"><button class="on" type="button">PLAN.md</button><button type="button">CLAUDE.md</button><button type="button">settings.json</button><button type="button">פרומפטים</button><button type="button">loop.sh</button></div>
+      <div class="pane on" data-pane="gen"><div class="code" data-lang="markdown" data-file="PLAN.md" id="gPlan"><pre></pre></div></div>
+      <div class="pane" data-pane="gen"><div class="code" data-lang="markdown" data-file="CLAUDE.md" id="gMem"><pre></pre></div></div>
+      <div class="pane" data-pane="gen"><div class="code" data-lang="json" data-file=".claude/settings.json" id="gSet"><pre></pre></div></div>
+      <div class="pane" data-pane="gen"><div class="code" data-lang="text" data-file="kickoff prompts" id="gPrompts"><pre></pre></div></div>
+      <div class="pane" data-pane="gen"><div class="code" data-lang="bash" data-file="loop.sh" id="gLoopOut"><pre></pre></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="mod" id="promptlab" data-level="סדנת תרגול" data-title="מעבדת פרומפטים">
+  <div class="eyebrow"></div>
+  <h1>מעבדת פרומפטים</h1>
+  <p class="lead">כתבו פרומפט כמו שהייתם כותבים ל-Claude Code, וקבלו ציון לפי 8 עקרונות של מקצוענים, עם הצעה מה לשפר. כשהמורה זמין, הוא גם משכתב את הפרומפט לגרסה מקצועית.</p>
+  <div class="row" style="margin-bottom:8px"><span class="hint">נסו:</span><button class="btn sm" type="button" data-pl="0">פרומפט חלש</button><button class="btn sm" type="button" data-pl="1">פרומפט בינוני</button><button class="btn sm" type="button" data-pl="2">פרומפט מקצועי</button></div>
+  <div class="grid2">
+    <div class="ch"><textarea id="plIn" spellcheck="false" aria-label="הפרומפט שלכם" placeholder="למשל: תתקן את הבאג בהתחברות"></textarea>
+      <div class="row" style="margin-top:8px"><button class="btn pri" type="button" id="plRun">ציון</button><button class="btn" type="button" id="plAi" hidden>שכתוב מקצועי מהמורה</button></div></div>
+    <div class="box" style="margin-top:0" id="plOut"><span class="hint">הציון יופיע כאן.</span></div>
+  </div>
+  <div id="plAiOut" class="box tutor-answer" hidden></div>
+</section>
+
 <section class="mod" id="exam" data-level="מבחן גמר" data-title="מבחן גמר ותעודה">
   <div class="eyebrow"></div>
   <h1>מבחן גמר</h1>
@@ -1764,7 +1862,7 @@ function show(id, push){
   $("#rail").classList.remove("open");
   if(push !== false && location.hash !== "#"+ids[i]){ try{ history.replaceState(null, "", "#"+ids[i]); }catch(e){ location.hash = ids[i]; } }
   window.scrollTo(0,0);
-  if(["sim","builders","cards","prompts","slides","tracks","glossary"].includes(ids[i])) markDone(ids[i]);
+  if(["sim","builders","cards","prompts","slides","tracks","glossary","generator"].includes(ids[i])) markDone(ids[i]);
   if(ids[i] === "sim") setTimeout(()=>$("#simIn").focus({preventScroll:true}), 50);
 }
 document.addEventListener("click", e => { const g = e.target.closest("[data-go]"); if(g){ e.preventDefault(); show(g.dataset.go); } });
@@ -1986,6 +2084,21 @@ const Q = {
   ],
   noncode: [
     ["מה הכלל החשוב כשנותנים ל-Claude לארגן קבצים?", ["לתת לו למחוק חופשי","לעבוד על עותק ולבקש תוכנית לפני שינוי","לכבות הרשאות","לעבוד ב-production"], 1, "תוכנית קודם, ועותק כגיבוי."]
+  ],
+  reference: [
+    ["איזה דגל ממשיך שיחה ישנה כענף חדש בלי לשנות את המקורית?", ["--continue","--fork-session (עם --resume)","--branch","--copy"], 1, "‏--resume עם --fork-session."],
+    ["איזה משתנה מאריך זמן המתנה לפקודות Bash ארוכות?", ["MCP_TIMEOUT","BASH_DEFAULT_TIMEOUT_MS","MAX_THINKING_TOKENS","HTTPS_PROXY"], 1, "BASH_DEFAULT_TIMEOUT_MS (ו-BASH_MAX_TIMEOUT_MS)."],
+    ["מה עושה claude mcp serve?", ["מוחק שרתים","מריץ את Claude Code עצמו כשרת MCP","מתקין שרת","מציג לוגים"], 1, "כלים אחרים יכולים להשתמש בכלים של Claude Code."]
+  ],
+  hidden: [
+    ["איך מגדירים Subagent לריצה אחת בלי קבצים?", ["אי אפשר","‏claude --agents '<json>'","‏/agent-temp","‏CLAUDE.md"], 1, "‏--agents מקבל הגדרת JSON."],
+    ["למה --strict-mcp-config חשוב ב-CI?", ["מהירות","טוען רק את השרתים מהקובץ, וכך הריצה צפויה","זה חובה","כדי לכבות MCP"], 1, "בלי השפעה של הגדרות מקומיות."],
+    ["איך ממשיכים בסקריפט את אותה שיחה בשלב הבא?", ["מעתיקים טקסט","שומרים session_id מפלט JSON ומריצים --resume","claude -c תמיד","אי אפשר"], 1, "‏session_id מהפלט, ו---resume בשלב הבא."]
+  ],
+  fullproj: [
+    ["מה זו פרוסה אנכית?", ["שכבה אחת (רק backend)","יכולת אחת מקצה לקצה: נתונים, API, UI ובדיקה","קובץ CSS","ענף git"], 1, "כל פרוסה עובדת ונבדקת בפני עצמה."],
+    ["איפה נשמרות ההחלטות בפרויקט גדול?", ["בזיכרון השיחה","בקבצים: spec, architecture, decisions ו-PLAN.md","בראש","בצ'אט של הצוות"], 1, "השיחה נמחקת, הקבצים נשארים."],
+    ["מה עושים בתחילת כל שלב?", ["ממשיכים את אותה שיחה ארוכה","‏/clear ואז 'המשך לפי @PLAN.md'","מתקינים מחדש","מחליפים מודל"], 1, "הקשר נקי לכל שלב."]
   ],
   ideas: [
     ["איזה מנגנון מבטיח שClaude לא יסיים עם בדיקות אדומות?", ["CLAUDE.md","Hook על Stop שמחזיר 2 אם הבדיקות נכשלו","Output style","Status line"], 1, "Stop hook יכול לחסום סיום ולבקש להמשיך."],
@@ -2862,7 +2975,7 @@ function mergeBundles(local, remote){
       const msg = {not_granted:"המורה לא אושר בחלון האישור, ולכן הוא מוסתר בביקור הזה.", sampling_disabled:"המורה לא זמין בחשבון הזה.", rate_limited:"יותר מדי שאלות בזמן קצר, או שהמכסה נגמרה. נסו שוב בעוד כמה דקות.", session_expired:"צריך להתחבר מחדש ל-Claude.", refused:"לא אוכל לענות על זה. נסו לנסח אחרת.", prompt_too_large:"השאלה ארוכה מדי. התחילו שיחה חדשה."}[e && e.code];
       if(e && e.code === "cancelled"){ out.innerHTML = e.text ? md(e.text) + '<div class="hint">נעצר</div>' : '<span class="hint">נעצר</span>'; }
       else { out.innerHTML = (e && e.text ? md(e.text) + "<br>" : "") + '<span class="hint">' + esc(msg || "משהו השתבש. נסו שוב.") + '</span>'; }
-      if(e && ["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed"].includes(e.code)){ sample = null; setTimeout(() => { $("#tutor").hidden = true; $("#tutorFab").hidden = true; document.body.classList.remove("has-tutor"); $("#chkAi").hidden = true; }, 3500); }
+      if(e && ["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed"].includes(e.code)){ sample = null; window.tutorSample = null; setTimeout(() => { const pa = document.getElementById("plAi"); if(pa) pa.hidden = true; $("#tutor").hidden = true; $("#tutorFab").hidden = true; document.body.classList.remove("has-tutor"); $("#chkAi").hidden = true; }, 3500); }
     }finally{ $("#tutorSend").disabled = false; $("#tutorStop").hidden = true; }
   }
   window.askTutor = (q) => { if(!sample) return; open(); ask(q); };
@@ -2890,8 +3003,451 @@ function mergeBundles(local, remote){
     try{ sample = await window.claude.use("sample"); }catch(e){ sample = null; }
     if(!sample) return;
     $("#tutorFab").hidden = false; $("#chkAi").hidden = false; document.body.classList.add("has-tutor");
+    window.tutorSample = sample; window.tutorMd = md; const pa = document.getElementById("plAi"); if(pa) pa.hidden = false;
   })();
 })();
+
+// ================= full reference =================
+const REF = [
+  ["פקודות סלאש","/help","כל הפקודות הזמינות, כולל פקודות מותאמות, Skills ו-Plugins"],
+  ["פקודות סלאש","/init","יוצר CLAUDE.md לפרויקט"],
+  ["פקודות סלאש","/clear","שיחה נקייה (CLAUDE.md נטען מחדש)"],
+  ["פקודות סלאש","/compact [הנחיה]","סיכום השיחה כדי לפנות הקשר, עם הנחיה מה לשמור"],
+  ["פקודות סלאש","/context","פירוט ניצול חלון ההקשר"],
+  ["פקודות סלאש","/model","החלפת מודל: opus, sonnet, haiku, opusplan"],
+  ["פקודות סלאש","/memory","עריכת קבצי CLAUDE.md"],
+  ["פקודות סלאש","/permissions","צפייה בכללי הרשאה ועריכה שלהם"],
+  ["פקודות סלאש","/config","הגדרות: ערכת נושא, התראות, עורך ועוד"],
+  ["פקודות סלאש","/status","גרסה, מודל, חשבון ומצב חיבורים"],
+  ["פקודות סלאש","/resume","בחירת שיחה קודמת להמשך"],
+  ["פקודות סלאש","/rewind","חזרה לנקודת שמירה: קוד, שיחה או שניהם"],
+  ["פקודות סלאש","/export","ייצוא השיחה לקובץ או ללוח"],
+  ["פקודות סלאש","/agents","ניהול Subagents ויצירה שלהם"],
+  ["פקודות סלאש","/mcp","מצב שרתי MCP, התחברות OAuth וכלים"],
+  ["פקודות סלאש","/hooks","Hooks רשומים ועריכה שלהם"],
+  ["פקודות סלאש","/plugin","התקנה וניהול של Plugins ו-marketplaces"],
+  ["פקודות סלאש","/output-style","החלפת סגנון התגובה"],
+  ["פקודות סלאש","/statusline","הגדרת שורת סטטוס מותאמת"],
+  ["פקודות סלאש","/add-dir <path>","גישה לתיקייה נוספת בסשן"],
+  ["פקודות סלאש","/review","ריוויו של שינויים או של PR"],
+  ["פקודות סלאש","/security-review","סריקת אבטחה של השינויים בענף"],
+  ["פקודות סלאש","/install-github-app","חיבור Claude ל-GitHub לתגובה ל-@claude"],
+  ["פקודות סלאש","/terminal-setup","הגדרת Shift+Enter לשורה חדשה בטרמינל"],
+  ["פקודות סלאש","/ide","חיבור ל-VS Code או JetBrains פתוחים"],
+  ["פקודות סלאש","/vim","מצב עריכה בסגנון Vim"],
+  ["פקודות סלאש","/sandbox","הרצת פקודות Bash בבידוד (במערכות נתמכות)"],
+  ["פקודות סלאש","/cost · /usage","עלות הסשן ומצב המכסה"],
+  ["פקודות סלאש","/doctor","אבחון התקנה והגדרות"],
+  ["פקודות סלאש","/login · /logout","התחברות והתנתקות"],
+  ["פקודות סלאש","/bug","שליחת משוב או דיווח על באג ל-Anthropic"],
+  ["פקודות סלאש","/release-notes","מה חדש בגרסה"],
+  ["דגלי CLI","-p, --print","מצב headless: מריץ, מדפיס תוצאה ויוצא"],
+  ["דגלי CLI","-c, --continue","ממשיך את השיחה האחרונה בתיקייה"],
+  ["דגלי CLI","-r, --resume [id]","ממשיך שיחה לפי מזהה או מרשימה"],
+  ["דגלי CLI","--fork-session","עם ‎--resume: מתחיל ענף חדש של השיחה במקום להמשיך את המקורית"],
+  ["דגלי CLI","--model <name>","בחירת מודל לסשן"],
+  ["דגלי CLI","--fallback-model <name>","מודל חלופי כשהראשי עמוס (במצב print)"],
+  ["דגלי CLI","--permission-mode <mode>","default, acceptEdits, plan או bypassPermissions"],
+  ["דגלי CLI","--allowedTools / --disallowedTools","הרשאות לריצה הזו בלבד"],
+  ["דגלי CLI","--add-dir <path>","תיקיות נוספות שמותר לגשת אליהן"],
+  ["דגלי CLI","--output-format text|json|stream-json","פורמט הפלט במצב print"],
+  ["דגלי CLI","--input-format stream-json","קלט בזרם JSON, לשיחה דו-כיוונית מתוכנה"],
+  ["דגלי CLI","--max-turns <n>","תקרת סבבים בריצה אוטומטית"],
+  ["דגלי CLI","--append-system-prompt <text>","הוספת הנחיות מערכת"],
+  ["דגלי CLI","--agents '<json>'","הגדרת Subagents זמניים משורת הפקודה"],
+  ["דגלי CLI","--mcp-config <file>","טעינת שרתי MCP מקובץ JSON"],
+  ["דגלי CLI","--strict-mcp-config","רק השרתים מ-‎--mcp-config, בלי שאר ההגדרות"],
+  ["דגלי CLI","--permission-prompt-tool <mcp tool>","כלי MCP שמחליט על אישורים במצב headless"],
+  ["דגלי CLI","--settings <file|json>","טעינת קובץ הגדרות נוסף לריצה"],
+  ["דגלי CLI","--setting-sources user,project,local","אילו מקורות הגדרות לטעון"],
+  ["דגלי CLI","--verbose","פלט מפורט (נדרש עם stream-json)"],
+  ["דגלי CLI","--debug","מידע דיבאג: הגדרות, MCP, Hooks"],
+  ["דגלי CLI","--dangerously-skip-permissions","בלי אישורים בכלל. רק בסביבה מבודדת"],
+  ["תתי-פקודות","claude update","עדכון לגרסה האחרונה"],
+  ["תתי-פקודות","claude doctor","אבחון התקנה"],
+  ["תתי-פקודות","claude mcp add …","הוספת שרת MCP (stdio, http או sse)"],
+  ["תתי-פקודות","claude mcp add-json <name> '<json>'","הוספת שרת מהגדרת JSON מלאה"],
+  ["תתי-פקודות","claude mcp add-from-claude-desktop","ייבוא שרתים שהוגדרו ב-Claude Desktop"],
+  ["תתי-פקודות","claude mcp list · get · remove","ניהול שרתים"],
+  ["תתי-פקודות","claude mcp serve","מריץ את Claude Code עצמו כשרת MCP, כך שכלים אחרים יכולים להשתמש בכלים שלו"],
+  ["קיצורי מקלדת","Shift+Tab","מעבר בין מצבי הרשאה"],
+  ["קיצורי מקלדת","Esc","עצירת הפעולה הנוכחית"],
+  ["קיצורי מקלדת","Esc Esc","עריכת הודעה קודמת או חזרה לנקודת שמירה"],
+  ["קיצורי מקלדת","Ctrl+C (×2)","ביטול קלט, ופעמיים ליציאה"],
+  ["קיצורי מקלדת","Ctrl+R","חיפוש בהיסטוריית ההודעות"],
+  ["קיצורי מקלדת","Ctrl+O","תצוגת transcript מפורטת"],
+  ["קיצורי מקלדת","Ctrl+B","העברת פקודה ארוכה לרקע"],
+  ["קיצורי מקלדת","Ctrl+V","הדבקת תמונה"],
+  ["קיצורי מקלדת","\\ + Enter","שורה חדשה בהודעה"],
+  ["קיצורי מקלדת","@ · ! · /","קובץ · פקודת shell · פקודה"],
+  ["משתני סביבה","ANTHROPIC_API_KEY","מפתח API (במקום התחברות עם מנוי)"],
+  ["משתני סביבה","ANTHROPIC_MODEL","מודל ברירת מחדל"],
+  ["משתני סביבה","CLAUDE_CODE_USE_BEDROCK / _VERTEX","הרצה דרך Amazon Bedrock או Google Vertex AI"],
+  ["משתני סביבה","MAX_THINKING_TOKENS","תקציב חשיבה מורחבת"],
+  ["משתני סביבה","CLAUDE_CODE_MAX_OUTPUT_TOKENS","תקרת טוקנים לתשובה"],
+  ["משתני סביבה","BASH_DEFAULT_TIMEOUT_MS","זמן המתנה לפקודות Bash ארוכות"],
+  ["משתני סביבה","MCP_TIMEOUT","זמן המתנה לעליית שרת MCP"],
+  ["משתני סביבה","HTTPS_PROXY","שימוש ב-proxy ארגוני"],
+  ["משתני סביבה","CLAUDE_CODE_ENABLE_TELEMETRY","שליחת מדדים ל-OpenTelemetry"],
+  ["משתני סביבה","DISABLE_TELEMETRY","ביטול טלמטריה"],
+  ["משתני סביבה","DISABLE_AUTOUPDATER","ביטול עדכון אוטומטי"],
+  ["משתני סביבה","CLAUDE_PROJECT_DIR","בתוך Hooks: שורש הפרויקט"],
+  ["מפתחות הגדרה","permissions.allow / ask / deny","כללי הרשאה"],
+  ["מפתחות הגדרה","permissions.defaultMode","מצב הרשאה כברירת מחדל"],
+  ["מפתחות הגדרה","permissions.additionalDirectories","תיקיות נוספות קבועות"],
+  ["מפתחות הגדרה","hooks","הגדרת Hooks לפי אירוע"],
+  ["מפתחות הגדרה","env","משתני סביבה לכל סשן"],
+  ["מפתחות הגדרה","model","מודל ברירת מחדל לפרויקט"],
+  ["מפתחות הגדרה","statusLine","פקודה לשורת סטטוס"],
+  ["מפתחות הגדרה","outputStyle","סגנון פלט ברירת מחדל"],
+  ["מפתחות הגדרה","enabledPlugins · extraKnownMarketplaces","Plugins ו-marketplaces לצוות"],
+  ["מפתחות הגדרה","enableAllProjectMcpServers","אישור אוטומטי לשרתים מ-.mcp.json"],
+  ["מפתחות הגדרה","apiKeyHelper","סקריפט שמביא מפתח API זמני"],
+  ["מפתחות הגדרה","cleanupPeriodDays","כמה זמן לשמור היסטוריית שיחות"],
+  ["מפתחות הגדרה","sandbox","הגדרות בידוד לפקודות"],
+  ["אירועי Hooks","PreToolUse","לפני כלי. יכול לחסום או להחליט (allow/deny/ask)"],
+  ["אירועי Hooks","PostToolUse","אחרי כלי שהצליח"],
+  ["אירועי Hooks","UserPromptSubmit","כשנשלחת הודעה. stdout נכנס להקשר"],
+  ["אירועי Hooks","Notification","כש-Claude מחכה לאישור או לקלט"],
+  ["אירועי Hooks","Stop / SubagentStop","כשהסוכן מסיים. קוד 2 = להמשיך"],
+  ["אירועי Hooks","SessionStart / SessionEnd","פתיחה וסגירה של סשן"],
+  ["אירועי Hooks","PreCompact","לפני סיכום ההקשר"]
+];
+(function(){
+  const cats = ["הכול", ...new Set(REF.map(r=>r[0]))]; let f = "הכול";
+  const draw = () => {
+    const q = ($("#refSearch").value||"").toLowerCase();
+    $("#refFilter").innerHTML = cats.map(c => '<button type="button" class="'+(c===f?"on":"")+'">'+esc(c)+'</button>').join("");
+    const list = REF.filter(r => (f==="הכול"||r[0]===f) && (!q || r.join(" ").toLowerCase().includes(q)));
+    $("#refTable").innerHTML = '<tr><th>פקודה</th><th>מה היא עושה</th><th>סוג</th></tr>' + list.map(r => '<tr><td class="ltr"><code>'+esc(r[1])+'</code></td><td>'+esc(r[2])+'</td><td><span class="pill">'+esc(r[0])+'</span></td></tr>').join("");
+    $("#refCount").textContent = list.length + " מתוך " + REF.length;
+  };
+  $("#refFilter").addEventListener("click", e => { const b = e.target.closest("button"); if(b){ f = b.textContent; draw(); } });
+  $("#refSearch").addEventListener("input", draw); draw();
+})();
+
+// ================= secret room (unlocks with XP) =================
+const SECRETS = [
+  ["Claude Code כשרת MCP","‏claude mcp serve הופך את Claude Code עצמו לשרת MCP. אפליקציה אחרת (למשל Claude Desktop) יכולה להשתמש בכלים שלו: קריאה, עריכה ו-Bash בתיקייה שלכם.","{\n  \"mcpServers\": {\n    \"claude-code\": { \"command\": \"claude\", \"args\": [\"mcp\", \"serve\"] }\n  }\n}"],
+  ["Subagents מוגדרים בשורת הפקודה","‏‎--agents מגדיר סוכנים לריצה אחת בלי ליצור קבצים. מושלם לסקריפטים ול-CI.","claude --agents '{\"reviewer\":{\"description\":\"Reviews diffs. Use after edits.\",\"prompt\":\"You are a strict reviewer.\",\"tools\":[\"Read\",\"Grep\"]}}' -p \"use reviewer on the last commit\""],
+  ["פיצול שיחה (fork)","ממשיכים שיחה ישנה כענף חדש, בלי לשנות את המקורית. כך אפשר לנסות שתי גישות מאותה נקודה.","claude --resume abc123 --fork-session"],
+  ["ייבוא שרתים מ-Claude Desktop","כבר הגדרתם שרתי MCP באפליקציה? מייבאים את כולם בפקודה אחת.","claude mcp add-from-claude-desktop"],
+  ["הוספת שרת מ-JSON","מדביקים הגדרת שרת מלאה, כולל headers ו-env, בלי לפרק לדגלים.","claude mcp add-json internal '{\"type\":\"http\",\"url\":\"https://mcp.internal/mcp\",\"headers\":{\"Authorization\":\"Bearer ${TOKEN}\"}}'"],
+  ["הוראות קבועות ל-compact","סעיף ב-CLAUDE.md שאומר מה לשמור תמיד בסיכום, כדי שלא יאבדו החלטות חשובות.","## Compact instructions\nWhen compacting, always keep: the list of changed files,\nopen TODOs, API decisions and failing test names."],
+  ["ייבוא העדפות אישיות לכל פרויקט","CLAUDE.md של הפרויקט מייבא קובץ אישי מהבית. כך ההעדפות שלכם עוברות בין פרויקטים, בלי להכניס אותן ל-git.","# in ./CLAUDE.md\n@~/.claude/my-preferences.md"],
+  ["פקודת Bash ארוכה בלי timeout","build או מיגרציה של 20 דקות נקטעים? מגדילים את ההמתנה.","{ \"env\": { \"BASH_DEFAULT_TIMEOUT_MS\": \"1800000\", \"BASH_MAX_TIMEOUT_MS\": \"3600000\" } }"],
+  ["סוכן headless עם החלטות אישור מבחוץ","‏‎--permission-prompt-tool מעביר כל בקשת אישור לכלי MCP שלכם. למשל, שולח את הבקשה ל-Slack ומחכה ל-👍.","claude -p \"deploy the docs site\" --permission-prompt-tool mcp__approvals__ask"],
+  ["שיחה דו-כיוונית מתוכנה","‏stream-json גם בקלט וגם בפלט מאפשר לתוכנה שלכם לנהל שיחה חיה עם Claude Code, הודעה אחר הודעה.","claude -p --input-format stream-json --output-format stream-json --verbose"],
+  ["MCP נקי לריצה אחת","‏‎--strict-mcp-config טוען רק את השרתים מהקובץ שנתתם ומתעלם מכל השאר. חשוב ב-CI כדי לקבל ריצה צפויה.","claude -p \"triage\" --mcp-config ci-mcp.json --strict-mcp-config"],
+  ["הגדרות מבודדות לבדיקות","טוענים רק את הגדרות הפרויקט, בלי ההגדרות האישיות שלכם, כדי לבדוק מה הצוות באמת מקבל.","claude --setting-sources project"],
+  ["Hook שמוסיף הקשר בלי לחסום","‏UserPromptSubmit יכול להחזיר JSON עם additionalContext, למשל מצב השירותים בזמן אמת.","echo '{\"hookSpecificOutput\":{\"hookEventName\":\"UserPromptSubmit\",\"additionalContext\":\"staging is DOWN since 10:40\"}}'"],
+  ["שורת סטטוס עם עלות חיה","הסקריפט מקבל JSON עם מודל, תיקייה ועלות, ומדפיס שורה אחת.","#!/usr/bin/env bash\nin=$(cat)\nm=$(echo \"$in\" | jq -r '.model.display_name')\nc=$(echo \"$in\" | jq -r '.cost.total_cost_usd // 0')\nb=$(git branch --show-current 2>/dev/null)\necho \"$m · $b · \\$$c\""],
+  ["Output style משלכם","קובץ Markdown ב-~/.claude/output-styles משנה את אופי התגובות. למשל מצב \"מנטור\" שמסביר כל החלטה בעברית.","---\nname: Mentor\ndescription: Explains every decision, in Hebrew\n---\nAfter each change, explain in Hebrew why you chose this approach\nand one alternative you rejected."],
+  ["תקציב חשיבה","‏MAX_THINKING_TOKENS קובע כמה Claude חושב לפני תשובה. יותר = איטי ויקר יותר, אבל טוב יותר לבעיות קשות.","MAX_THINKING_TOKENS=32000 claude"],
+  ["מודל חלופי אוטומטי","בסקריפטים: אם המודל הראשי עמוס, עוברים לחלופי במקום להיכשל.","claude -p \"nightly report\" --model opus --fallback-model sonnet"],
+  ["Skill עם כלים מוגבלים","‏allowed-tools ב-Skill מגביל מה מותר בזמן שה-Skill פעיל. למשל Skill של דוחות שרק קורא ומריץ סקריפט אחד.","---\nname: weekly-report\ndescription: Builds the weekly metrics report. Use when asked for the weekly report.\nallowed-tools: Read, Bash(python scripts/report.py:*)\n---"],
+  ["פלט JSON עם session_id להמשך","שומרים את המזהה מהריצה הראשונה, וממשיכים את אותה שיחה בשלב הבא של הצינור.","sid=$(claude -p \"analyze the repo\" --output-format json | jq -r .session_id)\nclaude -p --resume \"$sid\" \"now write the migration plan\""],
+  ["Claude בודק את ה-CLAUDE.md של עצמו","מבקשים מ-Claude לבדוק את קובץ הזיכרון מול הקוד בפועל: פקודות שלא עובדות, כללים שכבר לא רלוונטיים ומה חסר.","verify every command in CLAUDE.md actually works, remove rules that no longer\nmatch the code, add what you had to discover yourself. Show the diff."]
+];
+const SEC_FREE = 6, SEC_STEP = 60;
+function secUnlocked(){ return Math.min(SECRETS.length, SEC_FREE + Math.floor(state.xp / SEC_STEP)); }
+function drawSecrets(){
+  const n = secUnlocked();
+  $("#secList").innerHTML = SECRETS.map((s,i) => i < n
+    ? '<div class="trick"><span class="pill">סוד '+(i+1)+'</span><h3>'+esc(s[0])+'</h3><p>'+esc(s[1])+'</p><div class="code" data-lang="text"><pre>'+esc(s[2])+'</pre></div></div>'
+    : '<div class="trick locked"><span class="pill">סוד '+(i+1)+'</span><h3>🔒 נעול</h3><p>נפתח ב-'+((i - SEC_FREE + 1) * SEC_STEP)+' XP</p></div>').join("");
+  $$("#secList .code").forEach(decorate);
+  $("#secCount").textContent = n + "/" + SECRETS.length + " סודות פתוחים";
+  $("#secNext").textContent = n < SECRETS.length ? "הסוד הבא נפתח ב-" + ((n - SEC_FREE + 1) * SEC_STEP) + " XP (יש לכם " + state.xp + ")" : "פתחתם את כל הסודות 🎉";
+}
+REFRESH.push(drawSecrets); drawSecrets();
+
+// ================= full project method & blueprints =================
+const PHASES = [
+  ["גילוי","\"ראיין אותי\" עד שהבעיה, המשתמשים והגבולות ברורים","docs/brief.md"],
+  ["מפרט","מסכים, זרימות וקריטריוני קבלה לכל יכולת","docs/spec.md"],
+  ["ארכיטקטורה","מצב תכנון: רכיבים, מודל נתונים, החלטות עם נימוק","docs/architecture.md + docs/decisions/"],
+  ["שלד","פרויקט שרץ: build, test, lint ו-CI ריק אבל ירוק","repo + CI"],
+  ["תוכנית","פירוק לפרוסות אנכיות קטנות עם בדיקות קבלה","PLAN.md"],
+  ["פרוסות","פרוסה בכל סשן: בדיקה, מימוש, ריוויו, commit","features"],
+  ["איכות","E2E, נגישות, ביצועים, סריקת אבטחה","tests + reports"],
+  ["פריסה","סביבות, סודות, פריסה אוטומטית, rollback","deploy pipeline"],
+  ["הקשחה","לוגים, ניטור, טיפול בשגיאות, גיבויים","observability"],
+  ["מסירה","README, runbook, תיעוד API ו-CLAUDE.md מעודכן","docs"]
+];
+const BLUEPRINTS = [
+  {n:"SaaS ווב", stack:"Next.js · TypeScript · Postgres (Prisma) · Auth.js · Stripe · Vercel", steps:[
+    ["שלד ו-CI","Scaffold Next.js (app router) + TS strict + Prisma + Vitest + Playwright. Add GitHub Actions: lint, typecheck, test. Make it green."],
+    ["התחברות","Add Auth.js with email magic link and Google. Protect /app routes. E2E test: sign in, see dashboard, sign out."],
+    ["ליבת המוצר","Implement slice 1 from PLAN.md: projects CRUD end to end (schema, API, UI, tests)."],
+    ["תשלומים","Add Stripe Checkout + webhook for subscriptions, plan limits enforced server-side, tests with Stripe test clock."],
+    ["ניהול","Admin page: users, plans, usage. Role-based access with tests that non-admins get 403."],
+    ["השקה","Security review, rate limiting, error tracking with Sentry, SEO meta, deploy to Vercel with preview envs."]
+  ], gotchas:["webhooks של Stripe: אמתו חתימה ובדקו idempotency","מיגרציות DB: Hook שחוסם עריכה ידנית של migrations שכבר רצו","סודות רק ב-env של Vercel, ו-deny על .env"]},
+  {n:"אפליקציית מובייל", stack:"Expo (React Native) · TypeScript · Supabase · EAS Build", steps:[
+    ["שלד","Create an Expo app with TypeScript, expo-router, ESLint, Jest. Add EAS config for dev builds."],
+    ["ניווט ועיצוב","Tabs + stack navigation, a theme with dark mode and RTL support for Hebrew (I18nManager)."],
+    ["Backend","Connect Supabase: auth, a tasks table with RLS policies, typed client. Tests for the data layer."],
+    ["Offline","Offline-first cache with sync on reconnect; conflict rule: last write wins with server timestamp."],
+    ["התראות","Push notifications with expo-notifications, scheduled reminders, deep links into a task."],
+    ["חנויות","App icons, splash, store metadata in Hebrew and English, EAS submit checklist."]
+  ], gotchas:["RTL: בדקו את כל המסכים במצב עברית","RLS ב-Supabase: בדיקה שמשתמש לא רואה נתונים של אחר","צילומי מסך מהסימולטור כדי ש-Claude יראה את ה-UI"]},
+  {n:"כלי CLI", stack:"Node + TypeScript (או Go / Rust) · commander · vitest · npm", steps:[
+    ["שלד","Create a TS CLI with commander, a bin entry, vitest, and a build to dist/. `npx .` should print help."],
+    ["פקודות","Implement commands from docs/spec.md, each with --json output and meaningful exit codes. Snapshot tests for output."],
+    ["חוויית שימוש","Colors only when TTY, --quiet/--verbose, helpful errors with a fix suggestion, shell completion."],
+    ["הגדרות","Config file lookup (project, home, env vars) with clear precedence and a `config` command."],
+    ["הפצה","Release workflow: changesets, npm publish with provenance, GitHub release notes."]
+  ], gotchas:["בדקו על Windows (נתיבים, סוף שורה)","קודי יציאה עקביים חשובים לסקריפטים","README עם GIF של שימוש"]},
+  {n:"תוסף Chrome", stack:"Manifest V3 · TypeScript · Vite · Playwright", steps:[
+    ["שלד","Scaffold a Manifest V3 extension with Vite + TS: popup, options page, background service worker, content script."],
+    ["הרשאות","Minimal permissions and host_permissions; explain each in docs/permissions.md (store review will ask)."],
+    ["ליבה","Implement the content script feature with message passing to the worker; storage via chrome.storage.sync."],
+    ["בדיקות","Playwright tests that load the unpacked extension and verify the popup and content script."],
+    ["חנות","Icons, screenshots, privacy policy, a zip build script and a store listing in Hebrew and English."]
+  ], gotchas:["MV3: אין קוד מרוחק ואין eval","service worker נרדם, ולכן שומרים מצב ב-storage","הרשאות מינימליות מזרזות אישור בחנות"]},
+  {n:"דשבורד נתונים", stack:"Python · pandas / DuckDB · Streamlit (או FastAPI + React) · Docker", steps:[
+    ["נתונים","Load the CSV/DB sources into DuckDB, write a data dictionary to docs/data.md, and validate schemas with pandera."],
+    ["מדדים","Define metrics in one module with unit tests on small fixtures. Every number must be reproducible."],
+    ["תצוגה","Streamlit dashboard: filters, KPI tiles, trend charts, a table with export. Hebrew labels, RTL-safe."],
+    ["אוטומציה","Nightly refresh job, data freshness check, alert when a source is late."],
+    ["פריסה","Dockerfile, auth in front (SSO or basic), deploy and a runbook."]
+  ], gotchas:["בדיקות על נתוני דוגמה קטנים וקבועים","לעולם לא נתונים אישיים אמיתיים בפרומפט","סכמות משתנות: ולידציה בכניסה"]},
+  {n:"מיקרו-שירות API", stack:"FastAPI או Fastify · Postgres · OpenAPI · Docker · Kubernetes", steps:[
+    ["חוזה","Write the OpenAPI spec first from docs/spec.md; generate types; contract tests."],
+    ["מימוש","Implement endpoints by slice with TDD; consistent error format; pagination; idempotency keys."],
+    ["נתונים","Migrations, indexes for the main queries, a seed script; tests against a real Postgres in Docker."],
+    ["תפעול","Health/readiness endpoints, structured logs, metrics, tracing with OpenTelemetry."],
+    ["פריסה","Dockerfile (multi-stage, non-root), Helm chart or k8s manifests, CI deploy to staging, smoke tests."]
+  ], gotchas:["חוזה קודם, קוד אחר כך","אינדקסים: בקשו מ-Claude EXPLAIN לשאילתות הראשיות","פריסה ל-production: אתם, לא Claude"]}
+];
+(function(){
+  $("#phaseList").innerHTML = PHASES.map((p,i) => '<div class="phase"><span class="pn">'+(i+1)+'</span><div><b>'+esc(p[0])+'</b><br><span>'+esc(p[1])+'</span><br><code>'+esc(p[2])+'</code></div></div>').join("");
+  let c = 0;
+  const draw = () => {
+    $("#bpTabs").innerHTML = BLUEPRINTS.map((b,i) => '<button type="button" class="'+(i===c?"on":"")+'" data-i="'+i+'">'+esc(b.n)+'</button>').join("");
+    const b = BLUEPRINTS[c];
+    $("#bpBody").innerHTML = '<div class="box"><b>סטאק מומלץ:</b> <span class="ltr" style="display:inline-block">'+esc(b.stack)+'</span></div><ol class="steps">'+b.steps.map((s,i) => '<li><h3>'+(i+1)+'. '+esc(s[0])+'</h3><div class="code" data-lang="prompt"><pre style="white-space:pre-wrap">'+esc(s[1])+'</pre></div></li>').join("")+'</ol><div class="note warn"><b>מלכודות נפוצות</b><ul>'+b.gotchas.map(g=>'<li>'+esc(g)+'</li>').join("")+'</ul></div>';
+    $$("#bpBody .code").forEach(decorate);
+  };
+  $("#bpTabs").addEventListener("click", e => { const b = e.target.closest("button"); if(b){ c = +b.dataset.i; draw(); award("bp-"+c, 5); } });
+  draw();
+})();
+
+// ================= full project generator =================
+const GTYPES = {
+  "SaaS ווב": ["Next.js + TypeScript + Postgres","Remix + TypeScript + Postgres","Django + HTMX + Postgres","Rails + Hotwire + Postgres"],
+  "אפליקציית מובייל": ["Expo (React Native) + Supabase","Flutter + Firebase","Swift (iOS) + CloudKit"],
+  "כלי CLI": ["Node + TypeScript","Go + Cobra","Rust + clap","Python + Typer"],
+  "תוסף Chrome": ["Manifest V3 + TypeScript + Vite"],
+  "דשבורד נתונים": ["Python + DuckDB + Streamlit","FastAPI + React + Postgres"],
+  "מיקרו-שירות API": ["FastAPI + Postgres","Fastify + TypeScript + Postgres","Go + chi + Postgres"],
+  "אתר תדמית": ["Astro + Tailwind","Next.js static export"]
+};
+const GFEAT = ["התחברות משתמשים","תשלומים (Stripe)","מסד נתונים","שליחת מיילים","העלאת קבצים","עברית ו-RTL","פאנל ניהול","אנליטיקס","זמן אמת","יכולות AI (Claude API)","בדיקות E2E","CI/CD"];
+const FEAT_TASKS = {
+  "התחברות משתמשים":["Sign up / sign in / sign out with tests","Protected routes and session handling","Password reset or magic link flow"],
+  "תשלומים (Stripe)":["Stripe Checkout for plans","Webhook handler with signature check and idempotency","Enforce plan limits server-side"],
+  "מסד נתונים":["Schema + migrations for core entities","Seed script with sample data","Indexes for the main queries"],
+  "שליחת מיילים":["Transactional email provider integration","Templates (Hebrew + English) with preview","Unsubscribe and bounce handling"],
+  "העלאת קבצים":["Signed uploads to object storage","Size/type validation and virus scan hook","Image thumbnails"],
+  "עברית ו-RTL":["i18n setup with he/en","RTL layout audit of every screen","Date, number and currency formatting per locale"],
+  "פאנל ניהול":["Admin role and access control tests","Users and content management screens","Audit log of admin actions"],
+  "אנליטיקס":["Privacy-friendly analytics events","Key funnel dashboard","Cookie consent if required"],
+  "זמן אמת":["Realtime channel (WebSocket/SSE)","Presence and live updates","Reconnect and backoff tests"],
+  "יכולות AI (Claude API)":["Server-side Claude API client with retries","Prompt templates in code with tests on fixtures","Streaming UI and cost/rate limits"],
+  "בדיקות E2E":["Playwright setup with CI","E2E for the 3 main user flows","Visual checks at mobile and desktop widths"],
+  "CI/CD":["CI: lint, typecheck, unit, E2E","Preview deploy per PR","Production deploy with rollback"]
+};
+(function(){
+  let genReady = false;
+  $("#gType").innerHTML = Object.keys(GTYPES).map(t => '<option>'+esc(t)+'</option>').join("");
+  $("#gFeat").innerHTML = GFEAT.map((f,i) => '<label><input type="checkbox" value="'+esc(f)+'" '+([0,2,5,10,11].includes(i)?"checked":"")+'>'+esc(f)+'</label>').join("");
+  const fillStack = () => { $("#gStack").innerHTML = GTYPES[$("#gType").value].map(s => '<option>'+esc(s)+'</option>').join(""); };
+  const gen = () => {
+    const name = ($("#gName").value.trim() || "my-app").toLowerCase().replace(/[^a-z0-9-]+/g,"-"), type = $("#gType").value, stack = $("#gStack").value, dep = $("#gDeploy").value, desc = $("#gDesc").value.trim();
+    const feats = $$("#gFeat input:checked").map(x => x.value);
+    const isPy = /Python|Django|FastAPI/.test(stack), isGo = /Go\b/.test(stack), isRust = /Rust/.test(stack), isFlutter = /Flutter/.test(stack), isSwift = /Swift/.test(stack);
+    const cmd = isPy ? {dev:"uv run python -m app", test:"uv run pytest", one:"uv run pytest path/to/test_file.py -q", lint:"uv run ruff check --fix . && uv run ruff format ."}
+      : isGo ? {dev:"go run ./cmd/"+name, test:"go test ./...", one:"go test ./pkg/... -run TestName", lint:"golangci-lint run"}
+      : isRust ? {dev:"cargo run", test:"cargo test", one:"cargo test test_name", lint:"cargo clippy --fix --allow-dirty && cargo fmt"}
+      : isFlutter ? {dev:"flutter run", test:"flutter test", one:"flutter test test/file_test.dart", lint:"dart fix --apply && dart format ."}
+      : isSwift ? {dev:"open in Xcode, run scheme "+name, test:"xcodebuild test -scheme "+name, one:"xcodebuild test -only-testing:"+name+"Tests/TestName", lint:"swiftlint --fix"}
+      : {dev:"pnpm dev", test:"pnpm test", one:"pnpm test -- path/to/file.test.ts", lint:"pnpm lint --fix"};
+    let n = 0; const task = t => "- [ ] " + t;
+    const phases = [
+      ["0. Discovery & spec", ["Interview me and write docs/brief.md", "Write docs/spec.md with acceptance criteria per feature", "Write docs/architecture.md and first ADRs in docs/decisions/"]],
+      ["1. Skeleton", ["Scaffold " + stack + " project named " + name, "Commands: dev, test, lint all work (" + cmd.test + ")", "CI runs lint + tests and is green", "CLAUDE.md and .claude/settings.json committed"]],
+      ...feats.map(f => [(++n + 1) + ". " + f, FEAT_TASKS[f] || []]),
+      [(n + 2) + ". Core product slices", ["Slice 1: the main entity end to end (data, API, UI, tests)", "Slice 2: the main user flow end to end", "Slice 3: empty states, errors and loading states"]],
+      [(n + 3) + ". Quality", ["Security review (/security-review) and fixes", "Accessibility and RTL audit", "Performance pass on the slowest screen or endpoint"]],
+      [(n + 4) + ". Ship" + (dep !== "ללא" ? " (" + dep + ")" : ""), ["Environments and secrets documented (never in git)", "Automated deploy" + (dep !== "ללא" ? " to " + dep : ""), "Monitoring, error tracking and a rollback runbook", "README for new developers, verified from a clean clone"]]
+    ];
+    setCode("#gPlan", "# " + name + " — PLAN\n\n" + desc + "\n\n**Type:** " + type + "  \n**Stack:** " + stack + "\n\nRules: one task per session, tests green before ticking, commit after each task.\n\n" + phases.map(p => "## " + p[0] + "\n" + p[1].map(task).join("\n")).join("\n\n") + "\n");
+    setCode("#gMem", "# " + name + "\n\n" + desc + "\n\n## Stack\n" + stack + "\n\n## Commands\n- `" + cmd.dev + "` – run locally\n- `" + cmd.test + "` – all tests\n- `" + cmd.one + "` – one test (prefer this while iterating)\n- `" + cmd.lint + "` – lint and format\n\n## How we work\n- Plan in docs/, track progress in @PLAN.md (tick tasks when done)\n- Vertical slices: data + API + UI + tests together\n- Write a failing test first for every bug\n- Never commit secrets; config via env vars documented in .env.example\n" + (feats.includes("עברית ו-RTL") ? "- Every UI change must work in Hebrew (RTL) and English\n" : "") + (feats.includes("תשלומים (Stripe)") ? "- IMPORTANT: payment logic only server-side; verify webhook signatures\n" : "") + "\n## Compact instructions\nKeep: current PLAN.md phase, changed files, open bugs, decisions made.\n");
+    const t1 = cmd.test.split(" "), l1 = cmd.lint.split(" && ")[0].split(" ");
+    const allow = ["Bash(" + t1.slice(0, 2).join(" ") + ":*)", "Bash(" + l1.slice(0, 2).join(" ") + ":*)", "Bash(git status)", "Bash(git diff:*)", "Bash(git add:*)", "Bash(git commit:*)", "Edit(src/**)", "Edit(tests/**)", "Edit(docs/**)", "Edit(PLAN.md)"];
+    setCode("#gSet", JSON.stringify({permissions:{allow, ask:["Bash(git push:*)"], deny:["Read(./.env)","Read(./.env.*)","Read(./secrets/**)","Bash(rm -rf:*)"], defaultMode:"acceptEdits"},
+      hooks:{Stop:[{hooks:[{type:"command", command:"\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/stop-tests.sh"}]}], PreToolUse:[{matcher:"Edit|Write", hooks:[{type:"command", command:"\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/protect.sh"}]}]}}, null, 2));
+    setCode("#gPrompts", [
+      "# 1 · empty folder, then:  git init && claude",
+      "I'm starting " + name + ": " + desc + "\nInterview me one question at a time about users, scope and constraints. Then write docs/brief.md.",
+      "# 2",
+      "Write docs/spec.md with screens/endpoints and acceptance criteria for: " + (feats.join(", ") || "the core features") + ".",
+      "# 3 · Shift+Tab → plan mode",
+      "Plan the architecture for " + stack + ". Write docs/architecture.md and ADRs. Wait for my approval.",
+      "# 4",
+      "Scaffold the project. Save CLAUDE.md, .claude/settings.json and PLAN.md as I give them. Make dev/test/lint work and CI green. Commit.",
+      "# 5 · then for every task (new session each time: /clear)",
+      "Continue with the next unchecked task in @PLAN.md. Failing test first, implement, run " + cmd.test + " and lint, tick the task, commit.",
+      "# 6 · every few tasks",
+      "/clear\nReview the last 5 commits as a strict senior reviewer, then run /security-review. Fix real issues only."
+    ].join("\n\n"));
+    setCode("#gLoopOut", $("#gLoop").checked ? "#!/usr/bin/env bash\n# run in a separate branch or worktree; review the diff before merging\nset -euo pipefail\nfor i in $(seq 1 30); do\n  claude -p \"Continue with the next unchecked task in PLAN.md only. Failing test first, implement, run " + cmd.test + " and lint. If green: tick it and commit. If every task is ticked: write DONE to STATUS.\" \\\n    --permission-mode acceptEdits \\\n    --allowedTools \"Read,Edit,Write,Glob,Grep," + allow.filter(a => a.startsWith("Bash")).join(",") + "\" \\\n    --max-turns 40\n  grep -qx DONE STATUS 2>/dev/null && break\ndone\n" : "# loop.sh disabled");
+    if(genReady) award("gen", 15, "יצרתם ערכת פרויקט");
+  };
+  $("#gType").addEventListener("change", () => { fillStack(); gen(); });
+  $$("#generator input, #generator select, #generator textarea").forEach(el => el.addEventListener(el.type === "checkbox" || el.tagName === "SELECT" ? "change" : "input", gen));
+  fillStack();
+  gen(); genReady = true;
+})();
+
+// ================= prompt lab =================
+const PL_RULES = [
+  ["ספציפי: קבצים או מקומות", s => /@\S|[\w-]+\/[\w./-]+|\.\w{2,4}\b|function|class|endpoint|route|פונקצי|קובץ|מסך|עמוד/i.test(s), "הוסיפו שמות קבצים עם @, פונקציות או מסכים."],
+  ["הקשר: מה קורה ומתי", s => s.length > 90 || /error|exception|when|after|כש|אחרי|שגיאה|מדווח|קורס/i.test(s), "תארו את ההתנהגות, מתי זה קורה, והדביקו את השגיאה המלאה."],
+  ["יעד שאפשר לבדוק", s => /test|spec|build|lint|screenshot|playwright|בדיק|צילום|לינט/i.test(s), "תנו דרך לבדוק: בדיקות, build, לינט או צילום מסך."],
+  ["גבולות ואיסורים", s => /don'?t|do not|without|only|never|אל ת|בלי|רק |אסור|לא לשנות/i.test(s), "אמרו מה אסור: \"אל תשנה את הבדיקות\", \"רק בקובץ X\"."],
+  ["תכנון או שלבים", s => /plan|first|then|step|\b1\.|קודם|תכנ|שלב|ואז/i.test(s), "בקשו תוכנית או חלקו לשלבים."],
+  ["הגדרת הצלחה", s => /until|pass|green|acceptance|criteria|עד ש|עובר|ירוק|קריטר|הצלחה/i.test(s), "הגדירו מתי זה נגמר: \"עד שכל הבדיקות עוברות\"."],
+  ["דוגמה או דפוס קיים", s => /like|follow|pattern|same as|existing|כמו|לפי|בדומה|דוגמ/i.test(s), "הצביעו על קוד קיים לחיקוי: \"כמו ב-@src/...\"."],
+  ["מה עושים בסוף", s => /commit|pr\b|pull request|report|summar|write .* to|דוח|סכם|כתוב ל|פתח/i.test(s), "אמרו מה בסוף: commit, PR, דוח או קובץ."]
+];
+const PL_SAMPLES = [
+  "תתקן את הבאג בהתחברות",
+  "users get logged out after about an hour. check src/auth and fix it, then run the tests until they pass",
+  "Users report being logged out ~1h after login. Read @src/auth/session.ts and @src/middleware/refresh.ts. First write a failing test in tests/auth/refresh.test.ts that reproduces an expired access token with a valid refresh token. Then fix it following the pattern in @src/auth/token.ts, without changing the public API. Done when all auth tests and lint pass. Commit with a message explaining the root cause."
+];
+(function(){
+  const run = () => {
+    const s = $("#plIn").value.trim(); if(!s) return;
+    const res = PL_RULES.map(r => [r[0], r[1](s), r[2]]), ok = res.filter(r => r[1]).length, score = Math.round(ok / PL_RULES.length * 100);
+    const grade = score >= 87 ? "מקצועי 🏆" : score >= 62 ? "טוב, אפשר לחדד" : score >= 37 ? "בסיסי" : "חלש. Claude ינחש הרבה";
+    $("#plOut").innerHTML = '<div class="score"><b>'+score+'</b><span>/100 · '+esc(grade)+'</span></div><ul class="chk-list">'+res.map(r => '<li class="sev-'+(r[1]?"ok":"warn")+'"><span>'+(r[1]?"✓":"!")+'</span>'+esc(r[0])+(r[1]?"":' · <span class="hint">'+esc(r[2])+'</span>')+'</li>').join("")+'</ul>';
+    if(score >= 87) award("pl-90", 20, "פרומפט מקצועי");
+    markDone("promptlab");
+  };
+  $("#plRun").onclick = run;
+  document.getElementById("promptlab").addEventListener("click", e => { const b = e.target.closest("[data-pl]"); if(b){ $("#plIn").value = PL_SAMPLES[+b.dataset.pl]; run(); } });
+  $("#plAi").onclick = () => { const s = $("#plIn").value.trim(); if(!s || !window.tutorSample) return; tutorOnce("שכתב את הפרומפט הבא ל-Claude Code לגרסה מקצועית: ספציפי (קבצים עם @), עם יעד שאפשר לבדוק, גבולות, שלבים, הגדרת הצלחה ומה עושים בסוף. החזר את הגרסה המשופרת בבלוק קוד, ואחריה 3 שורות שמסבירות מה שיפרת. אם חסר מידע, השתמש ב-[סוגריים מרובעים] כתבנית למילוי.\n\nהפרומפט:\n" + s, $("#plAiOut")); };
+})();
+function tutorOnce(prompt, out){
+  const sample = window.tutorSample; if(!sample) return;
+  out.hidden = false; out.innerHTML = '<span class="hint">המורה חושב…</span>';
+  const md = window.tutorMd || (t => esc(t));
+  sample(prompt, {onText:({text}) => { out.innerHTML = md(text); }}).then(r => { out.innerHTML = md(r.text); }, e => { out.innerHTML = '<span class="hint">' + esc(e && e.code === "not_granted" ? "המורה לא אושר בביקור הזה." : "לא הצלחתי לקבל תשובה כרגע.") + '</span>'; });
+}
+
+// ================= simulator: advanced pack =================
+MISSIONS.push(
+  {g:"מתקדם: הריצו את Claude במצב print עם פלט JSON", h:"claude -p \"summarize the repo\" --output-format json", t:i=>/^claude\b.*\s(-p|--print)\b/.test(i) && /--output-format[ =](json|stream-json)/.test(i)},
+  {g:"מתקדם: הוסיפו שרת MCP מרוחק בשם sentry", h:"claude mcp add --transport http sentry https://mcp.sentry.dev/mcp", t:i=>/^claude mcp add\b/.test(i) && /--transport[ =](http|sse)/.test(i) && /\bsentry\b/.test(i)},
+  {g:"מתקדם: המשיכו את השיחה האחרונה משורת הפקודה", h:"claude -c", t:i=>/^claude\s+(-c|--continue)\b/.test(i)},
+  {g:"מתקדם: התחילו סשן חדש ישר במצב תכנון", h:"claude --permission-mode plan", t:i=>/^claude\b.*--permission-mode[ =]plan\b/.test(i)},
+  {g:"מתקדם: הגדירו subagent זמני משורת הפקודה", h:"claude --agents '{\"reviewer\":{\"description\":\"Reviews diffs\",\"prompt\":\"Be strict\"}}'", t:i=>/^claude\b.*--agents\s+\S/.test(i)},
+  {g:"סודי: הפכו את Claude Code עצמו לשרת MCP", h:"claude mcp serve", t:i=>/^claude mcp serve\b/.test(i)},
+  {g:"מתקדם: תנו לסשן גישה לתיקייה נוספת", h:"/add-dir ../shared-lib", t:i=>/^(\/add-dir|claude\b.*--add-dir)\s+\S/.test(i)},
+  {g:"מתקדם: בדקו שההתקנה תקינה", h:"/doctor", t:i=>/^(\/doctor|claude doctor)$/.test(i)}
+);
+simRun = (orig => function(raw){
+  const i = raw.trim();
+  const say = h => { sp('<span class="d">&gt;</span> ' + esc(i)); sp(h); check(i); };
+  if(/^claude mcp serve\b/.test(i)) return say('<span class="g">●</span> Claude Code MCP server running on stdio <span class="d">(tools: Read, Edit, Bash, Grep, …)</span>');
+  if(/^claude mcp add\b/.test(i)) return say('<span class="g">✓</span> Added MCP server ' + esc((i.match(/\b(sentry|github|linear|playwright|\w+)\s+(https?:|--)/)||[,"server"])[1]) + ' <span class="d">(scope: local)</span>');
+  if(/^claude\b.*\s(-p|--print)\b/.test(i)) return say(/--output-format[ =]json/.test(i) ? '<span class="d">{"type":"result","result":"This repo is a Fastify API…","total_cost_usd":0.03,"session_id":"7f3c…"}</span>' : 'This repo is a Fastify API with 42 routes…');
+  if(/^claude\s+(-c|--continue)\b/.test(i)) return say('<span class="g">✻</span> Resumed: "add rate limiting to /login" <span class="d">(18 messages)</span>');
+  if(/^claude\b.*--agents\b/.test(i)) return say('<span class="g">✻</span> Session started with 1 CLI-defined agent');
+  if(/^claude\b.*--permission-mode[ =]plan\b/.test(i)){ sim.mode = 2; renderMissions(); return say('<span class="g">✻</span> Welcome to Claude Code <span class="a">· plan mode on</span>'); }
+  if(/^claude doctor$|^\/doctor$/.test(i)) return say('<span class="g">✓</span> Installation OK · version current · settings valid · 2 MCP servers healthy');
+  if(/^\/add-dir\s+\S|^claude\b.*--add-dir\s+\S/.test(i)) return say('<span class="g">✓</span> Added working directory ' + esc(i.split(/\s+/).pop()));
+  if(i === "/secret"){ return say('<span class="a">★ מצאתם את הביצה הנסתרת!</span> <span class="d">+30 XP</span>'), award("egg-secret", 30, "ביצת הפתעה 🥚"); }
+  return orig(raw);
+})(simRun);
+renderMissions();
+
+// ================= command palette (Ctrl+K) =================
+(function(){
+  document.body.insertAdjacentHTML("beforeend", '<div class="pal" id="pal" hidden role="dialog" aria-label="חיפוש בכל הקורס"><div class="pal-box"><input id="palIn" type="search" placeholder="חיפוש בכל הקורס: פרקים, טריקים, פקודות, פרומפטים, מונחים…" aria-label="חיפוש"><ul id="palList"></ul><div class="hint">Enter לפתיחה · Esc לסגירה · ↑↓ לבחירה</div></div></div>');
+  $(".rail-tools").insertAdjacentHTML("afterbegin", '<button class="btn sm" id="palBtn" type="button">🔍 חיפוש (Ctrl+K)</button><button class="btn sm" id="badgeBtn" type="button">🏅 הישגים</button>');
+  const idx = () => [
+    ...mods.map(m => ({k:"פרק", t:m.dataset.title, s:m.innerText.slice(0, 2000), go:m.id})),
+    ...TRICKS.map(t => ({k:"טריק", t:t[1], s:t[2] + " " + t[3], go:"tricks"})),
+    ...REF.map(r => ({k:"פקודה", t:r[1], s:r[2], go:"reference"})),
+    ...PROMPTS.map(p => ({k:"פרומפט", t:p[1], s:p[2], go:"prompts"})),
+    ...GLOSS.map(g => ({k:"מונח", t:g[0] + " · " + g[1], s:g[2], go:"glossary"})),
+    ...SECRETS.slice(0, secUnlocked()).map(s => ({k:"סוד", t:s[0], s:s[1], go:"hidden"}))
+  ];
+  let items = [], sel = 0;
+  const draw = () => {
+    const q = $("#palIn").value.trim().toLowerCase();
+    items = !q ? [] : idx().map(x => { const tt = x.t.toLowerCase(), ss = x.s.toLowerCase(); const sc = tt.includes(q) ? (tt.startsWith(q) ? 3 : 2) : ss.includes(q) ? 1 : 0; return [sc, x]; }).filter(a => a[0]).sort((a,b) => b[0]-a[0]).slice(0, 12).map(a => a[1]);
+    sel = Math.min(sel, Math.max(0, items.length - 1));
+    $("#palList").innerHTML = items.length ? items.map((x,i) => '<li class="'+(i===sel?"on":"")+'" data-i="'+i+'"><span class="pill">'+esc(x.k)+'</span> '+esc(x.t)+'</li>').join("") : (q ? '<li class="hint">אין תוצאות</li>' : '<li class="hint">התחילו להקליד…</li>');
+  };
+  const openP = () => { $("#pal").hidden = false; $("#palIn").value = ""; sel = 0; draw(); $("#palIn").focus(); };
+  const closeP = () => { $("#pal").hidden = true; };
+  const go = i => { const x = items[i]; if(!x) return; closeP(); show(x.go); if(x.k === "טריק" || x.k === "פקודה"){ const el = x.k === "טריק" ? $("#trSearch") : $("#refSearch"); el.value = x.t; el.dispatchEvent(new Event("input")); } };
+  $("#palBtn").onclick = openP;
+  $("#palIn").addEventListener("input", () => { sel = 0; draw(); });
+  $("#palIn").addEventListener("keydown", e => { if(e.key === "ArrowDown"){ e.preventDefault(); sel = Math.min(items.length - 1, sel + 1); draw(); } else if(e.key === "ArrowUp"){ e.preventDefault(); sel = Math.max(0, sel - 1); draw(); } else if(e.key === "Enter"){ e.preventDefault(); go(sel); } else if(e.key === "Escape") closeP(); });
+  $("#palList").addEventListener("click", e => { const li = e.target.closest("[data-i]"); if(li) go(+li.dataset.i); });
+  $("#pal").addEventListener("click", e => { if(e.target.id === "pal") closeP(); });
+  document.addEventListener("keydown", e => { if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k"){ e.preventDefault(); $("#pal").hidden ? openP() : closeP(); } });
+})();
+
+// ================= achievements =================
+const BADGES = [
+  ["first","🌱","צעד ראשון","השלמתם בוחן ראשון", () => Object.keys(state.awarded).some(k => k.startsWith("quiz-"))],
+  ["quiz10","📚","תולעת ספרים","10 בחנים מושלמים", () => Object.keys(state.awarded).filter(k => k.startsWith("quiz-")).length >= 10],
+  ["quiz25","🧠","אנציקלופדיה","25 בחנים מושלמים", () => Object.keys(state.awarded).filter(k => k.startsWith("quiz-")).length >= 25],
+  ["sim","⌨️","שולטים בטרמינל","כל משימות הסימולטור", () => store.get("sim", 0) >= MISSIONS.length],
+  ["ch","🧩","פותרי אתגרים","כל 6 האתגרים", () => [0,1,2,3,4,5].every(i => state.awarded["ch-"+i])],
+  ["proj","🏗","בונים","סיימתם את פרויקט הגמר", () => !!state.awarded["proj-all"]],
+  ["exam","🎓","בוגרים","עברתם את מבחן הגמר", () => !!state.awarded.exam],
+  ["tricks","🪄","קוסמים","למדתם 20 טריקים", () => Object.keys(store.get("tricks", {})).length >= 20],
+  ["secrets","🗝","שומרי הסודות","פתחתם את כל הסודות", () => secUnlocked() >= SECRETS.length],
+  ["cards","🃏","זיכרון של פיל","20 כרטיסיות בקופסה 3", () => Object.values(store.get("cards", {})).filter(v => v === 3).length >= 20],
+  ["gen","⚙️","אדריכלים","יצרתם ערכת פרויקט", () => !!state.awarded.gen],
+  ["pl","✍️","לוחשי פרומפטים","ציון 87+ במעבדת הפרומפטים", () => !!state.awarded["pl-90"]],
+  ["tutor","🤝","תלמידים סקרנים","שאלתם את המורה", () => !!state.awarded["tutor-first"]],
+  ["streak3","🔥","על הגל","3 ימי למידה ברצף", () => streak() >= 3],
+  ["streak7","☄️","בלתי ניתנים לעצירה","7 ימי למידה ברצף", () => streak() >= 7],
+  ["xp1000","💎","אלף נקודות","1000 XP", () => state.xp >= 1000],
+  ["egg","🥚","ציידי ביצים","מצאתם ביצת הפתעה בסימולטור", () => !!state.awarded["egg-secret"]],
+  ["owl","🦉","ינשוף לילה","למדתם בין חצות ל-5 בבוקר", () => { const h = new Date().getHours(); return h < 5; }]
+];
+function earnedBadges(){ return store.get("badges", {}); }
+function checkBadges(silent){
+  const got = earnedBadges(); let changed = false;
+  BADGES.forEach(b => { if(!got[b[0]]){ let ok = false; try{ ok = b[4](); }catch(e){} if(ok){ got[b[0]] = Date.now(); changed = true; if(!silent) setTimeout(() => toast("🏅 הישג חדש: " + b[2]), 900); } } });
+  if(changed) store.set("badges", got);
+  const n = Object.keys(got).length; const bb = $("#badgeBtn"); if(bb) bb.textContent = "🏅 הישגים " + n + "/" + BADGES.length;
+}
+(function(){
+  document.body.insertAdjacentHTML("beforeend", '<div class="pal" id="badges" hidden role="dialog" aria-label="הישגים"><div class="pal-box"><div class="row" style="justify-content:space-between"><b>ההישגים שלכם</b><button class="btn sm" type="button" id="badgesClose">✕</button></div><div class="badges" id="badgeGrid"></div></div></div>');
+  $("#badgeBtn").onclick = () => { const got = earnedBadges(); $("#badgeGrid").innerHTML = BADGES.map(b => '<div class="badge'+(got[b[0]]?" got":"")+'"><span>'+(got[b[0]]?b[1]:"🔒")+'</span><b>'+esc(b[2])+'</b><small>'+esc(b[3])+'</small></div>').join(""); $("#badges").hidden = false; };
+  $("#badgesClose").onclick = () => { $("#badges").hidden = true; };
+  $("#badges").addEventListener("click", e => { if(e.target.id === "badges") $("#badges").hidden = true; });
+  document.addEventListener("keydown", e => { if(e.key === "Escape") $("#badges").hidden = true; });
+})();
+award = (orig => function(key, n, msg){
+  const before = secUnlocked(); orig(key, n, msg);
+  if(secUnlocked() > before){ setTimeout(() => toast("🔓 סוד חדש נפתח בחדר הסודות"), 1900); drawSecrets(); }
+  checkBadges();
+})(award);
+isSyncKey = (orig => k => orig(k) || k === "badges")(isSyncKey);
+REFRESH.push(() => { drawSecrets(); checkBadges(true); });
+checkBadges(true);
 
 renderStats();
 show(ids.includes(location.hash.slice(1)) ? location.hash.slice(1) : store.get("last", "intro"), false);
