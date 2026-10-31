@@ -1,0 +1,17 @@
+app = "kitzur"
+primary_region = "fra"
+
+[build]
+
+[env]
+  DB_FILE = "/data/kitzur.db"
+
+[[mounts]]
+  source = "kitzur_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = "stop"
+  min_machines_running = 0
