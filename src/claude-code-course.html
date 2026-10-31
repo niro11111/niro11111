@@ -191,6 +191,17 @@ body.has-tutor .code .ask{display:inline-block}
 html.retro{--bg:#020a04;--surface:#04140a;--surface-2:#082010;--ink:#7dff9c;--muted:#3fbf62;--line:#145a26;--accent:#39ff6a;--accent-ink:#021006;--amber:#e6ff4a;--term-bg:#000;--term-ink:#7dff9c;--display:"JetBrains Mono",monospace;--body:"JetBrains Mono",monospace;color-scheme:dark}
 html.retro body{text-shadow:0 0 4px rgba(57,255,106,.35)}
 html.retro main::after{content:"";position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 3px);z-index:70}
+.kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:12px 0}
+.kpis div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
+.kpis b{display:block;font-family:var(--display);font-weight:400;font-size:1.5rem;color:var(--accent);font-variant-numeric:tabular-nums}
+.kpis span{font-size:.8rem;color:var(--muted)}
+.lvrow{display:grid;grid-template-columns:150px minmax(0,1fr) 50px;gap:10px;align-items:center;margin:6px 0;font-weight:700;font-size:.92rem}
+.drop{border:2px dashed var(--line);border-radius:14px;padding:22px;text-align:center;background:var(--surface);display:grid;gap:6px;cursor:pointer}
+.drop.over{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
+.drop .hint{direction:ltr}
+.skip{position:absolute;inset-inline-start:-999px;top:8px;z-index:90;background:var(--accent);color:var(--accent-ink);padding:8px 14px;border-radius:8px}
+.skip:focus{inset-inline-start:8px}
+button:disabled{opacity:.45;cursor:not-allowed}
 .levels .lv{border:1px solid var(--line);border-top:4px solid var(--c);border-radius:10px;padding:12px;background:var(--surface)}
 .levels .lv b{color:var(--c);display:block;font-size:1.02rem}
 .levels .lv span{font-size:.9rem;color:var(--muted)}
@@ -282,6 +293,8 @@ main{overflow-wrap:break-word}
   main{padding:18px 16px 70px}
   .hero,.sim,.grid2,.grid3,.tricks,.phases{grid-template-columns:minmax(0,1fr)}
   .grid4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .lvrow{grid-template-columns:96px minmax(0,1fr) 40px;font-size:.82rem}
   .tutor{left:8px;right:8px;width:auto;bottom:calc(66px + env(safe-area-inset-bottom,0px))}
   .chat li{grid-template-columns:minmax(0,1fr);gap:2px}
   h1{font-size:1.65rem}
@@ -318,7 +331,7 @@ main{overflow-wrap:break-word}
     <div>
       <h1>Claude Code ברמה הכי גבוהה, בעברית ובתרגול אמיתי</h1>
       <p class="lead">Claude Code הוא סוכן תכנות שעובד בתוך הטרמינל, ה-IDE, הדפדפן וה-CI שלכם: קורא קוד, עורך קבצים, מריץ פקודות ופותח PR. הקורס הזה לוקח אתכם מההתקנה הראשונה ועד בניית סוכנים, אוטומציות ואינטגרציות משלכם.</p>
-      <div class="row"><button class="btn pri" type="button" data-go="install">להתחיל מההתחלה</button><button class="btn" type="button" data-go="tricks">40 טריקים</button><button class="btn" type="button" data-go="slides">מצגות</button><button class="btn" type="button" data-go="generator">מחולל פרויקטים</button><button class="btn" type="button" data-go="hidden">חדר הסודות</button><button class="btn" type="button" data-go="buildalong">פרויקט מלא</button><button class="btn" type="button" data-go="intrecipes">אינטגרציות</button><button class="btn" type="button" data-go="sim">סימולטור</button><button class="btn" type="button" data-go="exam">למבחן הגמר</button></div>
+      <div class="row"><button class="btn pri" type="button" data-go="install">להתחיל מההתחלה</button><button class="btn" type="button" data-go="dashboard">לוח הבקרה שלי</button><button class="btn" type="button" data-go="tricks">40 טריקים</button><button class="btn" type="button" data-go="slides">מצגות</button><button class="btn" type="button" data-go="generator">מחולל פרויקטים</button><button class="btn" type="button" data-go="hidden">חדר הסודות</button><button class="btn" type="button" data-go="buildalong">פרויקט מלא</button><button class="btn" type="button" data-go="intrecipes">אינטגרציות</button><button class="btn" type="button" data-go="sim">סימולטור</button><button class="btn" type="button" data-go="exam">למבחן הגמר</button></div>
     </div>
     <div class="term" aria-hidden="true"><div class="tb"><i></i><i></i><i></i></div><div class="body" id="heroTerm"></div></div>
   </div>
@@ -348,6 +361,32 @@ main{overflow-wrap:break-word}
   </div>
   <div class="note"><b>הערה על גרסאות</b>Claude Code מתעדכן בתדירות גבוהה. התחביר בקורס נכון לסוף 2026. אם משהו לא עובד אצלכם, הריצו <code>claude update</code>, ובדקו את <code>/help</code> ואת התיעוד הרשמי ב-<code>code.claude.com/docs</code>.</div>
   <div class="quiz" data-q="intro"></div>
+</section>
+
+<!-- ================= DASHBOARD ================= -->
+<section class="mod" id="dashboard" data-level="פתיחה" data-title="לוח הבקרה שלי">
+  <div class="eyebrow"></div>
+  <h1>לוח הבקרה שלי</h1>
+  <p class="lead">כל ההתקדמות במקום אחד: איפה עצרתם, מה מומלץ עכשיו, איפה כדאי לחזור, והסנכרון בין המכשירים שלכם.</p>
+  <div class="grid2">
+    <div class="box" id="dbContinue"></div>
+    <div class="box" id="dbNext"></div>
+  </div>
+  <div class="kpis" id="dbKpis"></div>
+  <h2>התקדמות לפי רמה</h2>
+  <div id="dbLevels"></div>
+  <h2>חזרה חכמה על טעויות</h2>
+  <p class="hint">כל שאלה שטעיתם בה בבחנים נשמרת כאן. תשובה נכונה מוציאה אותה מהרשימה.</p>
+  <div id="dbMist"></div>
+  <h2>מבחן מיון</h2>
+  <div class="box" id="dbPlace"></div>
+  <h2>סנכרון וגיבוי</h2>
+  <div class="box">
+    <div class="row" style="justify-content:space-between"><span id="dbSync" class="sync"></span><button class="btn sm" type="button" id="dbSyncNow">סנכרון עכשיו</button></div>
+    <p class="hint" style="margin:.6em 0">גיבוי הוא קוד טקסט עם כל ההתקדמות. שמרו אותו, או הדביקו אותו בדפדפן אחר כדי לשחזר. השחזור ממזג ולא מוחק.</p>
+    <div class="row"><button class="btn" type="button" id="dbBackup">העתקת קוד גיבוי</button><button class="btn" type="button" id="dbRestoreBtn">שחזור מגיבוי</button></div>
+    <div id="dbRestore" hidden style="margin-top:8px"><textarea id="dbRestoreIn" class="mono" rows="3" style="width:100%;font-family:var(--mono);font-size:.8rem;direction:ltr;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px" aria-label="קוד גיבוי"></textarea><button class="btn pri sm" type="button" id="dbRestoreGo">שחזור</button> <span class="hint" id="dbRestoreMsg"></span></div>
+  </div>
 </section>
 
 <!-- ================= TRACKS ================= -->
@@ -2096,6 +2135,26 @@ Do not change test expectations to make them pass.</textarea></label>
   </div>
 </section>
 
+<section class="mod" id="analyzer" data-level="סדנת תרגול" data-title="מנתח הפרויקט שלכם">
+  <div class="eyebrow"></div>
+  <h1>מנתח הפרויקט שלכם</h1>
+  <p class="lead">גררו לכאן קבצים מהפרויקט שלכם (או בחרו תיקייה שלמה), והמנתח יזהה שפה, framework, בדיקות, לינטרים, מסד נתונים ותשתית. בסוף מקבלים ערכת Claude Code מותאמת בדיוק לפרויקט. <b>הקבצים לא יוצאים מהדפדפן</b>: הניתוח קורה כאן בלבד.</p>
+  <div class="drop" id="azDrop" tabindex="0" role="button" aria-label="בחירת קבצים לניתוח">
+    <b>גררו קבצים או תיקייה לכאן</b>
+    <span class="hint">package.json · pyproject.toml · requirements.txt · go.mod · Cargo.toml · Gemfile · composer.json · README.md · Dockerfile · docker-compose.yml · .github/workflows · Makefile</span>
+    <div class="row" style="justify-content:center;margin-top:8px"><label class="btn sm">בחירת קבצים<input type="file" id="azFiles" multiple hidden></label><label class="btn sm">בחירת תיקייה<input type="file" id="azDir" webkitdirectory multiple hidden></label><button class="btn sm" type="button" id="azDemo">דוגמה</button></div>
+  </div>
+  <div id="azFound" class="row" style="margin:10px 0"></div>
+  <div id="azReport"></div>
+  <div class="tabs" data-tabs="az" id="azTabs" hidden><button class="on" type="button">CLAUDE.md</button><button type="button">settings.json</button><button type="button">MCP מומלץ</button><button type="button">פקודות וסוכנים</button></div>
+  <div class="pane on" data-pane="az"><div class="code" data-lang="markdown" data-file="CLAUDE.md" id="azMem" hidden><pre></pre></div></div>
+  <div class="pane" data-pane="az"><div class="code" data-lang="json" data-file=".claude/settings.json" id="azSet"><pre></pre></div></div>
+  <div class="pane" data-pane="az"><div class="code" data-lang="bash" id="azMcp"><pre></pre></div></div>
+  <div class="pane" data-pane="az"><div class="code" data-lang="markdown" id="azCmds"><pre></pre></div></div>
+  <div class="row" style="margin-top:10px"><button class="btn" type="button" id="azAi" hidden>שיפור עם המורה</button></div>
+  <div id="azAiOut" class="box tutor-answer" hidden></div>
+</section>
+
 <section class="mod" id="exam" data-level="מבחן גמר" data-title="מבחן גמר ותעודה">
   <div class="eyebrow"></div>
   <h1>מבחן גמר</h1>
@@ -2125,7 +2184,7 @@ const ids = mods.map(m => m.id);
 let state = store.get("state", {done:{}, xp:0, awarded:{}, days:[]});
 function save(){ store.set("state", state); }
 function toast(t){ const el = $("#toast"); el.textContent = t; el.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(()=>el.classList.remove("show"), 1800); }
-function award(key, n, msg){ if(state.awarded[key]) return; state.awarded[key] = 1; state.xp += n; save(); renderStats(); toast("+" + n + " XP" + (msg ? " · " + msg : "")); }
+function award(key, n, msg){ if(state.awarded[key]) return; state.awarded[key] = n || 1; state.xp += n; save(); renderStats(); toast("+" + n + " XP" + (msg ? " · " + msg : "")); }
 function markDone(id){ if(!state.done[id]){ state.done[id] = 1; save(); renderToc(); renderStats(); } }
 
 // streak
@@ -2163,6 +2222,7 @@ function renderToc(){
 $("#tocSearch").addEventListener("input", renderToc);
 function show(id, push){
   let i = ids.indexOf(id); if(i < 0) i = 0;
+  if(document.fullscreenElement){ try{ document.exitFullscreen().catch(()=>{}); }catch(e){} }
   cur = i;
   mods.forEach((m,j) => m.classList.toggle("on", j===i));
   renderToc();
@@ -2171,7 +2231,7 @@ function show(id, push){
   $("#rail").classList.remove("open");
   if(push !== false && location.hash !== "#"+ids[i]){ try{ history.replaceState(null, "", "#"+ids[i]); }catch(e){ location.hash = ids[i]; } }
   window.scrollTo(0,0);
-  if(["sim","builders","cards","prompts","slides","tracks","glossary","generator","intrecipes","intbuilder"].includes(ids[i])) markDone(ids[i]);
+  if(["dashboard","sim","builders","cards","prompts","slides","tracks","glossary","generator","intrecipes","intbuilder"].includes(ids[i])) markDone(ids[i]);
   if(ids[i] === "sim") setTimeout(()=>$("#simIn").focus({preventScroll:true}), 50);
 }
 document.addEventListener("click", e => { const g = e.target.closest("[data-go]"); if(g){ e.preventDefault(); show(g.dataset.go); } });
@@ -2997,6 +3057,7 @@ const DECKS = [
     $("#deckTabs").innerHTML = DECKS.map((x,i) => '<button type="button" class="'+(i===d?"on":"")+'" data-i="'+i+'">'+esc(x.t)+'</button>').join("");
     deck.innerHTML = '<div class="sl">'+slideHTML(D.s[s])+'</div><div class="sl-foot">'+esc(D.t)+' · אקדמיית Claude Code</div>';
     $("#dNum").textContent = (s+1) + " / " + D.s.length;
+    $("#dPrev").disabled = s === 0; $("#dNext").disabled = s === D.s.length - 1;
     $("#dDots").innerHTML = D.s.map((_,i) => '<button type="button" aria-label="שקף '+(i+1)+'" class="'+(i===s?"on":"")+'" data-s="'+i+'"></button>').join("");
     if(s === D.s.length-1) award("deck-"+d, 10, "סיימתם מצגת");
   }
@@ -3963,6 +4024,248 @@ BADGES.push(
   ["logo","✻","בלשים","מצאתם את Claude הנסתר", () => !!state.awarded["egg-logo"]]
 );
 isSyncKey = (orig => k => orig(k) || ["ba","srbest","retro","surprises"].includes(k))(isSyncKey);
+checkBadges(true);
+
+// ================= sync v2: exact XP merge, live updates, status =================
+const DEVICE = (() => { try{ let d = localStorage.getItem("cca-device"); if(!d){ d = Math.random().toString(36).slice(2, 10); localStorage.setItem("cca-device", d); } return d; }catch(e){ return "x" + Math.random().toString(36).slice(2, 8); } })();
+const sumAwarded = a => Object.values(a || {}).reduce((t, v) => t + (typeof v === "number" ? v : 1), 0);
+mergeBundles = (orig => (local, remote) => { const out = orig(local, remote); out.state.xp = Math.max(out.state.xp || 0, sumAwarded(out.state.awarded));
+  out.badges = Object.assign({}, remote.badges, local.badges); out.ba = Object.assign({}, remote.ba, local.ba); out.mistakes = Object.assign({}, remote.mistakes, local.mistakes);
+  out.srbest = Math.max(local.srbest || 0, remote.srbest || 0); return out; })(mergeBundles);
+isSyncKey = (orig => k => orig(k) || ["mistakes","place"].includes(k))(isSyncKey);
+SYNC.lastAt = 0;
+pushSync = async function(){
+  if(!SYNC.ref) return;
+  const at = Date.now();
+  try{ await SYNC.ref.set({v:2, at, dev:DEVICE, data:JSON.stringify(localBundle())}); SYNC.lastAt = at; setSync("☁ מסונכרן · " + new Date(at).toLocaleTimeString("he-IL", {hour:"2-digit", minute:"2-digit"}), "ok"); }
+  catch(e){ setSync(e && e.code === "invalid_argument" ? "☁ סנכרון לא זמין בהרשאה הזו" : "☁ לא מחובר כרגע, נשמר מקומית", "err"); }
+};
+function applyRemote(remote){
+  const merged = mergeBundles(localBundle(), remote);
+  Object.entries(merged).forEach(([k,v]) => { try{ localStorage.setItem("cca-"+k, JSON.stringify(v)); }catch(e){} });
+  state = Object.assign({done:{}, xp:0, awarded:{}, days:[]}, merged.state);
+  boxes = merged.cards || {};
+  renderStats(); renderToc(); renderMissions(); REFRESH.forEach(f => { try{ f(); }catch(e){} });
+}
+function startLive(){
+  if(!SYNC.ref || SYNC.live || typeof SYNC.ref.onSnapshot !== "function") return;
+  try{ SYNC.live = SYNC.ref.onSnapshot(snap => {
+    if(!snap.exists) return; const d = snap.data() || {};
+    if(d.dev === DEVICE || !d.at || d.at <= SYNC.lastAt) return;
+    SYNC.lastAt = d.at;
+    try{ applyRemote(JSON.parse(d.data || "{}")); toast("☁ עודכן ממכשיר אחר"); }catch(e){}
+  }, () => setSync("☁ סנכרון חי נותק, נשמר מקומית", "err")); }catch(e){}
+}
+(function waitRef(n){ if(SYNC.ready && SYNC.ref){ startLive(); return; } if(n < 40) setTimeout(() => waitRef(n + 1), 500); })(0);
+window.addEventListener("online", () => { if(SYNC.ref) pushSync(); });
+document.addEventListener("visibilitychange", () => { if(document.visibilityState === "hidden" && SYNC.ref && SYNC.ready){ clearTimeout(SYNC.timer); pushSync(); } });
+
+// ================= mistake bank (from chapter quizzes) =================
+document.addEventListener("change", e => {
+  const inp = e.target; if(!inp.matches || !inp.matches(".quiz .q input")) return;
+  const quiz = inp.closest(".quiz"), qd = inp.closest(".q"), id = quiz.dataset.q, i = +qd.dataset.i, x = (Q[id]||[])[i]; if(!x) return;
+  const M = store.get("mistakes", {}), key = id + ":" + i;
+  if(+inp.value === x[2]) delete M[key]; else M[key] = (M[key] || 0) + 1;
+  store.set("mistakes", M);
+}, true);
+
+// ================= dashboard =================
+const LEVEL_ORDER = ["פתיחה","מתחילים","בינוני","מתקדמים","מומחים","מאסטר","סודות מתקדמים","אינטגרציות ופרויקטים","מצגות","סדנת תרגול","מבחן גמר"];
+function nextRecommended(){
+  const t = TRACKS[store.get("track", null)];
+  const order = t ? t.m.concat(ids) : ids;
+  return order.find(id => !state.done[id] && !["dashboard","intro"].includes(id) && document.getElementById(id));
+}
+function drawDashboard(){
+  const last = store.get("lastReal", "install"), lastM = document.getElementById(last) || mods[0];
+  $("#dbContinue").innerHTML = '<div class="hint">להמשיך מאיפה שעצרתם</div><h3 style="margin:.2em 0 .5em">'+esc(lastM.dataset.title)+'</h3><button class="btn pri" type="button" data-go="'+lastM.id+'">המשך ←</button>';
+  const nx = nextRecommended(), nxM = nx && document.getElementById(nx), t = TRACKS[store.get("track", null)];
+  $("#dbNext").innerHTML = nxM ? '<div class="hint">הצעד המומלץ הבא'+(t ? " (מסלול "+esc(t.n)+")" : "")+'</div><h3 style="margin:.2em 0 .5em">'+esc(nxM.dataset.title)+'</h3><button class="btn" type="button" data-go="'+nx+'">לפרק ←</button>' : '<h3>סיימתם את כל הפרקים! 🎉</h3>';
+  const done = Object.keys(state.done).length, badges = Object.keys(store.get("badges", {})).length;
+  $("#dbKpis").innerHTML = [["XP", state.xp], ["פרקים", done + "/" + mods.length], ["ימי רצף", streak()], ["הישגים", badges + "/" + BADGES.length], ["סודות", secUnlocked() + "/" + SECRETS.length], ["שיא ספידראן", store.get("srbest", 0)]].map(k => '<div><b>'+k[1]+'</b><span>'+k[0]+'</span></div>').join("");
+  $("#dbLevels").innerHTML = LEVEL_ORDER.map(L => { const ms = mods.filter(m => m.dataset.level === L); if(!ms.length) return ""; const d = ms.filter(m => state.done[m.id]).length, pct = Math.round(d / ms.length * 100);
+    return '<div class="lvrow"><span style="color:'+LEVEL_COLOR[L]+'">'+esc(L)+'</span><div class="bar"><i style="width:'+pct+'%;background:'+LEVEL_COLOR[L]+'"></i></div><span class="hint">'+d+'/'+ms.length+'</span></div>'; }).join("");
+  drawMistakes(); drawPlace();
+}
+function drawMistakes(){
+  const M = store.get("mistakes", {}), keys = Object.keys(M).filter(k => { const [id,i] = k.split(":"); return Q[id] && Q[id][+i]; });
+  if(!keys.length){ $("#dbMist").innerHTML = '<p class="hint">אין טעויות שמורות. מצוין! 💪</p>'; return; }
+  $("#dbMist").innerHTML = '<p><b>'+keys.length+'</b> שאלות לחזרה</p>' + keys.slice(0, 8).map((k,n) => { const [id,i] = k.split(":"), x = Q[id][+i], m = document.getElementById(id);
+    return '<div class="q mq" data-k="'+esc(k)+'"><span class="pill">'+esc(m ? m.dataset.title : id)+'</span> <b>'+esc(x[0])+'</b><div class="opts">'+x[1].map((o,j) => '<label><input type="radio" name="mq'+n+'" value="'+j+'"><span>'+esc(o)+'</span></label>').join("")+'</div><div class="why">'+esc(x[3])+'</div></div>'; }).join("");
+}
+document.addEventListener("change", e => {
+  const qd = e.target.closest && e.target.closest(".mq"); if(!qd) return;
+  const [id,i] = qd.dataset.k.split(":"), x = Q[id][+i], pick = +e.target.value;
+  qd.classList.add("ans"); qd.querySelectorAll("label").forEach((l,j) => { l.classList.toggle("r", j===x[2]); l.classList.toggle("w", j===pick && pick!==x[2]); });
+  if(pick === x[2]){ const M = store.get("mistakes", {}); delete M[qd.dataset.k]; store.set("mistakes", M); award("fix-"+qd.dataset.k, 5); if(!Object.keys(M).length){ award("mist-clear", 20, "תיקנתם את כל הטעויות"); } setTimeout(drawDashboard, 1200); }
+});
+// placement test
+const PLACE_PLAN = [["install",1],["ui",1],["memory",1],["perms",1],["context",1],["skills",1],["hooks",1],["mcp",1],["headless",1],["orchestra",1]];
+function drawPlace(){
+  const res = store.get("place", null);
+  if(res){ const m = document.getElementById(res.start); $("#dbPlace").innerHTML = '<p>הציון שלכם: <b>'+res.score+'/10</b>. מומלץ להתחיל מ: <b>'+esc(m ? m.dataset.title : res.start)+'</b> (רמת '+esc(res.level)+').</p><div class="row"><button class="btn pri" type="button" data-go="'+res.start+'">להתחיל שם</button><button class="btn" type="button" id="plAgain">מבחן מחדש</button></div>'; return; }
+  $("#dbPlace").innerHTML = '<p>10 שאלות מכל הרמות, כדי לדעת מאיפה כדאי לכם להתחיל. לוקח בערך 3 דקות.</p><button class="btn pri" type="button" id="plStart">התחלת מבחן מיון</button>';
+}
+document.addEventListener("click", e => {
+  if(e.target.id === "plAgain"){ store.set("place", null); drawPlace(); return; }
+  if(e.target.id !== "plStart") return;
+  const qs = PLACE_PLAN.map(([id]) => { const arr = Q[id] || []; return [id, arr[Math.floor(Math.random()*arr.length)]]; }).filter(x => x[1]);
+  $("#dbPlace").innerHTML = qs.map(([id,x],n) => '<div class="q" data-n="'+n+'"><b>'+(n+1)+'. '+esc(x[0])+'</b><div class="opts">'+x[1].map((o,j) => '<label><input type="radio" name="pq'+n+'" value="'+j+'"><span>'+esc(o)+'</span></label>').join("")+'</div></div>').join("") + '<button class="btn pri" type="button" id="plDone">סיום</button> <span class="hint" id="plMsg"></span>';
+  $("#plDone").onclick = () => {
+    const picks = qs.map((_,n) => { const c = $("#dbPlace").querySelector('input[name="pq'+n+'"]:checked'); return c ? +c.value : -1; });
+    if(picks.includes(-1)){ $("#plMsg").textContent = "ענו על כל השאלות"; return; }
+    const right = picks.map((p,n) => p === qs[n][1][2]); const score = right.filter(Boolean).length;
+    const firstWrong = right.indexOf(false); const start = firstWrong < 0 ? "tricks" : qs[firstWrong][0];
+    const level = document.getElementById(start).dataset.level;
+    store.set("place", {score, start, level}); award("placement", 15, "מבחן מיון"); drawPlace();
+  };
+});
+REFRESH.push(drawDashboard);
+$("#dbSyncNow").onclick = async () => { if(!SYNC.ref){ toast("סנכרון זמין רק בגרסה שב-claude.ai"); return; } setSync("☁ מסנכרן…", ""); try{ const s = await SYNC.ref.get(); if(s.exists) applyRemote(JSON.parse(s.data().data || "{}")); }catch(e){} await pushSync(); toast("☁ סונכרן"); };
+$("#dbBackup").onclick = () => {
+  const code = "CCA1:" + btoa(unescape(encodeURIComponent(JSON.stringify(localBundle()))));
+  const done = ok => toast(ok ? "קוד הגיבוי הועתק. שמרו אותו במקום בטוח" : "לא ניתן להעתיק. הקוד מוצג בתיבה, העתיקו ידנית");
+  try{ navigator.clipboard.writeText(code).then(() => done(true), () => { $("#dbRestore").hidden = false; $("#dbRestoreIn").value = code; $("#dbRestoreIn").select(); done(false); }); }
+  catch(e){ $("#dbRestore").hidden = false; $("#dbRestoreIn").value = code; done(false); }
+  award("backup", 10, "גיבוי ראשון");
+};
+$("#dbRestoreBtn").onclick = () => { $("#dbRestore").hidden = !$("#dbRestore").hidden; $("#dbRestoreIn").value = ""; $("#dbRestoreIn").focus(); };
+$("#dbRestoreGo").onclick = () => {
+  const v = $("#dbRestoreIn").value.trim();
+  try{ if(!v.startsWith("CCA1:")) throw 0; const data = JSON.parse(decodeURIComponent(escape(atob(v.slice(5))))); applyRemote(data); if(SYNC.ref) pushSync(); $("#dbRestoreMsg").textContent = "שוחזר ומוזג ✓"; }
+  catch(e){ $("#dbRestoreMsg").textContent = "הקוד לא תקין. ודאו שהעתקתם את כולו, כולל CCA1: בהתחלה"; }
+};
+setSync = (orig => (txt, cls) => { orig(txt, cls); const d = document.getElementById("dbSync"); if(d){ d.textContent = txt; d.className = "sync " + (cls||""); } })(setSync);
+drawDashboard();
+
+// ================= project analyzer =================
+const AZ_DEMO = {
+  "package.json": JSON.stringify({name:"shop-web", scripts:{dev:"next dev", build:"next build", test:"vitest run", "test:e2e":"playwright test", lint:"next lint", typecheck:"tsc --noEmit", "db:migrate":"prisma migrate deploy"}, dependencies:{next:"15.0.0", react:"19.0.0", "@prisma/client":"6.0.0", stripe:"17.0.0", "@sentry/nextjs":"8.0.0"}, devDependencies:{vitest:"2.1.0", "@playwright/test":"1.48.0", prettier:"3.3.0", eslint:"9.0.0", typescript:"5.6.0"}}, null, 2),
+  "pnpm-lock.yaml": "lockfileVersion: '9.0'",
+  "Dockerfile": "FROM node:22-slim",
+  ".github/workflows/ci.yml": "name: ci",
+  "README.md": "# Shop Web\nOnline shop with Next.js, Prisma and Stripe."
+};
+function analyzeFiles(files){
+  const names = Object.keys(files), has = re => names.some(n => re.test(n)), txt = n => files[Object.keys(files).find(k => k.endsWith(n))] || "";
+  const r = {langs:[], frameworks:[], tests:[], lint:[], db:[], infra:[], pm:"", scripts:{}, deps:new Set(), name:"", notes:[]};
+  const pj = txt("package.json");
+  if(pj){ try{ const j = JSON.parse(pj); r.name = j.name || ""; r.scripts = j.scripts || {}; Object.keys(Object.assign({}, j.dependencies, j.devDependencies)).forEach(d => r.deps.add(d)); }catch(e){ r.notes.push("package.json לא תקין"); }
+    r.langs.push(r.deps.has("typescript") || has(/tsconfig\.json$/) ? "TypeScript" : "JavaScript");
+    r.pm = has(/pnpm-lock\.yaml$/) ? "pnpm" : has(/yarn\.lock$/) ? "yarn" : has(/bun\.lockb?$/) ? "bun" : "npm"; }
+  const py = txt("pyproject.toml") + "\n" + txt("requirements.txt");
+  if(py.trim()){ r.langs.push("Python"); py.toLowerCase().split(/[^a-z0-9_-]+/).forEach(w => r.deps.add(w)); r.pm = r.pm || (has(/uv\.lock$/) ? "uv" : has(/poetry\.lock$/) ? "poetry" : "pip"); }
+  if(txt("go.mod")) r.langs.push("Go");
+  if(txt("Cargo.toml")) r.langs.push("Rust");
+  if(txt("Gemfile")){ r.langs.push("Ruby"); txt("Gemfile").split(/\W+/).forEach(w => r.deps.add(w)); }
+  if(txt("composer.json")){ r.langs.push("PHP"); try{ Object.keys(JSON.parse(txt("composer.json")).require || {}).forEach(d => r.deps.add(d)); }catch(e){} }
+  const D = d => r.deps.has(d);
+  [["next","Next.js"],["react","React"],["vue","Vue"],["svelte","Svelte"],["@angular/core","Angular"],["express","Express"],["fastify","Fastify"],["@nestjs/core","NestJS"],["django","Django"],["flask","Flask"],["fastapi","FastAPI"],["rails","Rails"],["laravel/framework","Laravel"],["expo","Expo"]].forEach(([d,n]) => { if(D(d)) r.frameworks.push(n); });
+  [["vitest","Vitest"],["jest","Jest"],["@playwright/test","Playwright"],["cypress","Cypress"],["pytest","pytest"],["rspec","RSpec"],["phpunit/phpunit","PHPUnit"]].forEach(([d,n]) => { if(D(d)) r.tests.push(n); });
+  if(r.langs.includes("Go")) r.tests.push("go test"); if(r.langs.includes("Rust")) r.tests.push("cargo test");
+  [["eslint","ESLint"],["prettier","Prettier"],["@biomejs/biome","Biome"],["ruff","Ruff"],["black","Black"],["rubocop","RuboCop"]].forEach(([d,n]) => { if(D(d)) r.lint.push(n); });
+  [["@prisma/client","Prisma"],["prisma","Prisma"],["pg","Postgres"],["mysql2","MySQL"],["mongoose","MongoDB"],["sqlalchemy","SQLAlchemy"],["psycopg","Postgres"],["redis","Redis"],["@supabase/supabase-js","Supabase"],["drizzle-orm","Drizzle"],["better-sqlite3","SQLite"],["sqlite3","SQLite"],["typeorm","TypeORM"]].forEach(([d,n]) => { if(D(d) && !r.db.includes(n)) r.db.push(n); });
+  if(has(/Dockerfile$/)) r.infra.push("Docker"); if(has(/docker-compose\.ya?ml$|compose\.ya?ml$/)) r.infra.push("Docker Compose");
+  if(has(/\.github\/workflows\//)) r.infra.push("GitHub Actions"); if(has(/\.gitlab-ci\.yml$/)) r.infra.push("GitLab CI");
+  if(has(/vercel\.json$/) || D("next")) r.infra.push("Vercel?"); if(has(/fly\.toml$/)) r.infra.push("Fly.io");
+  r.extras = {stripe:D("stripe"), sentry:[...r.deps].some(d => d.startsWith("@sentry/") || d === "sentry-sdk"), figma:false};
+  return r;
+}
+function kitFor(r){
+  const run = s => r.pm === "npm" ? "npm run " + s : r.pm + " " + s;
+  const S = r.scripts, cmd = {};
+  if(S.dev) cmd.dev = run("dev"); if(S.test) cmd.test = (r.pm === "npm" ? "npm test" : r.pm + " test"); if(S.lint) cmd.lint = run("lint"); if(S.typecheck) cmd.typecheck = run("typecheck"); if(S.build) cmd.build = run("build"); if(S["test:e2e"]) cmd.e2e = run("test:e2e");
+  if(r.langs.includes("Python")){ cmd.test = cmd.test || (r.pm === "uv" ? "uv run pytest" : "pytest"); if(r.lint.includes("Ruff")) cmd.lint = cmd.lint || "ruff check --fix . && ruff format ."; }
+  if(r.langs.includes("Go")){ cmd.test = cmd.test || "go test ./..."; cmd.lint = cmd.lint || "golangci-lint run"; }
+  if(r.langs.includes("Rust")){ cmd.test = cmd.test || "cargo test"; cmd.lint = cmd.lint || "cargo clippy && cargo fmt"; }
+  const lines = Object.entries(cmd).map(([k,v]) => "- `" + v + "` – " + ({dev:"dev server",test:"tests",lint:"lint",typecheck:"typecheck",build:"build",e2e:"E2E tests"}[k]));
+  const mem = "# " + (r.name || "Project") + "\n\n## Stack\n" + [r.langs.join(", "), r.frameworks.join(", "), r.db.join(", "), r.infra.filter(x=>!/\?/.test(x)).join(", ")].filter(Boolean).join(" · ") + "\n\n## Commands\n" + (lines.join("\n") || "- (add your commands)") + "\n- Prefer running a single test file while iterating\n\n## Rules\n" +
+    (r.langs.includes("TypeScript") ? "- TypeScript strict; no `any`\n" : "") + (r.db.includes("Prisma") ? "- Schema changes only via `prisma migrate dev`; never edit applied migrations\n" : "") + (r.extras.stripe ? "- IMPORTANT: payment logic server-side only; verify Stripe webhook signatures\n" : "") + (r.lint.length ? "- Code style is enforced by " + r.lint.join(" + ") + " (a hook runs it after edits)\n" : "") + "- Never read or print secrets from .env\n\n## Workflow\n- Explore → plan → implement in small steps → run tests + lint → commit\n";
+  const allow = Object.values(cmd).map(c => "Bash(" + c.split(" && ")[0].split(" ").slice(0, c.startsWith("npm test") ? 2 : 3).join(" ") + ":*)");
+  allow.push("Bash(git status)", "Bash(git diff:*)", "Bash(git log:*)");
+  const hooks = {};
+  const fmt = r.lint.includes("Prettier") ? "jq -r '.tool_input.file_path' | xargs npx prettier --write --ignore-unknown" : r.lint.includes("Biome") ? "jq -r '.tool_input.file_path' | xargs npx @biomejs/biome format --write" : r.lint.includes("Ruff") ? "f=$(jq -r '.tool_input.file_path'); case \"$f\" in *.py) ruff format \"$f\";; esac; exit 0" : r.lint.includes("Black") ? "f=$(jq -r '.tool_input.file_path'); case \"$f\" in *.py) black -q \"$f\";; esac; exit 0" : r.langs.includes("Go") ? "f=$(jq -r '.tool_input.file_path'); case \"$f\" in *.go) gofmt -w \"$f\";; esac; exit 0" : "";
+  if(fmt) hooks.PostToolUse = [{matcher:"Edit|Write", hooks:[{type:"command", command:fmt}]}];
+  const deny = ["Read(./.env)","Read(./.env.*)","Bash(rm -rf:*)"]; if(r.db.includes("Prisma")) deny.push("Edit(prisma/migrations/**)");
+  const settings = {permissions:{allow, deny, defaultMode:"acceptEdits"}}; if(Object.keys(hooks).length) settings.hooks = hooks;
+  const mcp = ["# suggested for this project (verify URLs in each vendor's docs)"];
+  if(r.infra.includes("GitHub Actions")) mcp.push("gh auth login                               # GitHub via CLI");
+  if(r.tests.includes("Playwright") || r.frameworks.some(f => /Next|React|Vue|Svelte|Angular/.test(f))) mcp.push("claude mcp add playwright -- npx -y @playwright/mcp@latest");
+  if(r.extras.sentry) mcp.push("claude mcp add --transport http sentry https://mcp.sentry.dev/mcp");
+  if(r.db.some(d => /Postgres|Prisma|MySQL|Drizzle/.test(d))) mcp.push("claude mcp add db -- npx -y @bytebase/dbhub --dsn \"$READONLY_DATABASE_URL\"   # read-only user!");
+  if(r.db.includes("Supabase")) mcp.push("claude mcp add --transport http supabase https://mcp.supabase.com/mcp");
+  if(r.extras.stripe) mcp.push("claude mcp add --transport http stripe https://mcp.stripe.com");
+  if(r.infra.includes("Vercel?")) mcp.push("claude mcp add --transport http vercel https://mcp.vercel.com");
+  mcp.push("claude mcp add --transport http context7 https://mcp.context7.com/mcp   # up-to-date library docs");
+  const cmds = ["## .claude/agents/reviewer.md", "---\nname: reviewer\ndescription: Reviews diffs for " + (r.frameworks[0] || r.langs[0] || "this") + " code: correctness, security, tests. Use PROACTIVELY before commits.\ntools: Read, Grep, Glob, Bash\nmodel: sonnet\n---\nRun git diff. Check: " + [r.extras.stripe && "payment flows and webhook verification", r.db.length && "query performance and migrations", r.frameworks.some(f=>/Next|React/.test(f)) && "server/client boundaries and accessibility", "error handling and missing tests"].filter(Boolean).join("; ") + ". Report by severity with file:line.",
+    "", "## .claude/commands/verify.md", "---\ndescription: Run every check before a PR\n---\n" + Object.entries(cmd).filter(([k]) => k !== "dev").map(([k,v], i) => (i+1) + ". " + v).join("\n") + "\nFix failures, then summarize what you ran and the results."].join("\n");
+  return {mem, settings, mcp:mcp.join("\n"), cmds, cmd};
+}
+(function(){
+  const files = {};
+  const render = () => {
+    const names = Object.keys(files);
+    $("#azFound").innerHTML = names.length ? names.slice(0, 30).map(n => '<span class="pill">'+esc(n)+'</span>').join("") + (names.length > 30 ? ' <span class="hint">ועוד '+(names.length-30)+'</span>' : "") : "";
+    if(!names.length) return;
+    const r = analyzeFiles(files), k = kitFor(r);
+    const row = (t, v) => '<tr><td><b>'+t+'</b></td><td>'+(v && v.length ? esc([].concat(v).join(", ")) : '<span class="hint">לא זוהה</span>')+'</td></tr>';
+    $("#azReport").innerHTML = '<div class="tbl"><table>'+row("שפות", r.langs)+row("Frameworks", r.frameworks)+row("מנהל חבילות", r.pm ? [r.pm] : [])+row("בדיקות", r.tests)+row("לינט ופורמט", r.lint)+row("נתונים", r.db)+row("תשתית", r.infra.map(x => x.replace("?", " (משוער)")))+'</table></div>' + (r.notes.length ? '<div class="note warn">'+esc(r.notes.join(". "))+'</div>' : "");
+    $("#azTabs").hidden = false; $("#azMem").hidden = false;
+    setCode("#azMem", k.mem); setCode("#azSet", JSON.stringify(k.settings, null, 2)); setCode("#azMcp", k.mcp); setCode("#azCmds", k.cmds);
+    if(window.tutorSample) $("#azAi").hidden = false;
+    award("analyzer", 20, "ניתחתם פרויקט"); markDone("analyzer");
+  };
+  const WANT = /(^|\/)(package\.json|tsconfig\.json|pyproject\.toml|requirements\.txt|go\.mod|Cargo\.toml|Gemfile|composer\.json|README\.md|Dockerfile|docker-compose\.ya?ml|compose\.ya?ml|Makefile|vercel\.json|fly\.toml|\.gitlab-ci\.yml|pnpm-lock\.yaml|yarn\.lock|bun\.lockb?|uv\.lock|poetry\.lock)$|\.github\/workflows\/[^/]+\.ya?ml$/;
+  const addList = async list => {
+    const arr = [...list].filter(f => { const n = f.webkitRelativePath || f.name; return WANT.test(n) && !/node_modules\//.test(n); }).slice(0, 60);
+    if(!arr.length){ toast("לא נמצאו קבצי הגדרה מוכרים. נסו package.json, pyproject.toml או go.mod"); return; }
+    Object.keys(files).forEach(k => delete files[k]);   // a new selection replaces the previous one
+    for(const f of arr){ const n = f.webkitRelativePath ? f.webkitRelativePath.split("/").slice(1).join("/") : f.name; files[n] = /lock|lockb/.test(n) ? "" : (await f.text()).slice(0, 200000); }
+    render();
+  };
+  $("#azFiles").addEventListener("change", e => addList(e.target.files));
+  $("#azDir").addEventListener("change", e => addList(e.target.files));
+  const dz = $("#azDrop");
+  dz.addEventListener("dragover", e => { e.preventDefault(); dz.classList.add("over"); });
+  dz.addEventListener("dragleave", () => dz.classList.remove("over"));
+  dz.addEventListener("drop", e => { e.preventDefault(); dz.classList.remove("over"); addList(e.dataTransfer.files); });
+  dz.addEventListener("keydown", e => { if(e.key === "Enter" || e.key === " "){ e.preventDefault(); $("#azFiles").click(); } });
+  $("#azDemo").onclick = () => { Object.keys(files).forEach(k => delete files[k]); Object.assign(files, AZ_DEMO); render(); };
+  $("#azAi").onclick = () => { const r = analyzeFiles(files); tutorOnce("אתה מומחה Claude Code. זה ניתוח של פרויקט:\n" + JSON.stringify(Object.assign({}, r, {deps:[...r.deps].slice(0, 80)})) + "\n\nוזה ה-CLAUDE.md שנוצר:\n```\n" + kitFor(r).mem + "\n```\nשפר אותו: הוסף כללים ספציפיים ל-frameworks ולספריות שזוהו, מלכודות נפוצות, והצעה ל-2 Skills ול-2 Hooks שיתאימו במיוחד לפרויקט הזה. ענה בעברית, וקבצים בבלוקי קוד.", $("#azAiOut")); };
+})();
+
+// ================= professional polish =================
+(function(){
+  // skip link + focus management on chapter change
+  document.body.insertAdjacentHTML("afterbegin", '<a class="skip" href="#main">דילוג לתוכן</a>');
+  document.querySelector(".skip").addEventListener("click", e => { e.preventDefault(); const h = document.querySelector(".mod.on h1"); if(h){ h.tabIndex = -1; h.focus(); } });
+  show = (orig => function(id, push){ orig(id, push); if(!["dashboard","intro"].includes(ids[cur])) store.set("lastReal", ids[cur]); const h = document.querySelector(".mod.on h1"); if(h && push !== false && document.activeElement && document.activeElement.closest && document.activeElement.closest("#toc, .navbtns, .pal")){ h.tabIndex = -1; h.focus({preventScroll:true}); } if(ids[cur] === "dashboard") drawDashboard(); document.title = mods[cur].dataset.title + " · אקדמיית Claude Code"; })(show);
+  // keyboard shortcuts overlay
+  $(".rail-tools").insertAdjacentHTML("beforeend", '<button class="btn sm" id="keysBtn" type="button">⌨️ קיצורים (?)</button>');
+  document.body.insertAdjacentHTML("beforeend", '<div class="pal" id="keys" hidden role="dialog" aria-label="קיצורי מקלדת"><div class="pal-box"><div class="row" style="justify-content:space-between"><b>קיצורי מקלדת באקדמיה</b><button class="btn sm" type="button" id="keysX">✕</button></div><div class="tbl"><table>' +
+    [["Ctrl+K","חיפוש בכל הקורס"],["?","החלון הזה"],["Alt+←  /  Alt+→","הפרק הבא / הקודם"],["G ואז D","לוח הבקרה"],["G ואז S","הסימולטור"],["T","פתיחת המורה (אם זמין)"],["← → במצגות","מעבר בין שקפים, F למסך מלא"],["Esc","סגירת חלונות"]].map(r => '<tr><td><kbd>'+esc(r[0])+'</kbd></td><td>'+esc(r[1])+'</td></tr>').join("") + '</table></div><p class="hint">ויש גם קיצור אחד סודי… 🕹</p></div></div>');
+  const keys = $("#keys"); $("#keysBtn").onclick = () => keys.hidden = false; $("#keysX").onclick = () => keys.hidden = true; keys.addEventListener("click", e => { if(e.target === keys) keys.hidden = true; });
+  let g = 0;
+  document.addEventListener("keydown", e => {
+    if(/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) || e.ctrlKey || e.metaKey) return;
+    if(e.key === "Escape"){ keys.hidden = true; return; }
+    if(e.key === "?"){ keys.hidden = !keys.hidden; return; }
+    if(e.altKey && e.key === "ArrowLeft"){ e.preventDefault(); show(ids[Math.min(ids.length-1, cur+1)]); return; }
+    if(e.altKey && e.key === "ArrowRight"){ e.preventDefault(); show(ids[Math.max(0, cur-1)]); return; }
+    if(ids[cur] === "slides") return;
+    if(e.key === "g" || e.key === "G"){ g = Date.now(); return; }
+    if(Date.now() - g < 1200){ if(/^[dD]$/.test(e.key)) show("dashboard"); if(/^[sS]$/.test(e.key)) show("sim"); g = 0; return; }
+    if((e.key === "t" || e.key === "T") && !$("#tutorFab").hidden){ $("#tutorFab").click(); }
+  });
+  // prompt lab: explain empty submit
+  $("#plRun").addEventListener("click", () => { if(!$("#plIn").value.trim()){ $("#plOut").innerHTML = '<span class="hint">כתבו קודם פרומפט בתיבה, או בחרו אחת מהדוגמאות.</span>'; $("#plIn").focus(); } });
+})();
+BADGES.push(
+  ["backup","💾","זהירים","יצרתם גיבוי התקדמות", () => !!state.awarded.backup],
+  ["place","🧪","יודעים איפה אתם","השלמתם מבחן מיון", () => !!state.awarded.placement],
+  ["az","🔬","מנתחים","ניתחתם פרויקט אמיתי", () => !!state.awarded.analyzer],
+  ["mist","🩹","לומדים מטעויות","תיקנתם את כל הטעויות השמורות", () => !!state.awarded["mist-clear"]]
+);
 checkBadges(true);
 
 renderStats();
