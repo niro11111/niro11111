@@ -8,7 +8,7 @@
   --bg:#f2f5f4; --surface:#ffffff; --surface-2:#e7edeb; --ink:#13201d; --muted:#55635f; --line:#d2dbd8;
   --accent:#0d7568; --accent-ink:#ffffff; --amber:#9c5600; --red:#b42335; --ok:#16794a;
   --term-bg:#0f1816; --term-ink:#d6e4df; --term-dim:#7d958f; --term-green:#5fd3a8; --term-amber:#f2b45a; --term-line:#24332f;
-  --lv1:#16794a; --lv2:#1d63c9; --lv3:#7b3fc4; --lv4:#b8431f; --lv5:#0d7568; --lv6:#9c5600; --lv7:#b0256f; --lv8:#2b6f8c;
+  --lv1:#16794a; --lv2:#1d63c9; --lv3:#7b3fc4; --lv4:#b8431f; --lv5:#0d7568; --lv6:#9c5600; --lv7:#b0256f; --lv8:#2b6f8c; --lv9:#5a6e00;
   --display:"Secular One","Assistant",system-ui,sans-serif; --body:"Assistant","Segoe UI",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
   --shadow:0 1px 2px rgba(10,30,25,.05),0 8px 24px rgba(10,30,25,.06);
 }
@@ -16,14 +16,14 @@
   :root:not([data-theme="light"]){
     --bg:#0c1211; --surface:#131b1a; --surface-2:#1a2523; --ink:#e3ebe8; --muted:#93a39e; --line:#26332f;
     --accent:#3cc8b0; --accent-ink:#04201b; --amber:#f0a845; --red:#ff7487; --ok:#4fd28e;
-    --lv1:#4fd28e; --lv2:#6aa5ff; --lv3:#b48cff; --lv4:#ff8a63; --lv5:#3cc8b0; --lv6:#f0a845; --lv7:#ff7ab8; --lv8:#6cc7e0;
+    --lv1:#4fd28e; --lv2:#6aa5ff; --lv3:#b48cff; --lv4:#ff8a63; --lv5:#3cc8b0; --lv6:#f0a845; --lv7:#ff7ab8; --lv8:#6cc7e0; --lv9:#bcd96a;
     --shadow:0 1px 2px rgba(0,0,0,.35),0 8px 24px rgba(0,0,0,.3); color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --bg:#0c1211; --surface:#131b1a; --surface-2:#1a2523; --ink:#e3ebe8; --muted:#93a39e; --line:#26332f;
   --accent:#3cc8b0; --accent-ink:#04201b; --amber:#f0a845; --red:#ff7487; --ok:#4fd28e;
-  --lv1:#4fd28e; --lv2:#6aa5ff; --lv3:#b48cff; --lv4:#ff8a63; --lv5:#3cc8b0; --lv6:#f0a845; --lv7:#ff7ab8; --lv8:#6cc7e0;
+  --lv1:#4fd28e; --lv2:#6aa5ff; --lv3:#b48cff; --lv4:#ff8a63; --lv5:#3cc8b0; --lv6:#f0a845; --lv7:#ff7ab8; --lv8:#6cc7e0; --lv9:#bcd96a;
   --shadow:0 1px 2px rgba(0,0,0,.35),0 8px 24px rgba(0,0,0,.3); color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -123,6 +123,41 @@ th{background:var(--surface-2);font-weight:700}
 .dots{display:flex;gap:6px;justify-content:center;margin-top:8px;flex-wrap:wrap}
 .dots button{width:9px;height:9px;border-radius:50%;border:0;background:var(--line);padding:0;cursor:pointer}
 .dots button.on{background:var(--accent);width:22px;border-radius:5px}
+.sync{font-size:.74rem;color:var(--muted);margin:-4px 0 8px}
+.sync.ok{color:var(--ok)} .sync.err{color:var(--amber)}
+.star{color:var(--amber);margin-inline-start:auto;font-size:.8rem}
+.track-list{display:grid;gap:4px;padding-inline-start:1.4em}
+.track-list li.ok a::after{content:" ✓";color:var(--ok)}
+.steps{list-style:none;padding:0;display:grid;gap:12px;margin:14px 0}
+.steps>li{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:12px 16px;min-width:0}
+.steps>li.ok{border-color:var(--ok)}
+.steps h3{margin:0}
+.tick{display:flex;gap:6px;align-items:center;font-weight:700;font-size:.88rem;cursor:pointer}
+.chk-list{list-style:none;padding:0;margin:10px 0 0;display:grid;gap:6px}
+.chk-list li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:6px;font-size:.93rem}
+.chk-list li span{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:.72rem;font-weight:800;color:var(--surface);margin-top:3px}
+.sev-ok span{background:var(--ok)} .sev-warn span{background:var(--amber)} .sev-err span{background:var(--red)} .sev-info span{background:var(--lv2)}
+.sev-err{color:var(--red);font-weight:700} .sev-warn{color:var(--amber);font-weight:700}
+.chk-list li.sev-err,.chk-list li.sev-warn{color:var(--ink);font-weight:400}
+details.notes{margin-top:26px;border:1px dashed var(--line);border-radius:10px;padding:8px 12px;background:var(--surface)}
+details.notes summary{cursor:pointer;font-weight:700;color:var(--muted)}
+details.notes textarea{width:100%;min-height:90px;margin-top:8px;font:inherit;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);padding:8px}
+.code .ask{display:none;position:absolute;top:5px;right:70px;font:600 .72rem var(--body);color:var(--term-amber);background:transparent;border:1px solid var(--term-line);border-radius:6px;padding:2px 9px;cursor:pointer}
+body.has-tutor .code .ask{display:inline-block}
+.tutor-fab{position:fixed;left:calc(18px + env(safe-area-inset-left,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:40;font:700 .95rem var(--body);background:var(--accent);color:var(--accent-ink);border:0;border-radius:999px;padding:10px 18px;box-shadow:var(--shadow);cursor:pointer}
+.tutor{position:fixed;left:calc(18px + env(safe-area-inset-left,0px));bottom:calc(72px + env(safe-area-inset-bottom,0px));z-index:41;width:min(420px,calc(100vw - 32px));height:min(620px,calc(100vh - 110px));background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.25);display:flex;flex-direction:column;overflow:hidden}
+.tutor[hidden]{display:none}
+.tutor-head{display:flex;gap:8px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line)}
+.tutor-head .hint{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tutor-log{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.tb{border-radius:12px;padding:8px 12px;font-size:.94rem;max-width:92%;overflow-wrap:anywhere}
+.tb.me{align-self:flex-start;background:var(--accent);color:var(--accent-ink)}
+.tb.ai{align-self:flex-end;background:var(--surface-2)}
+.tb code{font-size:.85em}
+.tpre,.tutor-answer pre{direction:ltr;text-align:left;background:var(--term-bg);color:var(--term-ink);border-radius:8px;padding:8px 10px;overflow-x:auto;font-family:var(--mono);font-size:.8rem;margin:6px 0;white-space:pre}
+.tutor-sugg{display:flex;gap:6px;flex-wrap:wrap;padding:0 12px 8px}
+.tutor-in{border-top:1px solid var(--line);padding:8px 12px;display:grid;gap:6px}
+.tutor-in textarea{font:inherit;border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:var(--bg);color:var(--ink);resize:none}
 .levels .lv{border:1px solid var(--line);border-top:4px solid var(--c);border-radius:10px;padding:12px;background:var(--surface)}
 .levels .lv b{color:var(--c);display:block;font-size:1.02rem}
 .levels .lv span{font-size:.9rem;color:var(--muted)}
@@ -147,6 +182,8 @@ th{background:var(--surface-2);font-weight:700}
 .q{margin:14px 0}
 .opts{display:grid;gap:7px;margin-top:6px}
 .opts label{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer;background:var(--surface)}
+.opts label span{min-width:0;overflow-wrap:anywhere}
+main{overflow-wrap:break-word}
 .opts label:hover{border-color:var(--accent)}
 .opts label.r{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 12%,var(--surface))}
 .opts label.w{border-color:var(--red);background:color-mix(in srgb,var(--red) 10%,var(--surface))}
@@ -212,6 +249,7 @@ th{background:var(--surface-2);font-weight:700}
   main{padding:18px 16px 70px}
   .hero,.sim,.grid2,.grid3,.tricks{grid-template-columns:minmax(0,1fr)}
   .grid4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tutor{left:8px;right:8px;width:auto;bottom:calc(66px + env(safe-area-inset-bottom,0px))}
   .chat li{grid-template-columns:minmax(0,1fr);gap:2px}
   h1{font-size:1.65rem}
 }
@@ -228,6 +266,7 @@ th{background:var(--surface-2);font-weight:700}
   </div>
   <div class="bar"><i id="pBar"></i></div>
   <div class="barlabel" id="pLabel"></div>
+  <div class="sync" id="syncStatus"></div>
   <input class="search" id="tocSearch" type="search" placeholder="חיפוש פרק או מונח…" aria-label="חיפוש פרקים">
   <ol id="toc"></ol>
   <div class="rail-tools">
@@ -252,14 +291,15 @@ th{background:var(--surface-2);font-weight:700}
   </div>
 
   <h2>מפת הלמידה</h2>
-  <div class="grid4 levels">
+  <div class="grid3 levels">
     <div class="lv" style="--c:var(--lv1)"><b>מתחילים</b><span>התקנה, ממשק וקיצורים, ואיך עובדים נכון: לחקור, לתכנן, לבצע ולוודא.</span></div>
     <div class="lv" style="--c:var(--lv2)"><b>בינוני</b><span>CLAUDE.md וזיכרון, הרשאות והגדרות, ניהול הקשר ופקודות מותאמות.</span></div>
     <div class="lv" style="--c:var(--lv3)"><b>מתקדמים</b><span>Skills, Subagents, Hooks, שרתי MCP ו-Plugins: להרחיב את Claude לכל צורך.</span></div>
     <div class="lv" style="--c:var(--lv4)"><b>מומחים</b><span>מצב headless ו-CI, Agent SDK, עבודה מקבילית ובענן, אבטחה ועלויות, ובניית מערכת שלמה.</span></div>
     <div class="lv" style="--c:var(--lv7)"><b>מאסטר</b><span>40 טריקים של מקצוענים, 6 דוגמאות מלאות מקצה לקצה וספריית פרומפטים מוכנים.</span></div>
+    <div class="lv" style="--c:var(--lv9)"><b>סודות מתקדמים</b><span>שרת MCP משלכם, לולאות אוטונומיות, צוות סוכנים, Hooks ברמת מאסטר, בוט SDK, סוכני לילה, ניטור ארגוני ועבודה שאינה קוד.</span></div>
     <div class="lv" style="--c:var(--lv8)"><b>מצגות</b><span>6 מצגות שמסכמות את הקורס, עם מסך מלא. מתאימות גם להצגה לצוות.</span></div>
-    <div class="lv" style="--c:var(--lv5)"><b>סדנת תרגול</b><span>סימולטור טרמינל, מחוללי קבצים, אתגרים שנבדקים אוטומטית וכרטיסיות חזרה.</span></div>
+    <div class="lv" style="--c:var(--lv5)"><b>סדנת תרגול</b><span>סימולטור, מחוללים, אתגרים, כרטיסיות, פרויקט גמר מודרך, בודק הגדרות, מילון ואתגר יומי.</span></div>
     <div class="lv" style="--c:var(--lv6)"><b>מבחן גמר</b><span>15 שאלות אקראיות מכל הקורס. עוברים ב-80% ומקבלים תעודה על המסך.</span></div>
   </div>
 
@@ -274,6 +314,15 @@ th{background:var(--surface-2);font-weight:700}
   </div>
   <div class="note"><b>הערה על גרסאות</b>Claude Code מתעדכן בתדירות גבוהה. התחביר בקורס נכון לסוף 2026. אם משהו לא עובד אצלכם, הריצו <code>claude update</code>, ובדקו את <code>/help</code> ואת התיעוד הרשמי ב-<code>code.claude.com/docs</code>.</div>
   <div class="quiz" data-q="intro"></div>
+</section>
+
+<!-- ================= TRACKS ================= -->
+<section class="mod" id="tracks" data-level="פתיחה" data-title="מסלולי למידה לפי תפקיד">
+  <div class="eyebrow"></div>
+  <h1>בחרו מסלול לפי מה שאתם עושים</h1>
+  <p class="lead">כל מסלול מסדר את הפרקים לפי מה שהכי חשוב לתפקיד, ומוסיף טיפים ייעודיים. אחרי שבוחרים, הפרקים של המסלול מסומנים ב-★ ברשימת הפרקים.</p>
+  <div class="grid3" id="trackCards"></div>
+  <div id="trackDetail"></div>
 </section>
 
 <!-- ================= BEGINNER ================= -->
@@ -1011,6 +1060,460 @@ git worktree remove ../app-feature-a  # when done</pre></div>
   <div id="prList"></div>
 </section>
 
+<!-- ================= SECRETS (advanced lab) ================= -->
+<section class="mod" id="mcpbuild" data-level="סודות מתקדמים" data-title="בונים שרת MCP משלכם">
+  <div class="eyebrow"></div>
+  <h1>בונים שרת MCP משלכם ב-30 שורות</h1>
+  <p class="lead">זה הכוח שהכי פחות אנשים מנצלים. כל API פנימי, מסד נתונים, CRM או סקריפט שיש לכם יכול להפוך לכלי ש-Claude משתמש בו בעצמו. בלי לחכות שמישהו אחר יבנה אינטגרציה.</p>
+  <h2>שלושה סוגי יכולות שהשרת חושף</h2>
+  <div class="tbl"><table>
+    <tr><th>סוג</th><th>מה זה</th><th>איך מופיע ב-Claude Code</th></tr>
+    <tr><td><b>Tools</b></td><td>פעולות ש-Claude מפעיל (שאילתה, יצירת טיקט, שליחת הודעה)</td><td>Claude בוחר להשתמש בהם לבד, לפי התיאור</td></tr>
+    <tr><td><b>Resources</b></td><td>מידע לקריאה עם כתובת (מסמך, רשומה)</td><td>הפניה עם <code>@server:uri</code></td></tr>
+    <tr><td><b>Prompts</b></td><td>תבניות פרומפט עם ארגומנטים</td><td>פקודות <code>/mcp__server__prompt</code></td></tr>
+  </table></div>
+  <div class="tabs" data-tabs="mcpb"><button class="on" type="button">Python</button><button type="button">TypeScript</button></div>
+  <div class="pane on" data-pane="mcpb">
+    <div class="code" data-lang="python" data-file="shop_server.py"><pre>import os, sqlite3
+from mcp.server.fastmcp import FastMCP
+
+mcp = FastMCP("shop")
+DB = os.environ.get("SHOP_DB", "shop.db")
+
+def q(sql, *args):
+    with sqlite3.connect(f"file:{DB}?mode=ro", uri=True) as con:   # read-only!
+        con.row_factory = sqlite3.Row
+        return [dict(r) for r in con.execute(sql, args)]
+
+@mcp.tool()
+def order_status(order_id: str) -> dict:
+    """Get status, items and shipping info for one order. Use when the user mentions an order id."""
+    rows = q("SELECT * FROM orders WHERE id = ?", order_id)
+    return rows[0] if rows else {"error": "not found"}
+
+@mcp.tool()
+def failed_payments(hours: int = 24) -> list[dict]:
+    """List failed payments in the last N hours, newest first."""
+    return q("SELECT id, amount, reason, created_at FROM payments "
+             "WHERE status='failed' AND created_at &gt; datetime('now', ?) "
+             "ORDER BY created_at DESC LIMIT 50", f"-{hours} hours")
+
+@mcp.resource("orders://{order_id}")
+def order_doc(order_id: str) -> str:
+    """Full order as text, for @-mentions."""
+    return str(order_status(order_id))
+
+@mcp.prompt()
+def investigate(order_id: str) -> str:
+    return f"Investigate order {order_id}: status, payment, related errors. Propose next steps."
+
+if __name__ == "__main__":
+    mcp.run()          # stdio transport</pre></div>
+    <div class="code" data-lang="bash"><pre>pip install "mcp[cli]"
+claude mcp add shop -e SHOP_DB="$PWD/shop.db" -- python "$PWD/shop_server.py"</pre></div>
+  </div>
+  <div class="pane" data-pane="mcpb">
+    <div class="code" data-lang="ts" data-file="server.ts"><pre>import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { z } from "zod";
+
+const server = new McpServer({ name: "deploys", version: "1.0.0" });
+
+server.registerTool(
+  "recent_deploys",
+  {
+    description: "List the latest deploys of a service with status and commit. Use for 'what changed' questions.",
+    inputSchema: { service: z.string(), limit: z.number().int().max(20).default(5) },
+  },
+  async ({ service, limit }) =&gt; {
+    const res = await fetch(`${process.env.DEPLOY_API}/services/${service}/deploys?limit=${limit}`, {
+      headers: { Authorization: `Bearer ${process.env.DEPLOY_TOKEN}` },
+    });
+    return { content: [{ type: "text", text: JSON.stringify(await res.json()) }] };
+  }
+);
+
+await server.connect(new StdioServerTransport());</pre></div>
+    <div class="code" data-lang="bash"><pre>npm i @modelcontextprotocol/sdk zod
+claude mcp add deploys -e DEPLOY_API=https://deploy.internal -e DEPLOY_TOKEN="$DEPLOY_TOKEN" -- npx tsx server.ts</pre></div>
+  </div>
+  <h2>הסודות שעושים שרת טוב</h2>
+  <ul>
+    <li><b>התיאור הוא ה-UI</b>: Claude מחליט אם להשתמש בכלי לפי ה-docstring. כתבו מה הכלי עושה ו<b>מתי</b> להשתמש בו.</li>
+    <li><b>כלים ממוקדי משימה</b> עדיפים על "הרץ SQL חופשי": בטוחים יותר, ו-Claude משתמש בהם נכון יותר.</li>
+    <li><b>תשובות קטנות</b>: הגבילו שורות, סננו שדות. כל בייט נכנס להקשר.</li>
+    <li><b>קריאה בלבד כברירת מחדל</b>: פעולות כתיבה בכלים נפרדים, עם שמות ברורים, כדי שאפשר לאשר אותן בנפרד בהרשאות.</li>
+    <li><b>סודות במשתני סביבה</b> (<code>-e</code>), לא בקוד ולא ב-<code>.mcp.json</code> שנכנס ל-git. ב-<code>.mcp.json</code> אפשר להשתמש ב-<code>${VAR}</code>.</li>
+    <li><b>בדיקה לפני חיבור</b>: <code>npx @modelcontextprotocol/inspector</code> פותח ממשק לבדוק כל כלי ידנית.</li>
+  </ul>
+  <div class="note"><b>הטריק המטורף</b>בקשו מ-Claude Code לבנות לכם את השרת: "קרא את ה-OpenAPI ב-@docs/api.yaml ובנה שרת MCP ב-Python עם 5 הכלים השימושיים ביותר לקריאה בלבד. בדוק אותו עם ה-inspector, וחבר אותו עם claude mcp add". תוך כמה דקות Claude עובד מול המערכת שלכם.</div>
+  <div class="quiz" data-q="mcpbuild"></div>
+</section>
+
+<section class="mod" id="loops" data-level="סודות מתקדמים" data-title="לולאות אוטונומיות">
+  <div class="eyebrow"></div>
+  <h1>לולאות אוטונומיות: Claude שעובד לבד שעות</h1>
+  <p class="lead">במקום לשבת ליד המסך ולאשר כל צעד, נותנים ל-Claude רשימת משימות, דרך לבדוק את עצמו ותנאי עצירה ברורים. הוא עובד עד שהכול מסומן. זה כוח עצום, ולכן חייבים לבנות אותו נכון.</p>
+  <h2>שלושת המרכיבים</h2>
+  <div class="grid3">
+    <div class="box"><b>1. מצב בקובץ</b><br>‏PLAN.md עם רשימת משימות. כל סבב לוקח את המשימה הבאה, ומסמן כשהיא מסתיימת.</div>
+    <div class="box"><b>2. אימות</b><br>בדיקות, build ולינט. סבב נחשב מוצלח רק אם הכול ירוק.</div>
+    <div class="box"><b>3. עצירה</b><br>מספר סבבים מקסימלי, סימון DONE, ו-commit אחרי כל סבב כדי שאפשר יהיה לחזור.</div>
+  </div>
+  <h2>גרסה 1: לולאת bash עם claude -p</h2>
+  <div class="code" data-lang="bash" data-file="loop.sh"><pre>#!/usr/bin/env bash
+set -euo pipefail
+MAX=25
+for i in $(seq 1 "$MAX"); do
+  echo "=== round $i ==="
+  claude -p "Read PLAN.md. Take ONLY the first unchecked task.
+Implement it, then run: npm test &amp;&amp; npm run lint.
+If both pass: tick the task in PLAN.md and commit with a clear message.
+If they fail after 3 attempts: add a note under the task and stop.
+If every task is ticked: write DONE to STATUS and stop." \
+    --permission-mode acceptEdits \
+    --allowedTools "Read,Edit,Write,Glob,Grep,Bash(npm test:*),Bash(npm run lint:*),Bash(git add:*),Bash(git commit:*)" \
+    --max-turns 40
+  grep -qx DONE STATUS 2&gt;/dev/null &amp;&amp; { echo "all done"; break; }
+done</pre></div>
+  <p>כל סבב מתחיל עם הקשר נקי וקורא רק את מה שצריך. ההתקדמות נשמרת ב-PLAN.md וב-git, ולא בזיכרון של השיחה.</p>
+  <h2>גרסה 2: בתוך סשן, עם Stop hook</h2>
+  <p>Hook על <code>Stop</code> שבודק אם נשארו משימות פתוחות. אם כן, הוא מחזיר קוד 2 עם הוראה להמשיך, ו-Claude ממשיך באותו סשן:</p>
+  <div class="code" data-lang="bash" data-file=".claude/hooks/keep-going.sh"><pre>#!/usr/bin/env bash
+input=$(cat)
+# one retry per stop, never an infinite loop
+[ "$(echo "$input" | jq -r '.stop_hook_active')" = "true" ] &amp;&amp; exit 0
+if grep -q '^- \[ \]' PLAN.md 2&gt;/dev/null; then
+  echo "PLAN.md still has unchecked tasks. Continue with the next one, run tests, tick it." &gt;&amp;2
+  exit 2
+fi
+exit 0</pre></div>
+  <div class="note"><b>בגרסאות חדשות</b>יש גם פקודה מובנית <code>/loop</code> שמריצה פרומפט או פקודה שוב ושוב במרווח זמן (למשל "בדוק כל 5 דקות אם ה-deploy הסתיים"). בדקו ב-<code>/help</code> אם היא קיימת אצלכם.</div>
+  <h2>חוקי בטיחות ללולאות</h2>
+  <ul>
+    <li>מריצים ב-<b>worktree או בענף נפרד</b>, אף פעם לא על main.</li>
+    <li>הרשאות מינימליות ב-<code>--allowedTools</code>. בלי <code>git push</code> ובלי גישה לרשת אם לא צריך.</li>
+    <li><b>תקרה</b> על מספר הסבבים ועל <code>--max-turns</code>, כדי שלא תהיה הפתעה בעלויות.</li>
+    <li>commit אחרי כל משימה, כך שאפשר לחזור לכל נקודה.</li>
+    <li>לולאה ארוכה עם הרשאות רחבות רק <b>בקונטיינר או ב-VM מבודדים</b>, או בסשן ענן.</li>
+    <li>בסוף: אתם עוברים על ה-diff לפני merge. תמיד.</li>
+  </ul>
+  <div class="quiz" data-q="loops"></div>
+</section>
+
+<section class="mod" id="orchestra" data-level="סודות מתקדמים" data-title="Claude שמנהל צוות של Claude-ים">
+  <div class="eyebrow"></div>
+  <h1>תזמור: Claude אחד מנהל צוות שלם</h1>
+  <p class="lead">הרמה הבאה אחרי עבודה מקבילית: סשן "מנהל" מפרק את העבודה למשימות, מפעיל סוכנים שעובדים במקביל, כל אחד בתיקייה ובענף משלו, ואז בודק וממזג.</p>
+  <h2>שלוש רמות של תזמור</h2>
+  <div class="tbl"><table>
+    <tr><th>רמה</th><th>איך</th><th>מתי</th></tr>
+    <tr><td>Subagents בתוך סשן</td><td>"הפעל 4 סוכנים במקביל ל..."</td><td>חקירה, קריאה, ניתוח. כולם באותה תיקייה</td></tr>
+    <tr><td>Worktrees + headless</td><td>סקריפט שמריץ <code>claude -p</code> לכל משימה בתיקייה נפרדת</td><td>שינויי קוד במקביל בלי התנגשויות</td></tr>
+    <tr><td>Agent SDK</td><td>קוד שמנהל סוכנים, תורים ותוצאות</td><td>מערכת קבועה, למשל טריאז' של עשרות Issues</td></tr>
+  </table></div>
+  <h2>שלב 1: המנהל מפרק לעבודה</h2>
+  <div class="code" data-lang="text"><pre>&gt; Read @docs/specs/billing-v2.md. Split it into independent tasks that can be done
+  in parallel without touching the same files. Write each as tasks/&lt;name&gt;.md with:
+  goal, files allowed to change, acceptance tests. List dependencies in tasks/ORDER.md.</pre></div>
+  <h2>שלב 2: הפעלת הצוות</h2>
+  <div class="code" data-lang="bash" data-file="team.sh"><pre>#!/usr/bin/env bash
+set -euo pipefail
+ROOT=$PWD; mkdir -p results
+for t in tasks/*.md; do
+  name=$(basename "$t" .md)
+  git worktree add "../wt-$name" -b "task/$name" &gt;/dev/null
+  ( cd "../wt-$name" &amp;&amp;
+    claude -p "$(cat "$ROOT/$t")
+Work only on the files listed. Run the acceptance tests. Commit when green." \
+      --permission-mode acceptEdits \
+      --allowedTools "Read,Edit,Write,Glob,Grep,Bash(npm test:*),Bash(git add:*),Bash(git commit:*)" \
+      --max-turns 50 --output-format json &gt; "$ROOT/results/$name.json" ) &amp;
+done
+wait
+echo "all agents finished"</pre></div>
+  <h2>שלב 3: המנהל בודק וממזג</h2>
+  <div class="code" data-lang="text"><pre>&gt; Read results/*.json. For each branch task/*: run the tests, review the diff
+  against its tasks/&lt;name&gt;.md, and report pass/fail with reasons.
+  Merge the passing branches into feat/billing-v2 in the order of tasks/ORDER.md,
+  resolving conflicts. List what needs a human decision.</pre></div>
+  <h2>גרסת SDK: מקביליות בקוד</h2>
+  <div class="code" data-lang="python"><pre>import asyncio
+from claude_agent_sdk import query, ClaudeAgentOptions
+
+async def run_agent(task: str, cwd: str) -&gt; str:
+    result = ""
+    async for m in query(prompt=task, options=ClaudeAgentOptions(
+            cwd=cwd, permission_mode="acceptEdits", max_turns=40,
+            allowed_tools=["Read", "Edit", "Write", "Bash"])):
+        if type(m).__name__ == "ResultMessage":
+            result = getattr(m, "result", "") or ""
+    return result
+
+async def main(tasks: dict[str, str]):
+    results = await asyncio.gather(*(run_agent(t, f"../wt-{n}") for n, t in tasks.items()))
+    for name, r in zip(tasks, results):
+        print(f"== {name} ==\n{r[:500]}")</pre></div>
+  <div class="note warn"><b>מה גורם לזה לעבוד</b>משימות <b>באמת</b> בלתי תלויות, רשימת קבצים מותרים לכל משימה, ובדיקות קבלה ברורות. בלי אלה תקבלו קונפליקטים ועבודה כפולה. התחילו עם 2 או 3 סוכנים, לא עם 10.</div>
+  <div class="quiz" data-q="orchestra"></div>
+</section>
+
+<section class="mod" id="hookspro" data-level="סודות מתקדמים" data-title="Hooks ברמת מאסטר">
+  <div class="eyebrow"></div>
+  <h1>Hooks ברמת מאסטר</h1>
+  <p class="lead">מעבר לפורמט וחסימה: Hooks שמוסיפים הקשר לבד, מאשרים בעצמם פקודות בטוחות, מגבילים תקציב ושומרים יומן ביקורת.</p>
+  <h2>1. הזרקת פרטי הטיקט לפי שם הענף</h2>
+  <p>ב-<code>UserPromptSubmit</code> וב-<code>SessionStart</code>, מה שה-Hook מדפיס ל-stdout נכנס להקשר של Claude.</p>
+  <div class="code" data-lang="bash" data-file=".claude/hooks/ticket-context.sh"><pre>#!/usr/bin/env bash
+branch=$(git branch --show-current 2&gt;/dev/null)
+id=$(echo "$branch" | grep -oE '[A-Z]+-[0-9]+' | head -1)    # feat/ENG-412-invites → ENG-412
+[ -z "$id" ] &amp;&amp; exit 0
+# cache per session so we fetch once
+cache="/tmp/claude-ticket-$id"
+[ -f "$cache" ] || linear issue view "$id" --json 2&gt;/dev/null | jq -r '"Ticket \(.identifier): \(.title)\n\(.description)"' &gt; "$cache"
+cat "$cache"</pre></div>
+  <h2>2. אישור אוטומטי חכם עם החלטת JSON</h2>
+  <p>במקום כלל סטטי, Hook ב-<code>PreToolUse</code> יכול להחזיר החלטה: <code>allow</code>, <code>deny</code> או <code>ask</code>, עם נימוק.</p>
+  <div class="code" data-lang="bash" data-file=".claude/hooks/smart-approve.sh"><pre>#!/usr/bin/env bash
+cmd=$(jq -r '.tool_input.command // empty')
+decide() { jq -n --arg d "$1" --arg r "$2" \
+  '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:$d,permissionDecisionReason:$r}}'; exit 0; }
+# read-only commands: approve
+echo "$cmd" | grep -Eq '^(ls|cat|head|tail|wc|grep|rg|git (status|diff|log|show))( |$)' &amp;&amp; decide allow "read-only command"
+# anything touching production: refuse with a reason Claude can see
+echo "$cmd" | grep -Eqi 'prod|--context=production' &amp;&amp; decide deny "production access is not allowed from Claude"
+exit 0   # everything else: normal permission flow</pre></div>
+  <h2>3. תקציב פעולות לסשן</h2>
+  <div class="code" data-lang="bash" data-file=".claude/hooks/budget.sh"><pre>#!/usr/bin/env bash
+sid=$(jq -r '.session_id'); f="/tmp/claude-budget-$sid"
+n=$(( $(cat "$f" 2&gt;/dev/null || echo 0) + 1 )); echo "$n" &gt; "$f"
+if [ "$n" -gt 300 ]; then
+  echo "Tool budget for this session (300) is used up. Summarize progress and stop." &gt;&amp;2
+  exit 2
+fi</pre></div>
+  <h2>4. יומן ביקורת מלא</h2>
+  <div class="code" data-lang="json"><pre>{ "hooks": { "PostToolUse": [ { "matcher": "*",
+  "hooks": [ { "type": "command",
+    "command": "jq -c '{t: now|todate, s: .session_id, tool: .tool_name, input: .tool_input}' &gt;&gt; ~/.claude/audit.jsonl" } ] } ] } }</pre></div>
+  <h2>5. גיבוי לפני סיכום הקשר</h2>
+  <div class="code" data-lang="json"><pre>{ "hooks": { "PreCompact": [ { "hooks": [ { "type": "command",
+  "command": "jq -r '.transcript_path' | xargs -I{} cp {} ~/.claude/backups/" } ] } ] } }</pre></div>
+  <h2>איך מדבגים Hook</h2>
+  <ol>
+    <li>מריצים את הסקריפט ידנית עם קלט לדוגמה: <code>echo '{"tool_input":{"command":"ls"}}' | .claude/hooks/smart-approve.sh</code></li>
+    <li><code>claude --debug</code> מציג אילו Hooks רצו ומה הם החזירו.</li>
+    <li><code>/hooks</code> מראה מה רשום בפועל ומאיזה קובץ.</li>
+    <li>לא לשכוח <code>chmod +x</code> ו-<code>jq</code> מותקן.</li>
+  </ol>
+  <div class="quiz" data-q="hookspro"></div>
+</section>
+
+<section class="mod" id="bot" data-level="סודות מתקדמים" data-title="בוט משלכם עם Agent SDK">
+  <div class="eyebrow"></div>
+  <h1>בוט טלגרם שמתקן באגים: Agent SDK בפועל</h1>
+  <p class="lead">שולחים לבוט "הכפתור שמירה לא עובד בעמוד ההגדרות", והוא חוקר את הקוד, מתקן, מריץ בדיקות, פותח PR ומחזיר קישור. כ-60 שורות קוד.</p>
+  <div class="code" data-lang="python" data-file="bot.py"><pre>import os, asyncio
+from telegram import Update
+from telegram.ext import Application, MessageHandler, ContextTypes, filters
+from claude_agent_sdk import query, ClaudeAgentOptions
+
+ALLOWED = {int(x) for x in os.environ["ALLOWED_CHAT_IDS"].split(",")}   # who may use the bot
+REPO = os.environ["REPO_DIR"]
+lock = asyncio.Lock()                                                    # one job at a time
+
+OPTIONS = ClaudeAgentOptions(
+    cwd=REPO,
+    permission_mode="acceptEdits",
+    max_turns=60,
+    allowed_tools=["Read", "Edit", "Write", "Glob", "Grep",
+                   "Bash(npm test:*)", "Bash(git checkout -b:*)", "Bash(git add:*)",
+                   "Bash(git commit:*)", "Bash(git push -u origin:*)", "Bash(gh pr create:*)"],
+    append_system_prompt=("You fix bugs reported by teammates. Always: create a branch "
+                          "bot/&lt;short-name&gt;, reproduce with a test, fix, run tests, push, "
+                          "open a PR, and end your answer with the PR URL."),
+)
+
+async def handle(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    if update.effective_chat.id not in ALLOWED:
+        return
+    if lock.locked():
+        await update.message.reply_text("עובד על משימה אחרת, נסו בעוד כמה דקות")
+        return
+    async with lock:
+        await update.message.reply_text("קיבלתי, מתחיל לעבוד…")
+        final = ""
+        async for m in query(prompt=update.message.text, options=OPTIONS):
+            if type(m).__name__ == "ResultMessage":
+                final = getattr(m, "result", "") or ""
+        await update.message.reply_text(final[-3500:] or "סיימתי, בלי תוצאה טקסטואלית")
+
+app = Application.builder().token(os.environ["TELEGRAM_TOKEN"]).build()
+app.add_handler(MessageHandler(filters.TEXT &amp; ~filters.COMMAND, handle))
+app.run_polling()</pre></div>
+  <h2>להריץ בבטחה</h2>
+  <ul>
+    <li>בקונטיינר עם עותק של המאגר, בלי גישה לסודות של production.</li>
+    <li>רשימת משתמשים מורשים (<code>ALLOWED_CHAT_IDS</code>). בוט פתוח הוא דלת לקוד שלכם.</li>
+    <li>טוקן GitHub עם הרשאה רק למאגר הזה, ו-branch protection על main כדי שכל שינוי יעבור PR.</li>
+    <li><code>max_turns</code> ונעילה, כדי שלא ירוצו עשר משימות במקביל.</li>
+  </ul>
+  <h2>רעיונות נוספים לבוטים</h2>
+  <div class="grid2">
+    <div class="box"><b>בוט Slack לשאלות על הקוד</b><br>קריאה בלבד, עונה "איפה מוגדר X" ו"איך עובד Y" לכל הצוות.</div>
+    <div class="box"><b>בוט on-call</b><br>מקבל התראה, אוסף לוגים ו-deploys אחרונים דרך MCP, ושולח ניתוח ראשוני לערוץ.</div>
+    <div class="box"><b>בוט תמיכה טכנית</b><br>קורא את התיעוד והקוד ועונה ללקוחות, ומעביר לאדם מה שהוא לא בטוח בו.</div>
+    <div class="box"><b>בוט דוחות</b><br>כל בוקר מסכם commits, PRs ו-Issues לסיכום אחד.</div>
+  </div>
+  <div class="quiz" data-q="bot"></div>
+</section>
+
+<section class="mod" id="scheduled" data-level="סודות מתקדמים" data-title="סוכנים שרצים לבד בלילה">
+  <div class="eyebrow"></div>
+  <h1>סוכנים מתוזמנים: עבודה שנעשית בזמן שאתם ישנים</h1>
+  <p class="lead">מגיעים בבוקר ומחכים לכם PRs מוכנים, טריאז' של באגים וסיכום של מה שהשתבש בלילה.</p>
+  <h2>אפשרות 1: GitHub Actions עם cron</h2>
+  <div class="code" data-lang="yaml" data-file=".github/workflows/nightly-claude.yml"><pre>name: Nightly Claude
+on:
+  schedule:
+    - cron: "17 2 * * 1-5"      # 02:17 UTC, weekdays
+  workflow_dispatch: {}
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            1. List issues opened in the last 24h. Label each (bug/feature/question),
+               and comment on likely duplicates with a link.
+            2. Pick at most one small, well-defined bug labeled "good-for-claude",
+               fix it with a test on a new branch and open a PR.
+            3. Post a short summary as a comment on the pinned "Daily report" issue.
+          claude_args: "--max-turns 40"</pre></div>
+  <h2>אפשרות 2: cron מקומי או בשרת</h2>
+  <div class="code" data-lang="bash"><pre># crontab -e
+30 6 * * 1-5 cd ~/work/app &amp;&amp; git pull -q &amp;&amp; claude -p "Check yesterday's CI failures on main with gh, group by cause, write the report to reports/$(date +\%F).md" --allowedTools "Bash(gh run:*),Read,Write" --max-turns 20</pre></div>
+  <h2>אפשרות 3: סשנים מתוזמנים בענן</h2>
+  <p>בחשבונות שבהם זה זמין, אפשר לתזמן סשן של Claude Code בענן (claude.ai/code) שירוץ על המאגר בזמן קבוע, בלי שרת משלכם. כל ריצה מתחילה בסביבה נקייה ויכולה לפתוח PR. בקשו מ-Claude בסשן ענן "תזמן משימה שרצה כל בוקר ב-7 ו...".</p>
+  <h2>משימות לילה מומלצות</h2>
+  <div class="tbl"><table>
+    <tr><th>משימה</th><th>תדירות</th><th>פלט</th></tr>
+    <tr><td>טריאז' של Issues</td><td>יומי</td><td>תוויות, סימון כפילויות, תגובה</td></tr>
+    <tr><td>ניתוח כשלונות CI</td><td>יומי</td><td>דוח לפי סיבה, ו-PR לבדיקות לא יציבות</td></tr>
+    <tr><td>עדכון תלויות</td><td>שבועי</td><td>PR עם עדכונים בטוחים, אחרי שהבדיקות עברו</td></tr>
+    <tr><td>סנכרון תיעוד</td><td>אחרי merge</td><td>PR שמעדכן docs לפי ה-diff</td></tr>
+    <tr><td>סריקת אבטחה</td><td>שבועי</td><td>Issue עם ממצאים</td></tr>
+  </table></div>
+  <div class="note warn"><b>גבולות</b>סוכן לילה פותח PR ולא מבצע merge. ההגבלות על סבבים ועל הרשאות חשובות כאן אפילו יותר, כי אף אחד לא צופה בזמן אמת.</div>
+  <div class="quiz" data-q="scheduled"></div>
+</section>
+
+<section class="mod" id="debugging" data-level="סודות מתקדמים" data-title="מתחת למכסה המנוע">
+  <div class="eyebrow"></div>
+  <h1>מתחת למכסה המנוע: לראות ולשפר את מה ש-Claude עושה</h1>
+  <p class="lead">מקצוענים לא רק משתמשים בכלי. הם מבינים למה הוא עשה מה שעשה, ומשתמשים בהיסטוריה שלהם כדי להשתפר.</p>
+  <h2>כלי תצפית</h2>
+  <div class="tbl"><table>
+    <tr><th>כלי</th><th>מה מגלים</th></tr>
+    <tr><td><kbd>Ctrl+O</kbd></td><td>כל קריאת כלי, הקלט והפלט שלה, בתוך הסשן</td></tr>
+    <tr><td><code>claude --debug</code></td><td>טעינת הגדרות, MCP, Hooks ושגיאות פנימיות</td></tr>
+    <tr><td><code>/context</code></td><td>מה ממלא את חלון ההקשר</td></tr>
+    <tr><td><code>/doctor</code></td><td>בעיות התקנה והגדרות</td></tr>
+    <tr><td><code>/cost</code>, <code>/usage</code></td><td>עלות ומכסה</td></tr>
+  </table></div>
+  <h2>ההיסטוריה שלכם היא זהב</h2>
+  <p>כל סשן נשמר כקובץ JSONL תחת <code>~/.claude/projects/</code> (תיקייה לכל פרויקט). זה מקור מידע מעולה על הדרך שבה אתם עובדים.</p>
+  <div class="code" data-lang="bash"><pre>ls -t ~/.claude/projects/*/ | head          # recent sessions per project
+
+# which tools you use the most
+cat ~/.claude/projects/*/*.jsonl | jq -r 'select(.type=="assistant") | .message.content[]? | select(.type=="tool_use") | .name' | sort | uniq -c | sort -rn | head</pre></div>
+  <h2>הטריק: Claude מנתח את עצמו</h2>
+  <div class="code" data-lang="text"><pre>&gt; Read my last 30 sessions in ~/.claude/projects/-home-me-work-app/.
+  Find: prompts I repeat (→ suggest slash commands), mistakes you repeated
+  (→ suggest CLAUDE.md rules), permission prompts I always approve
+  (→ suggest allow rules). Output a short report and the exact files to add.</pre></div>
+  <p>תוך כמה דקות מקבלים פקודות, כללים והרשאות שמותאמים בדיוק לדרך שבה אתם עובדים.</p>
+  <h2>כשמשהו לא עובד: סדר פעולות</h2>
+  <ol>
+    <li>Claude "לא מכיר" כלל? בדקו ב-<code>/memory</code> שהקובץ CLAUDE.md הנכון נטען.</li>
+    <li>שרת MCP לא מופיע? <code>/mcp</code>, ואז <code>claude --debug</code> לשגיאת החיבור.</li>
+    <li>Hook לא רץ? <code>/hooks</code>, הרשאות הרצה, ונתיב עם <code>$CLAUDE_PROJECT_DIR</code>.</li>
+    <li>תשובות שטחיות? <code>/context</code>: ייתכן שההקשר מלא. <code>/compact</code> או <code>/clear</code>.</li>
+    <li>הגדרה לא חלה? זכרו את סדר העדיפויות: managed, שורת פקודה, local, project, user.</li>
+  </ol>
+  <div class="quiz" data-q="debugging"></div>
+</section>
+
+<section class="mod" id="enterprise" data-level="סודות מתקדמים" data-title="ניטור ושליטה לארגון">
+  <div class="eyebrow"></div>
+  <h1>Claude Code בארגון: ניטור, מדיניות והפצה</h1>
+  <p class="lead">כשעשרות מפתחים עובדים עם Claude Code, צריך לראות שימוש ועלויות, לאכוף מדיניות אבטחה ולהפיץ סטנדרטים.</p>
+  <h2>ניטור עם OpenTelemetry</h2>
+  <p>Claude Code יכול לשלוח מדדים ואירועים לכל מערכת שתומכת ב-OTel (Grafana, Datadog, Honeycomb ועוד): עלות, טוקנים, סשנים, שורות קוד שהשתנו והחלטות על כלים.</p>
+  <div class="code" data-lang="bash"><pre>export CLAUDE_CODE_ENABLE_TELEMETRY=1
+export OTEL_METRICS_EXPORTER=otlp
+export OTEL_LOGS_EXPORTER=otlp
+export OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector.internal:4317
+export OTEL_RESOURCE_ATTRIBUTES="team=payments,department=rnd"</pre></div>
+  <p>אפשר לשים את אותם משתנים בתוך <code>env</code> בהגדרות המנוהלות, כך שכל מחשב בארגון מדווח אוטומטית.</p>
+  <h2>הגדרות מנוהלות (managed settings)</h2>
+  <p>קובץ שמחלקים לכל המחשבים (MDM או ניהול תצורה), וגובר על כל הגדרה אחרת. המיקום תלוי במערכת ההפעלה. בדקו את הנתיב המדויק בתיעוד הרשמי.</p>
+  <div class="code" data-lang="json" data-file="managed-settings.json"><pre>{
+  "permissions": {
+    "deny": ["Read(**/.env)", "Read(**/secrets/**)", "Bash(curl:*)", "WebFetch"],
+    "disableBypassPermissionsMode": "disable"
+  },
+  "env": { "CLAUDE_CODE_ENABLE_TELEMETRY": "1" },
+  "extraKnownMarketplaces": {
+    "company": { "source": { "source": "github", "repo": "acme/claude-plugins" } }
+  }
+}</pre></div>
+  <h2>רכיבים נוספים לארגון</h2>
+  <ul>
+    <li><b>Marketplace פנימי</b>: מאגר עם Plugins מאושרים (Hooks לאבטחה, סוכני ריוויו, פקודות צוות).</li>
+    <li><b><code>apiKeyHelper</code></b>: סקריפט שמביא מפתח זמני ממערכת ניהול סודות, במקום מפתח קבוע.</li>
+    <li><b>ספקי ענן</b>: אפשר להריץ דרך Amazon Bedrock, Google Vertex AI או Microsoft Foundry, לפי מדיניות הארגון.</li>
+    <li><b>MCP מאושרים</b>: רשימה מוגדרת של שרתים מותרים, וחסימה של השאר.</li>
+    <li><b>מדדי הצלחה</b>: זמן ממשימה ל-PR, PRs שנפתחו בעזרת Claude, ועלות לכל מפתח.</li>
+  </ul>
+  <div class="quiz" data-q="enterprise"></div>
+</section>
+
+<section class="mod" id="noncode" data-level="סודות מתקדמים" data-title="לא רק קוד">
+  <div class="eyebrow"></div>
+  <h1>Claude Code לא רק לקוד</h1>
+  <p class="lead">Claude Code הוא סוכן כללי שעובד עם קבצים ופקודות, וזה מתאים להרבה יותר מתכנות. כאן כל אחד יכול לחסוך שעות, גם בלי לכתוב שורת קוד.</p>
+  <div class="grid2">
+    <div class="box"><h3 style="margin-top:0">ניתוח נתונים</h3><div class="code" data-lang="text"><pre>&gt; Analyze @sales-2026.csv: monthly revenue trend,
+  top 10 products, anomalies. Use pandas, save charts
+  to charts/ and write findings to report.md</pre></div></div>
+    <div class="box"><h3 style="margin-top:0">Excel ודוחות</h3><div class="code" data-lang="text"><pre>&gt; Merge all .xlsx files in invoices/ into one sheet,
+  flag duplicates and totals that don't match,
+  save as invoices-summary.xlsx with formulas</pre></div></div>
+    <div class="box"><h3 style="margin-top:0">ארגון קבצים</h3><div class="code" data-lang="text"><pre>&gt; Organize ~/Downloads: group by type and month,
+  find duplicate files by hash. Show me the plan
+  first, then move (never delete).</pre></div></div>
+    <div class="box"><h3 style="margin-top:0">מחקר על מסמכים</h3><div class="code" data-lang="text"><pre>&gt; Read all PDFs in contracts/. Build a table:
+  party, start date, renewal terms, termination
+  notice. Flag anything unusual.</pre></div></div>
+    <div class="box"><h3 style="margin-top:0">כתיבה ותוכן</h3><div class="code" data-lang="text"><pre>&gt; Turn notes/*.md into a 10-slide presentation
+  outline and a 600-word blog post in Hebrew,
+  same facts, different tone.</pre></div></div>
+    <div class="box"><h3 style="margin-top:0">אוטומציה אישית</h3><div class="code" data-lang="text"><pre>&gt; Write a script that renames my photos by the date
+  taken (EXIF) and resizes them for web.
+  Test it on a copy of 5 photos first.</pre></div></div>
+  </div>
+  <div class="note"><b>למי שלא מתכנת</b>אפליקציית Claude Desktop וסשנים ב-claude.ai/code נותנים את אותו הכוח בממשק נוח יותר. הכלל החשוב: עבדו על <b>עותק</b> של הקבצים, ובקשו לראות תוכנית לפני פעולות שמשנות או מוחקות קבצים.</div>
+  <div class="quiz" data-q="noncode"></div>
+</section>
+
 <section class="mod" id="slides" data-level="מצגות" data-title="מצגות">
   <div class="eyebrow"></div>
   <h1>מצגות</h1>
@@ -1148,6 +1651,42 @@ Do not change test expectations to make them pass.</textarea></label>
   <div class="boxes" id="fcBoxes"></div>
 </section>
 
+<!-- ================= WORKSHOP ADDITIONS ================= -->
+<section class="mod" id="project" data-level="סדנת תרגול" data-title="פרויקט גמר מודרך">
+  <div class="eyebrow"></div>
+  <h1>פרויקט גמר: בונים את TaskFlow עם Claude Code</h1>
+  <p class="lead">בונים אפליקציית משימות אמיתית (API + ממשק) מאפס, בעשרה שלבים. כל שלב מתרגל יכולת אחרת, ובסוף יש לכם פרויקט "מצויד במלואו" לתיק העבודות. סמנו כל שלב כשסיימתם.</p>
+  <div class="bar" style="margin:10px 0 4px"><i id="projBar"></i></div>
+  <div class="hint" id="projLabel"></div>
+  <ol class="steps" id="projSteps"></ol>
+</section>
+
+<section class="mod" id="checker" data-level="סדנת תרגול" data-title="בודק הגדרות">
+  <div class="eyebrow"></div>
+  <h1>בודק הגדרות: הדביקו ובדקו</h1>
+  <p class="lead">הדביקו <code>settings.json</code>, <code>.mcp.json</code>, קובץ Subagent, פקודה או Skill. הבודק מזהה את הסוג, מוצא שגיאות ובעיות אבטחה, ומסביר כל חלק. כשהמורה זמין, אפשר גם לבקש הסבר מלא.</p>
+  <div class="row" style="margin-bottom:8px"><span class="hint">דוגמאות:</span><button class="btn sm" type="button" data-sample="settings"><bdi dir="ltr">settings.json</bdi></button><button class="btn sm" type="button" data-sample="mcp"><bdi dir="ltr">.mcp.json</bdi></button><button class="btn sm" type="button" data-sample="agent">Subagent</button><button class="btn sm" type="button" data-sample="bad">הגדרה עם בעיות</button></div>
+  <div class="grid2">
+    <div class="ch"><textarea id="chkIn" spellcheck="false" aria-label="תוכן לבדיקה" placeholder="הדביקו כאן את תוכן הקובץ"></textarea>
+      <div class="row" style="margin-top:8px"><button class="btn pri" type="button" id="chkRun">בדיקה</button><button class="btn" type="button" id="chkAi" hidden>הסבר מלא מהמורה</button></div></div>
+    <div><div id="chkOut" class="box" style="margin-top:0"><span class="hint">התוצאה תופיע כאן.</span></div></div>
+  </div>
+  <div id="chkAiOut" class="box tutor-answer" hidden></div>
+</section>
+
+<section class="mod" id="glossary" data-level="סדנת תרגול" data-title="מילון, אתגר יומי והמחברת שלי">
+  <div class="eyebrow"></div>
+  <h1>מילון מונחים, אתגר יומי והמחברת שלי</h1>
+  <h2>האתגר היומי</h2>
+  <div class="box" id="dailyBox"></div>
+  <h2>מילון עברית-אנגלית</h2>
+  <input class="search" id="gSearch" type="search" placeholder="חיפוש מונח…" aria-label="חיפוש במילון" style="max-width:300px">
+  <div class="tbl"><table id="gTable"></table></div>
+  <h2>המחברת שלי</h2>
+  <p class="hint">בתחתית כל פרק יש תיבת הערות. כל מה שכתבתם מרוכז כאן.</p>
+  <div id="notesAll"></div>
+</section>
+
 <section class="mod" id="exam" data-level="מבחן גמר" data-title="מבחן גמר ותעודה">
   <div class="eyebrow"></div>
   <h1>מבחן גמר</h1>
@@ -1169,9 +1708,9 @@ const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAl
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const store = {
   get(k, d){ try{ const v = localStorage.getItem("cca-"+k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
-  set(k, v){ try{ localStorage.setItem("cca-"+k, JSON.stringify(v)); }catch(e){} }
+  set(k, v){ try{ localStorage.setItem("cca-"+k, JSON.stringify(v)); }catch(e){} if(typeof onStoreChange === "function") onStoreChange(k); }
 };
-const LEVEL_COLOR = {"פתיחה":"var(--lv5)","מתחילים":"var(--lv1)","בינוני":"var(--lv2)","מתקדמים":"var(--lv3)","מומחים":"var(--lv4)","מאסטר":"var(--lv7)","מצגות":"var(--lv8)","סדנת תרגול":"var(--lv5)","מבחן גמר":"var(--lv6)"};
+const LEVEL_COLOR = {"פתיחה":"var(--lv5)","מתחילים":"var(--lv1)","בינוני":"var(--lv2)","מתקדמים":"var(--lv3)","מומחים":"var(--lv4)","מאסטר":"var(--lv7)","סודות מתקדמים":"var(--lv9)","מצגות":"var(--lv8)","סדנת תרגול":"var(--lv5)","מבחן גמר":"var(--lv6)"};
 const mods = $$(".mod");
 const ids = mods.map(m => m.id);
 let state = store.get("state", {done:{}, xp:0, awarded:{}, days:[]});
@@ -1223,7 +1762,7 @@ function show(id, push){
   $("#rail").classList.remove("open");
   if(push !== false && location.hash !== "#"+ids[i]){ try{ history.replaceState(null, "", "#"+ids[i]); }catch(e){ location.hash = ids[i]; } }
   window.scrollTo(0,0);
-  if(["sim","builders","cards","prompts","slides"].includes(ids[i])) markDone(ids[i]);
+  if(["sim","builders","cards","prompts","slides","tracks","glossary"].includes(ids[i])) markDone(ids[i]);
   if(ids[i] === "sim") setTimeout(()=>$("#simIn").focus({preventScroll:true}), 50);
 }
 document.addEventListener("click", e => { const g = e.target.closest("[data-go]"); if(g){ e.preventDefault(); show(g.dataset.go); } });
@@ -1265,6 +1804,7 @@ function decorate(box){
   const l = document.createElement("span"); l.className = "lbl"; l.textContent = box.dataset.file || lang; box.appendChild(l);
   const b = document.createElement("button"); b.className = "cp"; b.type = "button"; b.textContent = "העתקה";
   b.onclick = () => copyText(pre, b); box.appendChild(b);
+  const a = document.createElement("button"); a.className = "ask"; a.type = "button"; a.textContent = "הסבר"; a.title = "שאלו את המורה על הקוד הזה"; box.appendChild(a);
 }
 function copyText(pre, b){
   const t = pre.textContent;
@@ -1406,6 +1946,44 @@ const Q = {
     ["בתרחיש הבאג מ-Sentry, מה עשו לפני התיקון?", ["כלום","כתבו בדיקה שמשחזרת את השגיאה","פרסו לפרודקשן","מחקו את ה-release"], 1, "שחזור בבדיקה מבטיח שהתיקון באמת פותר."],
     ["במיגרציה של 300 קבצים, מה הצעד הראשון?", ["להריץ על הכול מיד","להמיר קובץ אחד ולכתוב כללי המרה","לכתוב מחדש את הבדיקות","לבקש עזרה"], 1, "מוכיחים על קובץ אחד, ואחר כך מריצים fan-out."],
     ["באירוע production, מי מריץ את ה-rollback?", ["Claude עם bypassPermissions","אתם, אחרי ש-Claude ניתח והציע","אף אחד","הלקוח"], 1, "פעולות קריטיות נשארות בידיים אנושיות."]
+  ],
+  mcpbuild: [
+    ["מה קובע אם Claude ישתמש בכלי של שרת MCP שבניתם?", ["שם הקובץ","התיאור (docstring) של הכלי","הצבע","גודל השרת"], 1, "Claude בוחר כלים לפי התיאור. כתבו מה הכלי עושה ומתי להשתמש בו."],
+    ["איפה שמים טוקן שהשרת צריך?", ["בקוד","במשתנה סביבה (claude mcp add -e)","ב-CLAUDE.md","בשם השרת"], 1, "סודות במשתני סביבה, לא בקוד ולא בקבצים שנכנסים ל-git."],
+    ["איך בודקים שרת MCP לפני שמחברים?", ["אי אפשר","npx @modelcontextprotocol/inspector","מוחקים אותו","‏/clear"], 1, "ה-Inspector מאפשר להפעיל כל כלי ידנית."]
+  ],
+  loops: [
+    ["איפה נשמר המצב בלולאה אוטונומית טובה?", ["בזיכרון השיחה","בקובץ (PLAN.md) וב-git","במשתנה גלובלי","אין מצב"], 1, "כל סבב מתחיל נקי וקורא את המצב מהקובץ."],
+    ["מה מונע לולאה אינסופית ב-Stop hook?", ["כלום","בדיקה של stop_hook_active","מודל גדול יותר","exit 0 תמיד"], 1, "אם ה-Hook כבר חסם פעם אחת, משחררים."],
+    ["איפה מריצים לולאה עם הרשאות רחבות?", ["על main במחשב האישי","בקונטיינר או VM מבודדים, בענף נפרד","ב-production","בכל מקום"], 1, "בידוד, ענף נפרד ותקרת סבבים."]
+  ],
+  orchestra: [
+    ["מה התנאי החשוב ביותר להרצת סוכנים במקביל?", ["מודל opus","משימות בלתי תלויות עם רשימת קבצים מותרים לכל אחת","הרבה סוכנים","אינטרנט מהיר"], 1, "בלי זה יהיו קונפליקטים ועבודה כפולה."],
+    ["למה כל סוכן עובד ב-worktree משלו?", ["זה מהיר יותר","כדי שלא ידרסו זה את השינויים של זה","חובה של git","כדי לחסוך מקום"], 1, "תיקייה וענף נפרדים לכל סוכן."]
+  ],
+  hookspro: [
+    ["מה קורה לפלט stdout של Hook ב-UserPromptSubmit?", ["נמחק","נכנס להקשר של Claude","נשלח במייל","מוצג רק בלוג"], 1, "כך מזריקים הקשר אוטומטי, כמו פרטי טיקט."],
+    ["איך Hook ב-PreToolUse מאשר פקודה בלי לשאול?", ["exit 2","מחזיר JSON עם permissionDecision: allow","מדפיס yes","אי אפשר"], 1, "החלטת JSON: allow, deny או ask, עם נימוק."],
+    ["איך מדבגים Hook?", ["מנחשים","מריצים ידנית עם JSON לדוגמה ומשתמשים ב-claude --debug","מוחקים ומתחילים מחדש","‏/clear"], 1, "קלט לדוגמה ב-stdin, ו---debug להצגת ההרצה."]
+  ],
+  bot: [
+    ["מה הכרחי בבוט שמריץ סוכן על הקוד שלכם?", ["אימוג'ים","רשימת משתמשים מורשים, הרשאות מינימליות ובידוד","שם מגניב","מודל haiku"], 1, "בוט פתוח הוא דלת לקוד שלכם."],
+    ["למה משתמשים בנעילה (lock) בבוט?", ["לעיצוב","כדי שלא ירוצו כמה משימות במקביל על אותו מאגר","לחיסכון בחשמל","חובה בטלגרם"], 1, "משימה אחת בכל פעם."]
+  ],
+  scheduled: [
+    ["מה סוכן לילה צריך לעשות עם תיקון שמצא?", ["merge ישר ל-main","לפתוח PR לסקירה","לשלוח מייל ללקוחות","כלום"], 1, "אף אחד לא צופה בזמן אמת, ולכן רק PR."],
+    ["איך מתזמנים ריצה ב-GitHub Actions?", ["on: schedule עם cron","on: night","‏/schedule","אי אפשר"], 0, "schedule עם ביטוי cron, ו-workflow_dispatch להרצה ידנית."]
+  ],
+  debugging: [
+    ["איפה נשמרות שיחות קודמות?", ["בענן בלבד","~/.claude/projects/ כקבצי JSONL","ב-/tmp","לא נשמרות"], 1, "קובץ JSONL לכל סשן, לפי פרויקט."],
+    ["Claude לא מכיר כלל שכתבתם. מה בודקים קודם?", ["מחליפים מודל","‏/memory: שהקובץ CLAUDE.md הנכון נטען","מתקינים מחדש","‏/cost"], 1, "וודאו שהקובץ נטען ובמיקום הנכון."]
+  ],
+  enterprise: [
+    ["איזה משתנה מפעיל טלמטריה של Claude Code?", ["CLAUDE_DEBUG=1","CLAUDE_CODE_ENABLE_TELEMETRY=1","OTEL_ON=1","TELEMETRY=yes"], 1, "יחד עם הגדרות exporter של OTel."],
+    ["מה גובר על כל הגדרה אחרת?", ["~/.claude/settings.json","managed settings של הארגון","‏.claude/settings.local.json","CLAUDE.md"], 1, "הגדרות מנוהלות בראש סדר העדיפויות."]
+  ],
+  noncode: [
+    ["מה הכלל החשוב כשנותנים ל-Claude לארגן קבצים?", ["לתת לו למחוק חופשי","לעבוד על עותק ולבקש תוכנית לפני שינוי","לכבות הרשאות","לעבוד ב-production"], 1, "תוכנית קודם, ועותק כגיבוי."]
   ],
   ideas: [
     ["איזה מנגנון מבטיח שClaude לא יסיים עם בדיקות אדומות?", ["CLAUDE.md","Hook על Stop שמחזיר 2 אם הבדיקות נכשלו","Output style","Status line"], 1, "Stop hook יכול לחסום סיום ולבקש להמשיך."],
@@ -1676,7 +2254,7 @@ const CARDS = [
   ["claude mcp add --transport http","הוספת שרת MCP מרוחק"],[".mcp.json","שרתי MCP משותפים לצוות (scope project)"],["plugin.json","מטא-דאטה של Plugin, בתיקייה .claude-plugin"],
   ["claude -p","מצב headless לסקריפטים ול-CI"],["--output-format json","פלט שאפשר לעבד: תוצאה, עלות ו-session_id"],["--max-turns","הגבלת סבבים בריצה אוטומטית"],
   ["claude-agent-sdk","ספריית Python לבניית סוכנים על אותו מנוע"],["git worktree","תיקיית עבודה נפרדת לכל סשן מקביל"],["opusplan","Opus לתכנון ו-Sonnet לביצוע"],
-  ["/install-github-app","מגדיר את Claude ב-GitHub לתגובה ל-@claude"],["claude --add-dir","גישה לתיקייה נוספת באותו סשן"],["ultrathink","בקשה לחשיבה מעמיקה במיוחד לבעיה קשה"],["/security-review","סריקת אבטחה מובנית של השינויים בענף"],["\"ראיין אותי\"","Claude שואל שאלות עד שהדרישות ברורות ואז כותב מפרט"],["Ctrl+O","תצוגת transcript מלאה של כל הפעולות"],["env ב-settings.json","משתני סביבה לכל סשן בפרויקט"],["/statusline","שורת סטטוס מותאמת מסקריפט"]
+  ["/install-github-app","מגדיר את Claude ב-GitHub לתגובה ל-@claude"],["claude --add-dir","גישה לתיקייה נוספת באותו סשן"],["ultrathink","בקשה לחשיבה מעמיקה במיוחד לבעיה קשה"],["/security-review","סריקת אבטחה מובנית של השינויים בענף"],["\"ראיין אותי\"","Claude שואל שאלות עד שהדרישות ברורות ואז כותב מפרט"],["Ctrl+O","תצוגת transcript מלאה של כל הפעולות"],["env ב-settings.json","משתני סביבה לכל סשן בפרויקט"],["FastMCP","דרך מהירה לבנות שרת MCP ב-Python עם decorators"],["stop_hook_active","דגל שמונע לולאה אינסופית ב-Stop hook"],["permissionDecision","החלטת JSON של PreToolUse hook: allow / deny / ask"],["~/.claude/projects","שם נשמרות כל השיחות כ-JSONL"],["CLAUDE_CODE_ENABLE_TELEMETRY","מפעיל שליחת מדדים ל-OpenTelemetry"],["managed settings","מדיניות ארגונית שגוברת על הכול"],["/statusline","שורת סטטוס מותאמת מסקריפט"]
 ];
 let boxes = store.get("cards", {}), fcI = -1;
 function nextCard(){
@@ -1951,6 +2529,15 @@ const DECKS = [
     {h:"פרומפטים", b:["\"ראיין אותי\" לפני מפרט","\"אל תכתוב קוד עדיין\"","\"לפי הדוגמה ב-@file\"","\"ultrathink\" לבעיות קשות"]},
     {h:"אוטומציה", b:["Stop hook לבדיקות ירוקות","Notification hook לטלפון","fan-out עם xargs -P","‏/security-review לפני merge"]}
   ]},
+  {t:"סודות מתקדמים", s:[
+    {big:"סודות מתקדמים", sub:"מה שהופך את Claude Code ממכלי למערכת"},
+    {h:"שרת MCP משלכם", b:["30 שורות ב-Python או TS","כל API פנימי הופך לכלי","תיאור טוב = שימוש נכון","סודות במשתני סביבה"]},
+    {h:"לולאות אוטונומיות", code:"for i in $(seq 1 25); do\n  claude -p \"next task in PLAN.md, test, tick, commit\" \\\n    --max-turns 40 --allowedTools \"...\"\n  grep -qx DONE STATUS && break\ndone"},
+    {h:"צוות סוכנים", b:["מנהל מפרק למשימות","worktree לכל סוכן","הרצה במקביל","מנהל בודק וממזג"], flow:false},
+    {h:"Hooks ברמת מאסטר", b:["הזרקת טיקט לפי ענף","אישור חכם בהחלטת JSON","תקציב פעולות","יומן ביקורת"]},
+    {h:"עובד בזמן שאתם ישנים", b:["GitHub Actions עם cron","טריאז', ניתוח CI, עדכון תלויות","רק PRs, אף פעם merge"]},
+    {h:"הכלל שמחבר הכול", quote:"מצב בקבצים, אימות אוטומטי, הרשאות מינימליות, ואדם שמאשר בסוף."}
+  ]},
   {t:"אבטחה ובטיחות", s:[
     {big:"עובדים מהר ובטוח", sub:"שכבות הגנה ל-Claude Code"},
     {h:"האיומים", b:["Prompt injection מתוכן חיצוני","דליפת סודות","פקודות הרסניות","הרחבות זדוניות"]},
@@ -1993,6 +2580,315 @@ const DECKS = [
     else if(e.key === "f" || e.key === "F") full();
   });
   draw();
+})();
+
+const REFRESH = [];
+// ================= learning tracks =================
+const TRACKS = {
+  fe: {n:"Frontend", d:"React, עיצוב, נגישות ובדיקות UI", m:["install","workflow","memory","perms","mcp","tricks","cases","agents","hooks","commands","project"],
+    tips:["חברו Playwright MCP ועבדו בלולאת צילום מסך מול העיצוב","חברו Figma Dev Mode MCP כדי לקבל מידות וטוקנים מדויקים","Hook של Prettier ו-ESLint ב-PostToolUse","Subagent לנגישות שבודק aria, ניגודיות ומקלדת"]},
+  be: {n:"Backend", d:"API, מסדי נתונים, ביצועים ואבטחה", m:["install","workflow","memory","perms","context","mcp","mcpbuild","hookspro","agents","security","cases","project"],
+    tips:["שרת MCP לקריאה בלבד למסד הנתונים (משתמש DB ייעודי)","TDD: בדיקה שנכשלת לפני כל תיקון","deny על .env ועל migrations, ו-Hook שחוסם פקודות production","Subagent לביצועים שמחפש N+1 ושאילתות כבדות"]},
+  ops: {n:"DevOps / SRE", d:"CI/CD, אוטומציה, תקלות ותשתית", m:["install","perms","headless","scheduled","loops","orchestra","hookspro","enterprise","debugging","security","cases"],
+    tips:["claude -p בכל צינור עם --max-turns ו---allowedTools","סוכן לילה שמנתח כשלונות CI","pipe של לוגים בזמן תקלה, ופעולות production נשארות אצלכם","OTel לניטור שימוש ועלויות"]},
+  pm: {n:"מנהלי מוצר ולא-מתכנתים", d:"הבנת קוד, מפרטים, נתונים ומסמכים", m:["install","ui","workflow","noncode","prompts","cases","memory","slides","glossary"],
+    tips:["\"הסבר לי איך עובד X בקוד\" בלי לשנות כלום (מצב תכנון)","\"ראיין אותי\" כדי להפוך רעיון למפרט עם קריטריוני קבלה","ניתוח CSV ו-Excel ישירות מהתיקייה","עבודה על עותק של קבצים, ותוכנית לפני כל שינוי"]},
+  lead: {n:"ראשי צוותים וארכיטקטים", d:"סטנדרטים, הפצה, מדיניות ומדדים", m:["memory","perms","commands","skills","agents","hooks","plugins","ideas","enterprise","orchestra","headless","security"],
+    tips:["CLAUDE.md ו-.claude/ משותפים ב-git כסטנדרט צוות","Plugin פנימי עם Hooks, סוכן ריוויו ופקודות","ריוויו אוטומטי לכל PR עם GitHub Action","הגדרות מנוהלות ומדדי OTel"]}
+};
+(function(){
+  const draw = () => {
+    const cur = store.get("track", null);
+    $("#trackCards").innerHTML = Object.entries(TRACKS).map(([k,t]) => '<button type="button" class="cat'+(k===cur?" on":"")+'" data-track="'+k+'"><b>'+esc(t.n)+'</b><small>'+esc(t.d)+'</small><span class="pill">'+t.m.length+' פרקים</span></button>').join("");
+    if(!cur){ $("#trackDetail").innerHTML = ""; return; }
+    const t = TRACKS[cur];
+    $("#trackDetail").innerHTML = '<h2>המסלול שלכם: '+esc(t.n)+'</h2><ol class="track-list">'+t.m.map(id => { const m = document.getElementById(id); return m ? '<li class="'+(state.done[id]?"ok":"")+'"><a href="#'+id+'">'+esc(m.dataset.title)+'</a></li>' : ""; }).join("")+'</ol><div class="note"><b>טיפים למסלול</b><ul>'+t.tips.map(x=>'<li>'+esc(x)+'</li>').join("")+'</ul></div><button class="btn sm" type="button" data-track="">ביטול בחירת מסלול</button>';
+  };
+  document.getElementById("tracks").addEventListener("click", e => { const b = e.target.closest("[data-track]"); if(!b) return; store.set("track", b.dataset.track || null); draw(); renderToc(); if(b.dataset.track) award("track", 10, "נבחר מסלול"); });
+  REFRESH.push(draw); draw();
+})();
+renderToc = (orig => function(){
+  orig();
+  const t = TRACKS[store.get("track", null)]; if(!t) return;
+  $$("#toc [data-go]").forEach(b => { if(t.m.includes(b.dataset.go)) b.insertAdjacentHTML("beforeend", '<span class="star" title="במסלול שלכם">★</span>'); });
+})(renderToc);
+
+// ================= guided final project =================
+const PROJ = [
+  {t:"הקמה ו-/init", g:"יוצרים פרויקט Node + TypeScript ריק ופותחים בו את Claude Code.", p:"Create a TypeScript Node project called taskflow with Fastify, Vitest and ESLint. Add npm scripts dev, test, lint. Then run /init.", v:"npm test רץ (גם בלי בדיקות), ו-CLAUDE.md קיים", m:"install"},
+  {t:"CLAUDE.md מקצועי", g:"משפרים את קובץ הזיכרון עם פקודות, ארכיטקטורה וכללים.", p:"Improve CLAUDE.md: exact commands (incl. running one test), folder structure plan (routes/services/repo), rules: strict TS, no any, errors as {code,message}. Keep it under 50 lines.", v:"הקובץ קצר, ופקודות הבדיקה בו עובדות", m:"memory"},
+  {t:"מפרט בראיון", g:"Claude מראיין אתכם וכותב מפרט עם קריטריוני קבלה.", p:"I want a task API: projects, tasks with status and due dates, and filtering. Interview me one question at a time, then write docs/spec.md with acceptance criteria.", v:"docs/spec.md עם קריטריונים שאפשר לבדוק", m:"tricks"},
+  {t:"מימוש ב-TDD במצב תכנון", g:"תוכנית, אחר כך בדיקות שנכשלות, ואחר כך מימוש.", p:"[Shift+Tab → plan] Plan the implementation of @docs/spec.md. After I approve: write failing tests first, then implement until green. Do not modify tests.", v:"כל הבדיקות עוברות, ויש כיסוי לכל קריטריון", m:"workflow"},
+  {t:"הרשאות ו-Hooks", g:"פחות לחיצות, יותר ביטחון.", p:"Add .claude/settings.json: allow npm test/lint and git status/diff, deny .env reads. Add a PostToolUse hook that runs eslint --fix on edited .ts files, and a PreToolUse hook that blocks edits to package-lock.json.", v:"עריכה של קובץ .ts מפעילה lint, ועריכה של lockfile נחסמת", m:"hooks"},
+  {t:"Subagent לריוויו", g:"סוקר קבוע עם הכלים המינימליים.", p:"Create .claude/agents/reviewer.md: read-only tools, checks correctness, security and missing tests, reports by severity with file:line. Then run it on the current code.", v:"הסוכן מופיע ב-/agents ומחזיר דוח", m:"agents"},
+  {t:"ממשק + Playwright", g:"עמוד פשוט לניהול משימות, עם בדיקה ויזואלית.", p:"Add a minimal web UI (vanilla or React) for tasks. Add Playwright MCP, open the page, screenshot at 1280 and 390 widths, fix layout issues, and write 3 E2E tests.", v:"בדיקות E2E עוברות, והעמוד תקין גם ברוחב טלפון", m:"mcp"},
+  {t:"פקודת /pr", g:"תהליך הסיום בלחיצה.", p:"Create .claude/commands/pr.md that runs tests, commits with conventional messages, pushes and opens a PR with gh using a short template. Use !`git status` for context.", v:"/pr פותח PR עם תיאור", m:"commands"},
+  {t:"GitHub Action לריוויו", g:"כל PR מקבל ריוויו אוטומטי.", p:"Add .github/workflows/claude.yml using anthropics/claude-code-action@v1 that reviews PRs with the reviewer agent's checklist and answers @claude mentions. Limit with --max-turns.", v:"PR לבדיקה מקבל תגובה מ-Claude", m:"headless"},
+  {t:"אריזה כ-Plugin", g:"כל מה שבניתם, בחבילה לשיתוף.", p:"Package the reviewer agent, the hooks and the /pr command as a plugin in plugins/taskflow-standards with .claude-plugin/plugin.json, and add a marketplace.json so teammates can install it.", v:"/plugin install עובד מהמאגר", m:"plugins"}
+];
+(function(){
+  const draw = () => {
+    const done = store.get("proj", {}), n = Object.keys(done).length;
+    $("#projBar").style.width = (n / PROJ.length * 100) + "%";
+    $("#projLabel").textContent = n + "/" + PROJ.length + " שלבים הושלמו" + (n === PROJ.length ? " · כל הכבוד! יש לכם פרויקט מלא 🎉" : "");
+    $("#projSteps").innerHTML = PROJ.map((s,i) => '<li class="'+(done[i]?"ok":"")+'"><div class="row" style="justify-content:space-between"><h3>'+(i+1)+'. '+esc(s.t)+'</h3><label class="tick"><input type="checkbox" data-step="'+i+'" '+(done[i]?"checked":"")+'> סיימתי</label></div><p>'+esc(s.g)+'</p><div class="code" data-lang="prompt"><pre style="white-space:pre-wrap">'+esc(s.p)+'</pre></div><p class="hint">✔ איך יודעים שהצלחתם: '+esc(s.v)+' · חומר רקע: <a href="#'+s.m+'">'+esc(document.getElementById(s.m)?.dataset.title || s.m)+'</a></p></li>').join("");
+    $$("#projSteps .code").forEach(decorate);
+  };
+  $("#projSteps").addEventListener("change", e => { const c = e.target.closest("[data-step]"); if(!c) return;
+    const done = store.get("proj", {}); if(c.checked){ done[c.dataset.step] = 1; award("proj-"+c.dataset.step, 20, "שלב בפרויקט"); } else delete done[c.dataset.step];
+    store.set("proj", done); if(Object.keys(done).length === PROJ.length){ markDone("project"); award("proj-all", 100, "פרויקט הגמר הושלם"); } draw(); });
+  REFRESH.push(draw); draw();
+})();
+
+// ================= config checker =================
+const TOOL_NAMES = ["Bash","Read","Edit","Write","MultiEdit","Glob","Grep","WebFetch","WebSearch","NotebookEdit","Task","TodoWrite","Skill","SlashCommand"];
+const HOOK_EVENTS = ["PreToolUse","PostToolUse","UserPromptSubmit","Notification","Stop","SubagentStop","SessionStart","SessionEnd","PreCompact","PermissionRequest","PostToolUseFailure","SubagentStart"];
+const SETTINGS_KEYS = ["permissions","hooks","env","model","statusLine","enabledPlugins","extraKnownMarketplaces","apiKeyHelper","outputStyle","cleanupPeriodDays","includeCoAuthoredBy","attribution","forceLoginMethod","enableAllProjectMcpServers","enabledMcpjsonServers","disabledMcpjsonServers","sandbox","awsAuthRefresh","otelHeadersHelper","companyAnnouncements","alwaysThinkingEnabled","spinnerTipsEnabled","disableAllHooks","language","$schema"];
+const SECRETY = /(sk-[A-Za-z0-9_-]{16,}|ghp_[A-Za-z0-9]{20,}|xox[bp]-[A-Za-z0-9-]{10,}|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY)/;
+const CHK_SAMPLES = {
+  settings: JSON.stringify({permissions:{allow:["Bash(npm run test:*)","Edit(src/**)"],deny:["Read(./.env)"],defaultMode:"acceptEdits"},hooks:{PostToolUse:[{matcher:"Edit|Write",hooks:[{type:"command",command:"jq -r '.tool_input.file_path' | xargs npx prettier --write"}]}]},env:{NODE_ENV:"development"}}, null, 2),
+  mcp: JSON.stringify({mcpServers:{sentry:{type:"http",url:"https://mcp.sentry.dev/mcp"},db:{command:"npx",args:["-y","@bytebase/dbhub","--dsn","${DATABASE_URL}"]}}}, null, 2),
+  agent: "---\nname: code-reviewer\ndescription: Reviews diffs for bugs and security issues. Use PROACTIVELY after code changes.\ntools: Read, Grep, Glob, Bash\nmodel: sonnet\n---\nYou are a senior reviewer. Run git diff, report findings by severity with file:line.",
+  bad: JSON.stringify({permissions:{allow:["Bash(*)","bash(git status)","Read(.env)"],deny:["Read(./.env)"],defaultMode:"bypassPermissions"},hooks:{PostToolUse:[{matcher:"Edit",hooks:[{command:"prettier --write"}]}],OnSave:[]},env:{OPENAI_KEY:"sk-live-abcdefghijklmnopqrstuv"}}, null, 2)
+};
+function checkConfig(src){
+  const out = []; const add = (lvl, msg) => out.push([lvl, msg]);
+  const s = src.trim(); if(!s) return {type:"ריק", items:[["warn","אין מה לבדוק. הדביקו תוכן או בחרו דוגמה."]]};
+  if(SECRETY.test(s)) add("err", "נראה שיש כאן סוד (מפתח API, טוקן או מפתח פרטי). אל תשמרו סודות בקבצי הגדרות שנכנסים ל-git. העבירו למשתני סביבה, ובקובץ השתמשו ב-${VAR}.");
+  if(s.startsWith("{")){
+    let j; try{ j = JSON.parse(s); }catch(e){ return {type:"JSON", items:[["err","JSON לא תקין: "+e.message+". חפשו פסיק מיותר בסוף רשימה, מרכאות חסרות או הערות (JSON רגיל לא מאפשר הערות)."]]}; }
+    if(j.mcpServers){
+      const ent = Object.entries(j.mcpServers);
+      add("ok", "זוהה קובץ .mcp.json עם "+ent.length+" שרתים.");
+      ent.forEach(([n,v]) => {
+        if(!/^[a-zA-Z0-9_-]+$/.test(n)) add("warn", "השם \""+n+"\" כולל תווים מיוחדים. שמות פשוטים (אותיות, ספרות, מקף) נוחים יותר בכללי הרשאה כמו mcp__"+n+".");
+        if(v.url){ add("ok", n+": שרת מרוחק ("+(v.type||"?")+") בכתובת "+v.url+".");
+          if(!v.type) add("warn", n+": חסר type. לשרת מרוחק הגדירו \"type\": \"http\" (או \"sse\" לשרתים ישנים).");
+          if(/^http:\/\/(?!127\.0\.0\.1|localhost)/.test(v.url)) add("warn", n+": כתובת http לא מוצפנת לשרת חיצוני. העדיפו https."); }
+        else if(v.command){ add("ok", n+": שרת מקומי שמריץ "+v.command+" "+(v.args||[]).join(" ")+".");
+          if(v.args && !Array.isArray(v.args)) add("err", n+": args חייב להיות מערך.");
+          if(/@latest/.test((v.args||[]).join(" "))) add("info", n+": ‎@latest מוריד את הגרסה העדכנית בכל הפעלה. לצוות עדיף לנעול גרסה.");
+          if(v.env) Object.entries(v.env).forEach(([k,val]) => { if(typeof val === "string" && !/^\$\{/.test(val) && /key|token|secret|password/i.test(k)) add("err", n+": "+k+" מוגדר כערך קבוע. השתמשו ב-\"${"+k+"}\" כדי לקחת אותו ממשתנה סביבה."); }); }
+        else add("err", n+": אין url וגם אין command. שרת צריך אחד מהם.");
+      });
+      return {type:".mcp.json", items:out};
+    }
+    add("ok", "זוהה קובץ הגדרות (settings.json).");
+    Object.keys(j).forEach(k => { if(!SETTINGS_KEYS.includes(k)) add("warn", "המפתח \""+k+"\" לא מוכר לבודק. ייתכן שזו שגיאת כתיב, או הגדרה חדשה שלא מכיר. בדקו בתיעוד."); });
+    const P = j.permissions || {};
+    const ruleOk = r => /^(mcp__[\w-]+(__[\w-]+)?|[A-Z][A-Za-z]+)(\(.+\))?$/.test(r);
+    ["allow","ask","deny"].forEach(kind => (P[kind]||[]).forEach(r => {
+      if(typeof r !== "string" || !ruleOk(r)){ add("err", kind+": הכלל \""+r+"\" לא בתחביר נכון. הפורמט הוא Tool או Tool(pattern), ושם הכלי מתחיל באות גדולה, למשל Bash(npm test:*)."); return; }
+      const tool = r.split("(")[0];
+      if(!tool.startsWith("mcp__") && !TOOL_NAMES.includes(tool)) add("warn", kind+": הכלי "+tool+" לא מוכר לבודק. בדקו את האיות.");
+      if(kind === "allow" && /^Bash\((\*|:\*)?\)$|^Bash$/.test(r)) add("err", "allow: \""+r+"\" מאשר כל פקודת shell, וזה כמו לבטל את ההרשאות. אשרו פקודות ספציפיות.");
+      if(kind === "allow" && /^Read\(.*\.env/.test(r)) add("err", "allow: \""+r+"\" מאשר קריאה של סודות. קבצי .env צריכים להיות ב-deny.");
+      if(kind === "allow" && /^WebFetch$/.test(r)) add("warn", "allow: WebFetch בלי דומיין מאשר גישה לכל אתר. הגבילו עם WebFetch(domain:...).");
+    }));
+    (P.allow||[]).forEach(r => { if((P.deny||[]).includes(r)) add("info", "\""+r+"\" מופיע גם ב-allow וגם ב-deny. deny גובר, אז ה-allow לא משפיע."); });
+    if(!(P.deny||[]).some(r => /\.env/.test(r))) add("warn", "אין כלל deny ל-.env. מומלץ להוסיף \"Read(./.env)\" ו-\"Read(./.env.*)\".");
+    if(P.defaultMode === "bypassPermissions") add("err", "defaultMode: bypassPermissions מבטל את כל האישורים. מתאים רק לקונטיינר מבודד בלי סודות.");
+    else if(P.defaultMode) add("ok", "מצב ברירת מחדל: "+P.defaultMode+".");
+    if(j.hooks){
+      Object.entries(j.hooks).forEach(([ev, arr]) => {
+        if(!HOOK_EVENTS.includes(ev)){ add("err", "hooks: האירוע \""+ev+"\" לא קיים. אירועים נפוצים: "+HOOK_EVENTS.slice(0,9).join(", ")+"."); return; }
+        if(!Array.isArray(arr)){ add("err", "hooks."+ev+" צריך להיות מערך."); return; }
+        arr.forEach((e,i) => {
+          if(e.matcher && !["PreToolUse","PostToolUse","PermissionRequest","PostToolUseFailure"].includes(ev)) add("info", "hooks."+ev+"["+i+"]: ל-matcher יש משמעות בעיקר באירועי כלים.");
+          (e.hooks||[]).forEach(h => {
+            if(h.type !== "command" && h.type !== "prompt") add("err", "hooks."+ev+"["+i+"]: חסר \"type\": \"command\".");
+            if(h.type === "command" && !h.command) add("err", "hooks."+ev+"["+i+"]: חסרה פקודה ב-command.");
+            if(h.command && /\.sh\b/.test(h.command) && !/CLAUDE_PROJECT_DIR|^\/|^~/.test(h.command)) add("info", "hooks."+ev+": נתיב יחסי לסקריפט. השתמשו ב-\"$CLAUDE_PROJECT_DIR\"/... כדי שיעבוד מכל תיקייה.");
+          });
+          if(!e.hooks) add("err", "hooks."+ev+"["+i+"]: חסר המערך hooks בתוך הרשומה.");
+        });
+        add("ok", "hooks."+ev+": "+arr.length+" רשומות.");
+      });
+    }
+    if(j.env) Object.entries(j.env).forEach(([k,v]) => { if(/key|token|secret|password/i.test(k)) add("err", "env."+k+": סוד בקובץ הגדרות. אם הקובץ נכנס ל-git, הסוד דולף. השתמשו ב-apiKeyHelper או במשתני סביבה של המערכת."); });
+    return {type:"settings.json", items:out};
+  }
+  const m = /^---\n([\s\S]*?)\n---\n?([\s\S]*)$/.exec(s.replace(/\r/g,""));
+  if(!m) return {type:"לא מזוהה", items:[["warn","לא זיהיתי את הסוג. קובץ JSON מתחיל ב-{, וקובץ Subagent, פקודה או Skill מתחיל ב-frontmatter בין שורות ---."]]};
+  const head = m[1], body = m[2], f = {};
+  head.split("\n").forEach(l => { const i = l.indexOf(":"); if(i > 0) f[l.slice(0,i).trim()] = l.slice(i+1).trim(); });
+  const type = /\$ARGUMENTS|\$1\b/.test(body) || f["argument-hint"] ? "פקודה (slash command)" : (f.tools !== undefined || f.model) && f.name ? "Subagent" : f.name ? "Skill או Subagent" : "פקודה (slash command)";
+  add("ok", "זוהה: "+type+".");
+  if(f.name !== undefined && !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(f.name)) add("err", "name: \""+f.name+"\". השתמשו באותיות קטנות, ספרות ומקפים בלבד.");
+  if(!f.description) add(type.startsWith("פקודה") ? "warn" : "err", "חסר description. ב-Skills וב-Subagents התיאור קובע מתי Claude ישתמש בהם.");
+  else if(f.description.length < 40 && !type.startsWith("פקודה")) add("warn", "התיאור קצר. הוסיפו גם מתי להשתמש, למשל \"Use when...\" או \"Use PROACTIVELY after...\".");
+  else add("ok", "יש תיאור"+(/use (when|proactively)/i.test(f.description) ? " שמסביר גם מתי להשתמש. מצוין." : "."));
+  if(f.tools){ const t = f.tools.split(",").map(x=>x.trim()).filter(Boolean);
+    t.forEach(x => { const b = x.split("(")[0]; if(!b.startsWith("mcp__") && !TOOL_NAMES.includes(b)) add("warn", "tools: \""+x+"\" לא מוכר לבודק."); });
+    if(/review|audit|explor/i.test((f.name||"")+(f.description||"")) && t.some(x => /^(Edit|Write)/.test(x))) add("warn", "לסוכן סקירה או חקירה יש Edit או Write. עדיף לתת לו קריאה בלבד.");
+    add("ok", "כלים: "+t.join(", ")+"."); }
+  else if(type === "Subagent") add("info", "אין tools, ולכן הסוכן יורש את כל הכלים. עדיף להגדיר רשימה מינימלית.");
+  if(f.model && !["sonnet","opus","haiku","inherit"].includes(f.model) && !/^claude-/.test(f.model)) add("warn", "model: \""+f.model+"\" לא מוכר. ערכים נפוצים: sonnet, opus, haiku, inherit.");
+  if(f["allowed-tools"]) add("ok", "allowed-tools: "+f["allowed-tools"]+" (תקף רק בזמן הפקודה).");
+  if(/!`[^`]+`/.test(body) && !f["allowed-tools"]) add("warn", "הגוף מריץ פקודה עם !`...` אבל אין allowed-tools שמאשר אותה.");
+  if(body.trim().length < 30) add("warn", "גוף ההנחיות קצר מאוד. תנו צעדים ברורים ופורמט פלט.");
+  return {type, items:out};
+}
+(function(){
+  const ICON = {ok:"✓", warn:"!", err:"✗", info:"i"};
+  const run = () => {
+    const r = checkConfig($("#chkIn").value);
+    const errs = r.items.filter(x=>x[0]==="err").length, warns = r.items.filter(x=>x[0]==="warn").length;
+    $("#chkOut").innerHTML = '<b>'+esc(r.type)+'</b> · <span class="sev-err">'+errs+' שגיאות</span> · <span class="sev-warn">'+warns+' אזהרות</span><ul class="chk-list">'+r.items.map(x=>'<li class="sev-'+x[0]+'"><span>'+ICON[x[0]]+'</span>'+esc(x[1])+'</li>').join("")+'</ul>';
+    if(!errs && r.items.length) award("checker-clean", 15, "קובץ נקי");
+    markDone("checker");
+  };
+  $("#chkRun").onclick = run;
+  document.getElementById("checker").addEventListener("click", e => { const b = e.target.closest("[data-sample]"); if(b){ $("#chkIn").value = CHK_SAMPLES[b.dataset.sample]; run(); } });
+})();
+
+// ================= glossary, daily challenge, notes =================
+const GLOSS = [
+  ["Agent","סוכן","מודל שפועל בלולאה: מתכנן, משתמש בכלים ובודק תוצאות"],["Subagent","סוכן משנה","סוכן עם הקשר נפרד שמקבל משימה ומחזיר סיכום"],
+  ["Context window","חלון הקשר","כל מה שהמודל \"רואה\" כרגע: הנחיות, קבצים ושיחה"],["Compact","דחיסה","סיכום השיחה כדי לפנות מקום בהקשר"],
+  ["CLAUDE.md","קובץ זיכרון","הנחיות שנטענות אוטומטית בתחילת כל סשן"],["Prompt","פרומפט, הנחיה","הטקסט שאתם כותבים ל-Claude"],
+  ["System prompt","הנחיות מערכת","הוראות קבועות שמגדירות את התנהגות הסוכן"],["Tool","כלי","פעולה שהסוכן יכול לבצע: Read, Edit, Bash ועוד"],
+  ["Tool use","שימוש בכלי","קריאה של המודל לכלי עם קלט מסוים"],["Permission mode","מצב הרשאה","default, acceptEdits, plan או bypassPermissions"],
+  ["Plan mode","מצב תכנון","Claude קורא ומתכנן בלי לשנות קבצים"],["Allow / Deny rule","כלל אישור או חסימה","תבנית שקובעת אילו פעולות מאושרות או חסומות"],
+  ["Hook","וו (Hook)","פקודת shell שרצה אוטומטית באירוע מסוים"],["Matcher","מתאם","תבנית שקובעת לאילו כלים Hook מתייחס"],
+  ["Exit code","קוד יציאה","המספר שסקריפט מחזיר. ב-Hooks קוד 2 חוסם"],["Slash command","פקודת סלאש","פקודה שמתחילה ב-/"],
+  ["Skill","מיומנות","תיקייה עם SKILL.md שנטענת לפי צורך"],["Plugin","תוסף","חבילה של פקודות, סוכנים, Hooks ו-MCP"],
+  ["Marketplace","חנות תוספים","מאגר שממנו מתקינים Plugins"],["MCP","פרוטוקול הקשר למודלים","תקן לחיבור כלים ומקורות מידע חיצוניים"],
+  ["MCP server","שרת MCP","תוכנה שחושפת כלים, משאבים ופרומפטים ל-Claude"],["Transport","ערוץ תקשורת","stdio (מקומי) או http / sse (מרוחק)"],
+  ["Scope","טווח","local, project או user: איפה נשמרת הגדרה"],["Headless","ללא ממשק","הרצה עם claude -p בסקריפט או ב-CI"],
+  ["Agent SDK","ערכת פיתוח לסוכנים","ספרייה ל-Python ו-TypeScript לבניית סוכנים"],["Worktree","עץ עבודה","תיקיית עבודה נוספת לאותו מאגר git"],
+  ["Checkpoint","נקודת שמירה","מצב קודם שאפשר לחזור אליו עם /rewind"],["Session","סשן","שיחה אחת עם ההקשר שלה"],
+  ["Prompt injection","הזרקת הנחיות","תוכן חיצוני שמנסה לגרום לסוכן לבצע פעולות לא רצויות"],["Sandbox","ארגז חול","בידוד של פקודות ברמת מערכת ההפעלה"],
+  ["Fan-out","פיזור","הרצה של משימה אחת על הרבה קבצים במקביל"],["Orchestrator","מתזמר","סוכן שמחלק עבודה לסוכנים אחרים ומאחד תוצאות"],
+  ["TDD","פיתוח מונחה בדיקות","כותבים בדיקה שנכשלת, ואז קוד שגורם לה לעבור"],["Diff","הבדלים","השינויים בין שתי גרסאות של קוד"],
+  ["PR / Pull request","בקשת מיזוג","הצעת שינוי לסקירה לפני merge"],["Commit","קומיט","שמירה של שינויים בהיסטוריית git"],
+  ["Lint","בדיקת סגנון","כלי שמוצא בעיות סגנון ושגיאות נפוצות"],["E2E test","בדיקה מקצה לקצה","בדיקה שמפעילה את המערכת כמו משתמש אמיתי"],
+  ["Output style","סגנון פלט","שינוי אופן התגובה של Claude"],["Status line","שורת סטטוס","שורה מותאמת בתחתית הממשק"],
+  ["Managed settings","הגדרות מנוהלות","מדיניות ארגונית שגוברת על כל הגדרה"],["OpenTelemetry","טלמטריה פתוחה","תקן לשליחת מדדים ולוגים למערכות ניטור"],
+  ["Extended thinking","חשיבה מורחבת","זמן חשיבה נוסף לפני תשובה, לבעיות קשות"],["Token","טוקן","יחידת טקסט שהמודל מעבד. עלות והקשר נמדדים בה"]
+];
+(function(){
+  const drawG = () => { const q = ($("#gSearch").value||"").toLowerCase();
+    $("#gTable").innerHTML = '<tr><th>English</th><th>עברית</th><th>הסבר</th></tr>' + GLOSS.filter(g => !q || g.join(" ").toLowerCase().includes(q)).map(g => '<tr><td class="ltr"><b>'+esc(g[0])+'</b></td><td>'+esc(g[1])+'</td><td>'+esc(g[2])+'</td></tr>').join(""); };
+  $("#gSearch").addEventListener("input", drawG); drawG();
+  // daily challenge: same question for everyone on a given day
+  const today = new Date().toISOString().slice(0,10), dayN = Math.floor(Date.now()/864e5);
+  const POOLD = Object.values(Q).flat();
+  const drawD = () => {
+    const x = POOLD[dayN % POOLD.length], t = TRICKS[dayN % TRICKS.length], ans = store.get("daily", {})[today];
+    $("#dailyBox").innerHTML = '<div class="hint">'+new Date().toLocaleDateString("he-IL")+' · שאלת היום (‎+15 XP)</div><div class="q'+(ans!=null?" ans":"")+'"><b>'+esc(x[0])+'</b><div class="opts">'+x[1].map((o,j)=>'<label class="'+(ans!=null?(j===x[2]?"r":(j===ans?"w":"")):"")+'"><input type="radio" name="daily" value="'+j+'" '+(ans!=null?"disabled":"")+'><span>'+esc(o)+'</span></label>').join("")+'</div><div class="why">'+esc(x[3])+'</div></div><hr style="border:0;border-top:1px dashed var(--line);margin:14px 0"><div class="hint">טריק היום</div><b>'+esc(t[1])+'</b><p style="margin:.2em 0">'+esc(t[2])+'</p><div class="code" data-lang="text"><pre>'+esc(t[3])+'</pre></div>';
+    $$("#dailyBox .code").forEach(decorate);
+  };
+  $("#dailyBox").addEventListener("change", e => { const v = +e.target.value, d = store.get("daily", {}); if(d[today] != null) return; d[today] = v; store.set("daily", d);
+    if(v === POOLD[dayN % POOLD.length][2]) award("daily-"+today, 15, "אתגר יומי"); drawD(); });
+  drawD();
+  // notes box at the end of every chapter
+  mods.forEach(m => { if(["intro","exam","glossary","slides"].includes(m.id)) return;
+    m.insertAdjacentHTML("beforeend", '<details class="notes"><summary>ההערות שלי לפרק</summary><textarea data-note="'+m.id+'" aria-label="הערות לפרק" placeholder="מה חשוב לי לזכור מהפרק הזה…"></textarea></details>'); });
+  const loadNotes = () => { const N = store.get("notes", {}); $$("[data-note]").forEach(t => { if(document.activeElement !== t) t.value = N[t.dataset.note] || ""; if(N[t.dataset.note]) t.closest("details").open = true; }); drawNotes(); };
+  const drawNotes = () => { const N = store.get("notes", {}), ks = Object.keys(N).filter(k => N[k].trim());
+    $("#notesAll").innerHTML = ks.length ? ks.map(k => '<div class="box"><a href="#'+k+'"><b>'+esc(document.getElementById(k)?.dataset.title || k)+'</b></a><p style="white-space:pre-wrap;margin:.3em 0 0">'+esc(N[k])+'</p></div>').join("") : '<p class="hint">עוד אין הערות.</p>'; };
+  let nt; document.addEventListener("input", e => { const t = e.target.closest("[data-note]"); if(!t) return; clearTimeout(nt);
+    nt = setTimeout(() => { const N = store.get("notes", {}); if(t.value.trim()) N[t.dataset.note] = t.value; else delete N[t.dataset.note]; store.set("notes", N); drawNotes(); }, 500); });
+  REFRESH.push(loadNotes); loadNotes();
+})();
+// intro: daily teaser
+document.querySelector("#intro .hero > div").insertAdjacentHTML("beforeend", '<p class="hint" style="margin-top:12px">🗓 <a href="#glossary">האתגר היומי וטריק היום</a> · 🎯 <a href="#tracks">בחירת מסלול לפי תפקיד</a> · 🏗 <a href="#project">פרויקט הגמר</a></p>');
+
+// ================= cloud sync of progress =================
+var SYNC = {ref:null, ready:false, timer:null};
+function isSyncKey(k){ return ["state","cards","sim","tricks","best","name","notes","track","proj","daily"].includes(k) || /^ch\d+$/.test(k); }
+function onStoreChange(k){ if(!SYNC || !SYNC.ready || !isSyncKey(k)) return; clearTimeout(SYNC.timer); SYNC.timer = setTimeout(pushSync, 1500); }
+function localBundle(){ const o = {}; try{ for(let i = 0; i < localStorage.length; i++){ const k = localStorage.key(i); if(k && k.startsWith("cca-") && isSyncKey(k.slice(4))) o[k.slice(4)] = JSON.parse(localStorage.getItem(k)); } }catch(e){} return o; }
+function setSync(txt, cls){ const el = $("#syncStatus"); if(el){ el.textContent = txt; el.className = "sync " + (cls||""); } }
+async function pushSync(){ if(!SYNC.ref) return; try{ await SYNC.ref.set({v:1, at:Date.now(), data:JSON.stringify(localBundle())}); setSync("☁ מסונכרן בין מכשירים", "ok"); }catch(e){ setSync(e && e.code === "invalid_argument" ? "☁ סנכרון לא זמין בהרשאה הזו" : "☁ שגיאת סנכרון, נשמר מקומית", "err"); } }
+function mergeBundles(local, remote){
+  const out = Object.assign({}, remote, local);
+  const ls = local.state || {}, rs = remote.state || {};
+  out.state = {done:Object.assign({}, rs.done, ls.done), awarded:Object.assign({}, rs.awarded, ls.awarded), xp:Math.max(ls.xp||0, rs.xp||0), days:[...new Set([...(rs.days||[]), ...(ls.days||[])])].sort().slice(-60)};
+  ["cards","tricks","proj","daily"].forEach(k => { out[k] = Object.assign({}, remote[k], local[k]); });
+  out.notes = Object.assign({}, remote.notes); Object.entries(local.notes||{}).forEach(([k,v]) => { if(v && v.length >= (out.notes[k]||"").length) out.notes[k] = v; });
+  ["sim","best"].forEach(k => { out[k] = Math.max(local[k]||0, remote[k]||0); });
+  return out;
+}
+(async () => {
+  setSync("☁ שמירה בדפדפן הזה בלבד", "");
+  if(!window.claude || !window.claude.use) return;
+  try{
+    const [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+    if(!db || !user) return;
+    const id = await user.id(); if(!id) return;
+    SYNC.ref = db.doc("data/users/" + id + "/progress");
+    const snap = await SYNC.ref.get();
+    if(snap.exists){
+      const remote = JSON.parse(snap.data().data || "{}"), merged = mergeBundles(localBundle(), remote);
+      Object.entries(merged).forEach(([k,v]) => { try{ localStorage.setItem("cca-"+k, JSON.stringify(v)); }catch(e){} });
+      state = Object.assign({done:{}, xp:0, awarded:{}, days:[]}, merged.state);
+      boxes = merged.cards || {};
+      renderStats(); renderToc(); renderMissions(); REFRESH.forEach(f => { try{ f(); }catch(e){} });
+    }
+    SYNC.ready = true; setSync("☁ מסונכרן בין מכשירים", "ok"); pushSync();
+  }catch(e){ setSync("☁ שמירה בדפדפן הזה בלבד", ""); }
+})();
+
+// ================= AI tutor =================
+(function(){
+  document.body.insertAdjacentHTML("beforeend",
+    '<button class="tutor-fab" id="tutorFab" type="button" hidden aria-expanded="false">🎓 שאל את המורה</button>' +
+    '<div class="tutor" id="tutor" hidden role="dialog" aria-label="המורה"><div class="tutor-head"><b>המורה של Claude Code</b><span class="hint" id="tutorCtx"></span><button class="btn sm" type="button" id="tutorClose" aria-label="סגירה">✕</button></div>' +
+    '<div class="tutor-log" id="tutorLog" aria-live="polite"></div>' +
+    '<div class="tutor-sugg" id="tutorSugg"></div>' +
+    '<form class="tutor-in" id="tutorForm"><textarea id="tutorQ" rows="2" placeholder="שאלו כל דבר על הפרק או על Claude Code…" aria-label="שאלה למורה"></textarea><div class="row"><button class="btn pri sm" type="submit" id="tutorSend">שליחה</button><button class="btn sm" type="button" id="tutorStop" hidden>עצירה</button><button class="btn sm" type="button" id="tutorNew">שיחה חדשה</button></div></form></div>');
+  let sample = null, turns = [], ctl = null;
+  const RULES = "אתה המורה של \"אקדמיית Claude Code\", קורס בעברית על Claude Code (סוכן התכנות של Anthropic). ענה בעברית, בקצרה ובבהירות, עם דוגמה מעשית כשזה עוזר. פקודות, קוד ונתיבים כתוב בבלוקי קוד. אם אינך בטוח שתחביר מסוים קיים בגרסה הנוכחית, אמור זאת והמלץ לבדוק ב-/help או בתיעוד הרשמי. אל תמציא דגלים או פקודות. לשאלות שאינן קשורות ל-Claude Code, לתכנות או לקורס, החזר בעדינות לנושא.";
+  const md = t => { const parts = String(t).split(/```[\w-]*\n?/); return parts.map((p,i) => i % 2 ? '<pre class="tpre">'+esc(p.replace(/\n$/,""))+'</pre>' : esc(p).replace(/`([^`\n]+)`/g,'<code>$1</code>').replace(/\*\*([^*\n]+)\*\*/g,'<b>$1</b>').replace(/\n/g,"<br>")).join(""); };
+  const ctxText = () => { const m = mods[cur]; return "הפרק שהתלמיד צופה בו: \"" + m.dataset.title + "\"\nתוכן הפרק (מקוצר):\n" + m.innerText.replace(/\n{2,}/g,"\n").slice(0, 9000); };
+  const SUGG = ["הסבר לי את הפרק הזה בפשטות","תן לי תרגיל קטן לפרק הזה","מה הטעות הנפוצה כאן?","איך משתמשים בזה בפרויקט אמיתי?"];
+  function bubble(role, html){ const d = document.createElement("div"); d.className = "tb " + role; d.innerHTML = html; $("#tutorLog").appendChild(d); $("#tutorLog").scrollTop = 1e9; return d; }
+  function open(){ $("#tutor").hidden = false; $("#tutorFab").setAttribute("aria-expanded","true"); $("#tutorCtx").textContent = "· " + mods[cur].dataset.title; $("#tutorQ").focus(); }
+  async function ask(q){
+    if(!sample || !q.trim()) return;
+    if(!turns.length) turns.push({role:"user", content: RULES + "\n\n" + ctxText() + "\n\nשאלה: " + q}); else turns.push({role:"user", content: "(הפרק הנוכחי: " + mods[cur].dataset.title + ")\n" + q});
+    bubble("me", esc(q)); const out = bubble("ai", '<span class="hint">חושב…</span>');
+    ctl = new AbortController(); $("#tutorSend").disabled = true; $("#tutorStop").hidden = false;
+    try{
+      const r = await sample(turns.slice(-12).length % 2 ? turns.slice(-11) : turns.slice(-12), {cache:false, signal:ctl.signal, onText:({text}) => { out.innerHTML = md(text); $("#tutorLog").scrollTop = 1e9; }});
+      out.innerHTML = md(r.text) + (r.truncated ? '<div class="hint">התשובה נקטעה. שאלו על חלק ממנה.</div>' : "");
+      turns.push({role:"assistant", content:r.text}); award("tutor-first", 5, "שאלה ראשונה למורה");
+    }catch(e){
+      turns.pop();
+      const msg = {not_granted:"המורה לא אושר בחלון האישור, ולכן הוא מוסתר בביקור הזה.", sampling_disabled:"המורה לא זמין בחשבון הזה.", rate_limited:"יותר מדי שאלות בזמן קצר, או שהמכסה נגמרה. נסו שוב בעוד כמה דקות.", session_expired:"צריך להתחבר מחדש ל-Claude.", refused:"לא אוכל לענות על זה. נסו לנסח אחרת.", prompt_too_large:"השאלה ארוכה מדי. התחילו שיחה חדשה."}[e && e.code];
+      if(e && e.code === "cancelled"){ out.innerHTML = e.text ? md(e.text) + '<div class="hint">נעצר</div>' : '<span class="hint">נעצר</span>'; }
+      else { out.innerHTML = (e && e.text ? md(e.text) + "<br>" : "") + '<span class="hint">' + esc(msg || "משהו השתבש. נסו שוב.") + '</span>'; }
+      if(e && ["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed"].includes(e.code)){ sample = null; setTimeout(() => { $("#tutor").hidden = true; $("#tutorFab").hidden = true; document.body.classList.remove("has-tutor"); $("#chkAi").hidden = true; }, 3500); }
+    }finally{ $("#tutorSend").disabled = false; $("#tutorStop").hidden = true; }
+  }
+  window.askTutor = (q) => { if(!sample) return; open(); ask(q); };
+  $("#tutorSugg").innerHTML = SUGG.map(s => '<button type="button" class="btn sm">'+esc(s)+'</button>').join("");
+  $("#tutorSugg").addEventListener("click", e => { const b = e.target.closest("button"); if(b) ask(b.textContent); });
+  $("#tutorFab").onclick = () => $("#tutor").hidden ? open() : ($("#tutor").hidden = true);
+  $("#tutorClose").onclick = () => { $("#tutor").hidden = true; $("#tutorFab").setAttribute("aria-expanded","false"); };
+  $("#tutorStop").onclick = () => ctl && ctl.abort();
+  $("#tutorNew").onclick = () => { turns = []; $("#tutorLog").innerHTML = ""; };
+  $("#tutorForm").addEventListener("submit", e => { e.preventDefault(); const q = $("#tutorQ").value; $("#tutorQ").value = ""; ask(q); });
+  $("#tutorQ").addEventListener("keydown", e => { if(e.key === "Enter" && !e.shiftKey){ e.preventDefault(); $("#tutorForm").requestSubmit(); } });
+  document.addEventListener("click", e => { const b = e.target.closest(".code .ask"); if(!b) return; const pre = b.parentElement.querySelector("pre"); window.askTutor("הסבר לי שורה אחר שורה את הקוד הזה, ומתי משתמשים בו:\n```\n" + pre.textContent.slice(0, 4000) + "\n```"); });
+  // config checker: full explanation
+  $("#chkAi").onclick = async () => {
+    const src = $("#chkIn").value.trim(); if(!src || !sample) return;
+    const out = $("#chkAiOut"); out.hidden = false; out.innerHTML = '<span class="hint">המורה קורא את הקובץ…</span>';
+    const issues = checkConfig(src).items.map(x => x[0] + ": " + x[1]).join("\n");
+    try{
+      const r = await sample(RULES + "\n\nהתלמיד הדביק קובץ הגדרות של Claude Code. הסבר בעברית מה כל חלק עושה, אמת או הפרך את הממצאים של הבודק האוטומטי, והצע גרסה משופרת ומאובטחת בבלוק קוד.\n\nממצאי הבודק:\n" + issues + "\n\nהקובץ:\n```\n" + src.slice(0, 20000) + "\n```", {onText:({text}) => { out.innerHTML = md(text); }});
+      out.innerHTML = md(r.text);
+    }catch(e){ out.innerHTML = '<span class="hint">' + esc(e && e.code === "not_granted" ? "המורה לא אושר בביקור הזה." : "לא הצלחתי לקבל הסבר כרגע. נסו שוב מאוחר יותר.") + '</span>'; }
+  };
+  (async () => {
+    if(!window.claude || !window.claude.use) return;
+    try{ sample = await window.claude.use("sample"); }catch(e){ sample = null; }
+    if(!sample) return;
+    $("#tutorFab").hidden = false; $("#chkAi").hidden = false; document.body.classList.add("has-tutor");
+  })();
 })();
 
 renderStats();
