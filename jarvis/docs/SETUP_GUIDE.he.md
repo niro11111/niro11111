@@ -13,10 +13,10 @@ JARVIS המלא (המוח, 18 הסוכנים, זיכרון, כספים, אוטו
 | **claude.ai**: https://claude.ai/artifact/R7FcnXJL3JzTMJD31MUNFc | הנתונים נשמרים בחשבון Claude שלך, פרטיים לך ובכל מכשיר. Claude הוא המוח, בלי מפתח API, ויכול לבצע פעולות דרך הכלים של JARVIS. יש ניתוח תמונות וייצוא קבצים. בתצוגה הזו המיקרופון של הדפדפן חסום, אז מכתיבים דרך מיקרופון המקלדת. התשובות מוקראות בקול. |
 | **אתר עצמאי** (GitHub Pages או כל אחסון) | זיהוי דיבור בעברית עם בקשת הרשאת מיקרופון רגילה, התראות דפדפן ומזג אוויר. הנתונים נשמרים במכשיר. אפשר להוסיף מפתח Anthropic משלך בהגדרות כדי לקבל את Claude. |
 
-**להפעיל את האתר העצמאי ב-GitHub Pages (פעם אחת, כ-2 דקות):**
-1. ב-GitHub: המאגר `niro11111/niro11111` ← **Settings** ← **Pages** ← Source: **GitHub Actions**.
-2. ‏**Actions** ← "JARVIS web app" ← **Run workflow**. ה-workflow בונה את האתר, מריץ את הבדיקות ומפרסם.
-3. הכתובת תהיה `https://niro11111.github.io/niro11111/`. אפשר לפתוח אותה בכל מכשיר ו"להוסיף למסך הבית" בטלפון.
+**איך מקבלים את האתר העצמאי:**
+- אתר ה-GitHub Pages של המאגר הזה כבר משמש את הקורס של Claude Code, ולמאגר יש רק אתר Pages אחד. לכן JARVIS **לא** מתפרסם לשם אוטומטית, כדי לא לדרוס את הקורס.
+- כל דחיפה מריצה את "JARVIS web app" ב-Actions. ה-workflow מריץ את הבדיקות ובונה את האתר, ואת הקובץ המוכן (`jarvis-webapp`) מורידים מעמוד ההרצה.
+- כדי לקבל ל-JARVIS כתובת קבועה משלו: יוצרים מאגר חדש (למשל `jarvis`), מעלים אליו את תוכן `dist/webapp`, ומפעילים Settings ← Pages ← Deploy from branch. אפשר גם לגרור את התיקייה ל-https://app.netlify.com/drop.
 
 **בנייה ידנית:** `cd jarvis && npm install && npm run build:webapp`, ואז מעלים את התיקייה `dist/webapp` לכל אחסון סטטי (Netlify, Cloudflare Pages ודומיהם).
 

@@ -1,16 +1,15 @@
-# Builds the standalone JARVIS web app and publishes it to GitHub Pages.
-# One-time setup: repository Settings -> Pages -> Source: "GitHub Actions".
+# Tests and builds the standalone JARVIS web app. It does NOT publish to GitHub Pages:
+# this repository's Pages site belongs to the Claude Code course (pages.yml), and a
+# repository has only one Pages site. Download the built site from the run's artifacts
+# ("jarvis-webapp") and host it anywhere static, or give JARVIS its own repository.
 name: JARVIS web app
 on:
   push:
-    branches: [main, master, claude/jarvis-ai-system-spec-oxc6aq]
+    branches: [claude/jarvis-ai-system-spec-oxc6aq]
     paths: ['jarvis/**', '.github/workflows/jarvis-pages.yml']
   workflow_dispatch:
 permissions:
   contents: read
-  pages: write
-  id-token: write
-concurrency: { group: pages, cancel-in-progress: true }
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -22,12 +21,5 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build:webapp
-      - uses: actions/upload-pages-artifact@v3
-        with: { path: jarvis/dist/webapp }
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment: { name: github-pages, url: '${{ steps.d.outputs.page_url }}' }
-    steps:
-      - id: d
-        uses: actions/deploy-pages@v4
+      - uses: actions/upload-artifact@v4
+        with: { name: jarvis-webapp, path: jarvis/dist/webapp, include-hidden-files: true }
