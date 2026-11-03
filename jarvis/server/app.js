@@ -20,6 +20,7 @@ import { Devices } from './devices/devices.js';
 import { Metrics } from './observability/metrics.js';
 import { Weather } from './context/weather.js';
 import { Privacy } from './privacy/privacy.js';
+import { expoPushSender } from './notify/expo-push.js';
 
 export async function createApp(opts = {}) {
   const { file = null, router = null, home = null, seed = true } = opts;
@@ -34,7 +35,7 @@ export async function createApp(opts = {}) {
     wealth: new WealthService(store, audit),
     home: home ?? createHomeAdapter(),
     productivity: new Productivity(store),
-    notifications: new Notifications(store),
+    notifications: new Notifications(store, { push: expoPushSender(store, opts.fetch) }),
     bridge: new BridgeBroker(),
     router: router ?? await ModelRouter.fromEnv(),
   };

@@ -66,6 +66,14 @@ export function createServer(s, token, opts = {}) {
   r('GET', '/api/devices/capabilities', () => CAPABILITIES);
   r('POST', '/api/devices', (req) => s.devices.register(req.body));
   r('DELETE', '/api/devices/:id', (req, p) => ({ revoked: s.devices.revoke(p.id) }));
+  r('POST', '/api/devices/push-token', (req) => {
+    if (!req.device) throw Object.assign(new Error('call this with a device token'), { status: 400 });
+    if (!/^ExponentPushToken\[[\w-]+\]$/.test(req.body.pushToken ?? '')) throw Object.assign(new Error('invalid Expo push token'), { status: 400 });
+    s.store.update('devices', req.device.id, { pushToken: req.body.pushToken });
+    const prefs = s.notifications.prefs();
+    if (!prefs.channels.includes('push')) s.notifications.setPrefs({ channels: [...prefs.channels, 'push'] });
+    return { ok: true };
+  }, 'sync');
   r('GET', '/api/sync', (req) => s.devices.pull(req.device, req.query.get('since')), 'sync');
   r('POST', '/api/sync/push', (req) => applyOps(s, req.device ?? { id: 'master', kind: 'web' }, req.body.ops), 'sync');
 

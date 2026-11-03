@@ -43,6 +43,7 @@ async function refreshBadges() {
 
 let es;
 function connectStream() {
+  if (window.JARVIS_MOCK) return; // no live stream in the recorded demo
   es?.close();
   es = new EventSource(`/api/stream?token=${encodeURIComponent(auth.get())}`);
   es.onmessage = (m) => {
@@ -80,7 +81,7 @@ buildNav();
 tickClock(); setInterval(tickClock, 1000);
 
 async function boot() {
-  if (!auth.get()) return showLogin();
+  if (!auth.get() && !window.JARVIS_MOCK) return showLogin();
   connectStream(); refreshBadges(); setInterval(refreshBadges, 30000);
   await render();
 }

@@ -1,0 +1,12 @@
+<!doctype html><html lang="he" dir="rtl"><meta charset="utf-8"><title>JARVIS</title>
+<style>body{margin:0;background:radial-gradient(circle at 50% 40%,#0b2a44,#02040a 65%);color:#9fe8ff;font-family:system-ui,sans-serif;display:grid;place-items:center;height:100vh;text-align:center}
+.r{width:120px;height:120px;border-radius:50%;border:2px solid #2ee6ff;border-top-color:transparent;animation:s 2s linear infinite;margin:0 auto 22px;box-shadow:0 0 30px #2ee6ff55}@keyframes s{to{transform:rotate(1turn)}}
+code{background:#0a1a30;padding:2px 8px;border-radius:6px}</style>
+<body><div><div class="r"></div><h2 style="letter-spacing:.3em">J.A.R.V.I.S</h2>
+<p>ממתין לשרת JARVIS… / Waiting for the JARVIS server…</p><p style="opacity:.7">הפעילו: <code>cd jarvis && npm start</code></p><p id="u" style="opacity:.5;font-size:12px"></p></div>
+<script>
+const server = new URLSearchParams(location.search).get('server') || 'http://127.0.0.1:7777/';
+document.getElementById('u').textContent = server;
+// Retry every 3 seconds; navigate as soon as the server answers.
+setInterval(() => { fetch(server + 'api/health', { mode: 'no-cors' }).then(() => { location.href = server; }).catch(() => {}); }, 3000);
+</script></body></html>

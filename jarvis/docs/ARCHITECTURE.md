@@ -87,28 +87,4 @@ The web client uses the browser's Web Speech API for speech-to-text (`he-IL` / `
 
 ## 8. Built vs planned
 
-The items marked built are covered by tests.
-
-| Area | Status |
-|---|---|
-| JARVIS CORE, states, planning, approvals, verification | Built |
-| 12 agents with allow-lists and limits | Built. Coding, communication, planning and vision answer through the routed LLM |
-| Memory engine | Built (local vectors). pgvector backend is planned |
-| Family Wealth OS service and API | Built on demo data. A connector to the real FWOS database or API is the next step, through `/api/wealth/import` or a service adapter |
-| Smart home | Home Assistant adapter plus demo home. Matter and MQTT are reached via HA |
-| Productivity, briefings, weekly report | Built. Google and Microsoft calendar OAuth sync is planned |
-| Automations | Engine and JSON builder built. A drag-and-drop visual builder is planned |
-| Notifications | In-app, SSE and browser notifications built. Email, SMS and mobile push have pluggable senders that report `not_configured` |
-| Documents | Text, MD, CSV, JSON and HTML built. PDF, DOCX and XLSX extraction and OCR are planned as an extraction service that feeds `Documents.add` |
-| Research | URL fetch with injection guard built. Open-web research via the provider's web search |
-| Desktop | Node bridge built (open app or URL, list or read allowed files, screenshot on macOS and Linux). The Tauri app with tray, global shortcut and notifications is planned and will embed `web/` and the same bridge protocol |
-| Mobile | Planned: an Expo app against the same REST and SSE API. The web client is already responsive and installable as a PWA |
-| Multi-user / OAuth identity | Planned. Today it is a single-household local install with a bearer token |
-
-## 9. Next steps
-
-1. Connect the real Family Wealth OS data source and replace the demo seed.
-2. Tauri shell: tray, global shortcut (push-to-talk), native notifications, and the bridge in Rust with the same allow-list rules.
-3. Expo mobile app: chat, voice, approvals and push notifications, continuing desktop tasks through the shared task store.
-4. PostgreSQL + pgvector storage, and OAuth (Google, Microsoft) for calendar and email.
-5. Document extraction service (PDF, DOCX, XLSX, OCR).
+The current, section-by-section status of both specs (master and evolution) is in [`EVOLUTION.md`](EVOLUTION.md). The owner's setup steps are in [`SETUP_GUIDE.he.md`](SETUP_GUIDE.he.md).

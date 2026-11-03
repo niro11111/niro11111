@@ -65,7 +65,7 @@ export class Devices {
   }
 
   list() { return this.store.all('devices').map((d) => this.public(d)); }
-  public({ tokenHash, ...d }) { return { ...d, capability: CAPABILITIES[d.kind] }; }
+  public({ tokenHash, pushToken, ...d }) { return { ...d, push: !!pushToken, capability: CAPABILITIES[d.kind] }; }
 
   /** Changes since `seq`, filtered to what this device kind may receive. */
   pull(device, since = 0) {

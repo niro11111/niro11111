@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="he" dir="rtl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>J.A.R.V.I.S</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Orbitron:wght@500;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="styles.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg">
+<meta name="theme-color" content="#03060d">
+</head>
+<body>
+<div class="bg-grid" aria-hidden="true"></div>
+
+<div id="login" class="login hidden" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+  <div class="login-card glass">
+    <div id="loginCore" class="login-core"></div>
+    <h1 id="loginTitle" class="brandmark">J.A.R.V.I.S</h1>
+    <p data-i18n="login_hint"></p>
+    <form id="loginForm"><input id="tokenInput" type="password" autocomplete="off" required data-i18n-ph="token"><button class="btn primary" data-i18n="connect"></button></form>
+    <p id="loginErr" class="err" role="alert"></p>
+  </div>
+</div>
+
+<div class="shell">
+  <aside class="nav glass" id="sideNav" aria-label="Main">
+    <div class="brand"><span class="brand-dot"></span><span class="brandmark">J.A.R.V.I.S</span></div>
+    <nav id="nav"></nav>
+    <div class="nav-foot">
+      <button id="langBtn" class="chip-btn" aria-label="Language">EN</button>
+      <button id="themeBtn" class="chip-btn" aria-label="Theme">◐</button>
+    </div>
+  </aside>
+
+  <main id="main">
+    <header class="topbar">
+      <button id="menuBtn" class="chip-btn mobile-only" aria-label="Menu">☰</button>
+      <div class="top-title"><h1 id="viewTitle"></h1><span id="viewSub" class="muted small"></span></div>
+      <div class="top-clock" aria-hidden="true"><div id="clockTime" class="clock-time"></div><div id="clockDate" class="clock-date"></div></div>
+      <div class="top-right">
+        <span id="demoBadge" class="tag warn hidden" data-i18n="demo_data"></span>
+        <span id="aiBadge" class="tag"></span>
+        <span id="micIndicator" class="mic-live hidden" role="status"><i></i><b data-i18n="mic_on"></b></span>
+        <button id="bellBtn" class="chip-btn" aria-label="Notifications">🔔 <span id="bellCount">0</span></button>
+      </div>
+    </header>
+    <section id="view" tabindex="-1"></section>
+  </main>
+</div>
+
+<div id="toasts" class="toasts" aria-live="polite"></div>
+<script type="module" src="js/mock.js"></script>
+</body>
+</html>

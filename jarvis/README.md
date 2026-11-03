@@ -1,66 +1,58 @@
 # J.A.R.V.I.S AI: Personal Intelligence OS
 
-A working first release of JARVIS. It includes the core orchestrator, 12 specialised agents, typed long-term memory, the Family Wealth OS integration, smart home control, productivity, automations, notifications, a security layer, a desktop bridge, and a web command center with voice in Hebrew and English.
+A personal AI operating system for one household. It covers:
+- a central brain (JARVIS CORE) and 18 specialist agents
+- long-term memory, Family Wealth OS, a smart home and automations
+- a holographic web command center in Hebrew and English
+- a desktop app, a phone app and smartwatch apps
 
 ```bash
-cd jarvis
-npm install
-npm start          # http://127.0.0.1:7777, then paste the token printed in the console
-npm test           # 29 tests: core, domain, HTTP API
+cd jarvis && npm install && npm start     # http://127.0.0.1:7777, then paste the token printed in the console
+npm test                                  # 46 unit / integration / API tests
+npm run test:e2e                          # browser tests: all screens, RTL/LTR, a11y, approvals, phone width
+npm run build:prototypes                  # prototypes/demo: the real UI on recorded data, no server needed
 ```
 
-It runs without any configuration. JARVIS starts with a demo household (labelled **demo data** in the UI) and a demo smart home. Connect real services with environment variables:
+📘 **Setup guide, including what only you can do:** [`docs/SETUP_GUIDE.he.md`](docs/SETUP_GUIDE.he.md)
+📊 **Status of every spec section:** [`docs/EVOLUTION.md`](docs/EVOLUTION.md) · Design: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+
+## System map
+
+```
+                         JARVIS CORE (intent he/en → plan → permissions → approval → execute → verify)
+   Memory Engine · Voice Engine · Computer Engine · Agent Engine (18) · Security Engine · Automation Engine
+        Web (built) · Desktop/Tauri (built & run) · iOS+Android/Expo (bundled) · Apple Watch / Wear OS (source)
+```
+
+## Configuration
 
 | Variable | Effect |
 |---|---|
-| `ANTHROPIC_API_KEY` | Enables Claude for open questions, web research and page summaries. Without it, built-in commands still work offline, and open questions fail with a clear message rather than a made-up answer |
-| `JARVIS_MODEL_FAST` / `_BALANCED` / `_DEEP` | Override the model for each routing tier (defaults: `claude-haiku-5-5`, `claude-sonnet-5-5`, `claude-opus-5-5`) |
-| `HA_URL`, `HA_TOKEN` | Use a real Home Assistant instance in place of the demo home. Matter and MQTT devices come in through Home Assistant |
-| `JARVIS_TOKEN` | Fixed API token. If unset, one is generated and stored in `data/jarvis.json` |
-| `JARVIS_HOST`, `PORT`, `JARVIS_DATA` | Bind address (default `127.0.0.1`), port, and data file |
-
-Desktop control runs through a separate local process that the user starts and restricts:
-
-```bash
-JARVIS_TOKEN=<token> JARVIS_ALLOWED_DIRS=~/Documents JARVIS_ALLOWED_APPS=calculator,code node desktop/bridge.js
-```
-
-## What you can say
-
-| Example | What happens |
-|---|---|
-| "JARVIS, organize my day" / "תארגן לי את היום" | Daily briefing: schedule, tasks, bills, approvals, offline devices, next action |
-| "כמה הוצאנו החודש?" / "How much did we spend this month?" | Deterministic spending analysis with comparison to last month and recommendations |
-| "Find unnecessary expenses", "Which upcoming payments require attention?", "Show our total financial assets", "How are we progressing toward our savings goals?", "Prepare a financial report" | Family Wealth OS read and analysis tools |
-| "Transfer 500 to Dan" | Detected as money movement, asks for approval, and is **never executed**. The attempt is logged as blocked |
-| "Turn off the lights downstairs", then "turn them on" | Resolves the devices, executes, verifies the real state, and remembers "them" for the next command |
-| "Set the temperature to 23", then "no, 22" | Applies the correction to the previous command |
-| "Unlock the front door" | Sensitive action: waits in `AWAITING_APPROVAL` until you approve |
-| "Remind me to pay the electricity bill tomorrow at 9" | Creates a reminder (not a payment). A notification fires when it is due |
-| "Turn off the lights and then remind me to lock up in 10 minutes" | A two-step plan run in order |
-| "Remember that I prefer short answers" / "What do you know about…" | Memory, tagged with where each fact came from |
-| A URL, or "research …" | Fetches the page as untrusted content, flags injection attempts, and summarises it (needs an AI provider) |
+| `ANTHROPIC_API_KEY` | Claude for open questions, research, vision (routing: haiku / sonnet / opus by task). Without it, built-in commands still work and open questions fail clearly |
+| `HA_URL`, `HA_TOKEN` | Real Home Assistant in place of the demo home |
+| `JARVIS_TOKEN` | Owner token. If unset, one is generated and stored in `data/jarvis.json` |
+| `JARVIS_HOST`, `PORT`, `JARVIS_DATA` | Bind address (default `127.0.0.1`), port, data file |
+| `JARVIS_MODEL_FAST` / `_BALANCED` / `_DEEP` | Override routing tiers |
 
 ## Layout
 
 ```
-server/
-  core/        orchestrator (JARVIS CORE), states, intent parser (he/en), model router
-  agents/      12 agents with tool allow-lists and step limits
-  tools/       tool registry (risk-tagged, verify()), research fetcher, desktop bridge broker
-  security/    permission policy, audit log, untrusted-content guard, auth
-  memory/      typed memory with provenance, local embeddings, semantic search
-  wealth/      deterministic finance calculations + Family Wealth OS service
-  home/        Home Assistant adapter + demo home
-  productivity/ tasks, calendar, reminders, briefings, he/en time parsing
-  automation/  workflow engine
-  notify/      notifications (priority, quiet hours, grouping, channels)
-  proactive/   priority-scored proactive suggestions
-  documents/   chunking + semantic document search
-web/           command center (vanilla JS, no build step, PWA manifest)
-desktop/       desktop bridge (least-privilege local executor)
-docs/          ARCHITECTURE.md: design, security model, roadmap
-tests/
+server/      core (orchestrator, intent, router, personality) · agents · tools · memory · documents · wealth · home
+             productivity · automation (engine + natural-language builder) · notify (+ Expo push) · proactive
+             devices (registry, scopes, sync) · health · privacy · observability · context (weather) · security · system
+web/         command center: 13 screens, holographic SVG core, voice, charts. No build step. Hebrew RTL / English LTR
+sdk/         JS client: auth, change feed, offline queue with idempotent ops + backoff (used by the phone app)
+apps/        mobile (Expo) · desktop (Tauri) · watchos (SwiftUI) · wearos (Compose)
+desktop/     least-privilege desktop bridge (apps, URLs, allowed folders, screenshots)
+prototypes/  build.mjs + mock backend → demo/ (interactive UI) and devices.html (watch & phone screens)
+tests/       node:test suites + e2e/ui.e2e.mjs (Playwright)
 ```
 
-Read `docs/ARCHITECTURE.md` for the design, the security model, and what is built versus planned.
+## Safety rules enforced in code
+
+- **Money.** JARVIS never moves money, invests, buys or changes financial products. Money requests are logged as blocked, even after approval.
+- **Sensitive actions.** Unlocking doors, disarming alarms, reading files and taking screenshots always ask first. The approval is bound to the exact action and expires after 15 minutes.
+- **Autonomy.** Levels 1–4, default 3. At no level can sensitive or financial actions run without asking.
+- **Data domains.** Finance, health, family and work data are separate, and each agent reads only its domains. Health is off by default and never sent to a model.
+- **Untrusted content.** Web pages, documents and emails are data, never instructions.
+- **Verification.** Nothing is reported as done until its state was verified.
