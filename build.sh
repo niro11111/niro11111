@@ -35,3 +35,10 @@ sed "s/__BUILD__/$ver/" web/sw.js > site/sw.js
 cp site/index.html site/404.html
 touch site/.nojekyll
 echo "built site/ (version $ver)"
+
+# Downloadable copies: one HTML file and the zipped web app
+mkdir -p dist
+cp index.html dist/claude-code-academy.html
+rm -f dist/claude-code-academy-webapp.zip
+(cd site && zip -qr ../dist/claude-code-academy-webapp.zip . -x '404.html')
+echo "built dist/"
