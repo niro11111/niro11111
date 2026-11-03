@@ -1,5 +1,5 @@
 // Conversation state shared by every screen.
-import { api, esc, local, toast, $$ } from './api.js';
+import { api, esc, local, toast, $$, confirmDialog } from './api.js';
 import { t } from './i18n.js';
 import { setCoreState } from './core.js';
 import { voice, speak, toggleListening } from './voice.js';
@@ -47,7 +47,7 @@ document.addEventListener('click', async (e) => {
   if (!b) return;
   const id = b.dataset.approve ?? b.dataset.reject;
   const decision = b.dataset.approve ? 'approve' : 'reject';
-  if (decision === 'approve' && !confirm(t('confirm_approve'))) return;
+  if (decision === 'approve' && !(await confirmDialog(t('confirm_approve'), { okText: t('approve') }))) return;
   try {
     setCoreState('executing');
     const task = await api(`/api/approvals/${id}`, { method: 'POST', body: { decision } });

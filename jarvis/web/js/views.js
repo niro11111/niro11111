@@ -1,5 +1,5 @@
 // Screens. Each view renders into #view and may register a cleanup for timers.
-import { api, esc, money, toast, $, $$, local, auth } from './api.js';
+import { api, esc, money, toast, $, $$, local, auth, confirmDialog, promptDialog } from './api.js';
 import { t, getLang } from './i18n.js';
 import { coreHTML, setCoreState } from './core.js';
 import { chatPanel, renderChats, clearChat, chatEvents } from './chat.js';
@@ -162,7 +162,7 @@ async function automations(v) {
   $('#simHome').onclick = async () => { const r = await api('/api/presence', { method: 'POST', body: { state: 'arrived_home' } }); toast(`${r.length} workflow run(s)`); automations(v); };
   $$('[data-run]', v).forEach((b) => { b.onclick = async () => { const r = await api(`/api/automations/${b.dataset.run}/run`, { method: 'POST', body: {} }); toast(r.status); automations(v); }; });
   $$('[data-tog]', v).forEach((b) => { b.onclick = async () => { await api(`/api/automations/${b.dataset.tog}`, { method: 'PATCH', body: { enabled: b.dataset.en !== 'true' } }); automations(v); }; });
-  $$('[data-del]', v).forEach((b) => { b.onclick = async () => { if (confirm(t('delete'))) { await api(`/api/automations/${b.dataset.del}`, { method: 'DELETE' }); automations(v); } }; });
+  $$('[data-del]', v).forEach((b) => { b.onclick = async () => { if (await confirmDialog(t('delete'), { danger: true, okText: t('delete') })) { await api(`/api/automations/${b.dataset.del}`, { method: 'DELETE' }); automations(v); } }; });
   $$('[data-wfa]', v).forEach((b) => { b.onclick = async () => { await api(`/api/automations/runs/${b.dataset.wfa}/approve`, { method: 'POST', body: { decision: 'approve' } }); automations(v); }; });
   $$('[data-wfc]', v).forEach((b) => { b.onclick = async () => { await api(`/api/automations/runs/${b.dataset.wfc}/cancel`, { method: 'POST' }); automations(v); }; });
 }
@@ -186,14 +186,14 @@ async function knowledge(v) {
       <select data-prov="${m.id}" class="xs">${meta.provenance.map((p) => `<option ${p === m.provenance ? 'selected' : ''}>${p}</option>`).join('')}</select><span class="tag ${pv(m.provenance)} xs">${m.provenance}</span>
       <button class="btn sm" data-edit="${m.id}">${t('edit')}</button><button class="btn danger sm" data-mdel="${m.id}">✕</button></li>`).join('') || '<li class="empty">—</li>';
     $$('[data-prov]', v).forEach((s) => { s.onchange = async () => { await api(`/api/memory/${s.dataset.prov}`, { method: 'PATCH', body: { provenance: s.value } }); toast(t('updated')); }; });
-    $$('[data-edit]', v).forEach((b) => { b.onclick = async () => { const m = items.find((x) => x.id === b.dataset.edit); const c = prompt(t('edit'), m.content); if (c) { await api(`/api/memory/${m.id}`, { method: 'PATCH', body: { content: c } }); knowledge(v); } }; });
-    $$('[data-mdel]', v).forEach((b) => { b.onclick = async () => { if (confirm(t('delete'))) { await api(`/api/memory/${b.dataset.mdel}`, { method: 'DELETE' }); knowledge(v); } }; });
+    $$('[data-edit]', v).forEach((b) => { b.onclick = async () => { const m = items.find((x) => x.id === b.dataset.edit); const c = await promptDialog(t('edit'), m.content); if (c) { await api(`/api/memory/${m.id}`, { method: 'PATCH', body: { content: c } }); knowledge(v); } }; });
+    $$('[data-mdel]', v).forEach((b) => { b.onclick = async () => { if (await confirmDialog(t('delete'), { danger: true, okText: t('delete') })) { await api(`/api/memory/${b.dataset.mdel}`, { method: 'DELETE' }); knowledge(v); } }; });
   };
   draw(list.filter((m) => !m.tags?.some((x) => String(x).startsWith('doc:'))));
   let tm; $('#memQ').oninput = (e) => { clearTimeout(tm); tm = setTimeout(async () => draw(e.target.value ? await api(`/api/memory/search?q=${encodeURIComponent(e.target.value)}`) : list), 250); };
   $('#memForm').onsubmit = async (e) => { e.preventDefault(); const f = Object.fromEntries(new FormData(e.target)); if (f.expiresAt) f.expiresAt = new Date(f.expiresAt).toISOString(); else delete f.expiresAt;
     try { const r = await api('/api/memory', { method: 'POST', body: f }); toast(r.duplicate ? '≈ duplicate' : t('saved')); knowledge(v); } catch (err) { toast(err.message); } };
-  $('#memExport').onclick = async () => { const d = await api('/api/memory/export'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' })); a.download = 'jarvis-memory.json'; a.click(); };
+  $('#memExport').onclick = async () => { if (window.JARVIS_MOCK) return toast(t('demo_no_export')); const d = await api('/api/memory/export'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' })); a.download = 'jarvis-memory.json'; a.click(); };
   $('#docFile').onchange = async (e) => { const f = e.target.files[0]; if (!f) return; if (f.size > 1.5e6) return toast('1.5 MB max'); try { await api('/api/documents', { method: 'POST', body: { name: f.name, text: await f.text() } }); toast(t('saved')); knowledge(v); } catch (err) { toast(err.message); } };
   $$('[data-ddel]', v).forEach((b) => { b.onclick = async () => { await api(`/api/documents/${b.dataset.ddel}`, { method: 'DELETE' }); knowledge(v); }; });
 }
@@ -266,7 +266,7 @@ async function devices(v) {
     <div class="c8 col"><div class="panel glass corner"><h2>${t('devices')}</h2><ul class="list">${list.map((d) => `<li><span class="dot ${d.revoked ? 'bad' : 'ok'}"></span><span class="grow">${esc(d.name)} <span class="tag xs">${esc(d.kind)}</span><div class="xs muted">${d.lastSeenAt ? esc(d.lastSeenAt.slice(0, 19)) : '—'} · scopes: ${esc(d.scopes.join(','))}</div></span>${d.revoked ? '<span class="tag bad xs">revoked</span>' : `<button class="btn danger sm" data-rev="${d.id}">${t('revoke')}</button>`}</li>`).join('') || '<li class="empty">—</li>'}</ul></div>
     <div class="panel glass corner"><h2>${t('capabilities')}</h2><table><tr><th>${t('kind')}</th><th>Status</th><th>${t('capabilities')}</th></tr>${Object.entries(caps).map(([k, c]) => `<tr><td class="mono">${k}</td><td><span class="tag ${c.status === 'built' ? 'ok' : 'warn'} xs">${t(`status_${c.status}`)}</span></td><td class="xs">${esc(c.caps.join(', '))}${c.note ? `<div class="muted">${esc(c.note)}</div>` : ''}</td></tr>`).join('')}</table></div></div></div>`;
   $('#regF').onsubmit = async (e) => { e.preventDefault(); const r = await api('/api/devices', { method: 'POST', body: Object.fromEntries(new FormData(e.target)) }); $('#regOut').innerHTML = `${t('token_once')}<br><code class="mono" dir="ltr">${esc(r.token)}</code>`; };
-  $$('[data-rev]', v).forEach((b) => { b.onclick = async () => { if (confirm(t('revoke'))) { await api(`/api/devices/${b.dataset.rev}`, { method: 'DELETE' }); devices(v); } }; });
+  $$('[data-rev]', v).forEach((b) => { b.onclick = async () => { if (await confirmDialog(t('revoke'), { danger: true, okText: t('delete') })) { await api(`/api/devices/${b.dataset.rev}`, { method: 'DELETE' }); devices(v); } }; });
 }
 
 // ===================================================== Developer Console
@@ -302,9 +302,9 @@ async function privacy(v) {
   $('#ret').onchange = async (e) => { try { await api('/api/privacy', { method: 'PUT', body: { voiceRetentionDays: Number(e.target.value) } }); toast(t('updated')); } catch (err) { toast(err.message); } };
   $$('input[name=auto]', v).forEach((r) => { r.onchange = async () => { await api('/api/autonomy', { method: 'PUT', body: { level: Number(r.value) } }); toast(`L${r.value}`); }; });
   $$('[data-risk]', v).forEach((sel) => { sel.onchange = async () => { try { await api('/api/security/policy', { method: 'PUT', body: { risk: sel.dataset.risk, mode: sel.value } }); toast(t('updated')); } catch (err) { toast(err.message); privacy(v); } }; });
-  $('#delVoice').onclick = async () => { if (confirm(t('delete_voice'))) { await api('/api/privacy/voice', { method: 'DELETE' }); privacy(v); } };
-  $$('[data-dd]', v).forEach((b) => { b.onclick = async () => { if (confirm(`${t('delete_domain')}: ${b.dataset.dd}?`)) { const r = await api(`/api/privacy/domain/${b.dataset.dd}`, { method: 'DELETE' }); toast(`✕ ${r.deleted}`); privacy(v); } }; });
-  $('#expAll').onclick = async () => { const d = await api('/api/privacy/export'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' })); a.download = 'jarvis-export.json'; a.click(); };
+  $('#delVoice').onclick = async () => { if (await confirmDialog(t('delete_voice'), { danger: true, okText: t('delete') })) { await api('/api/privacy/voice', { method: 'DELETE' }); privacy(v); } };
+  $$('[data-dd]', v).forEach((b) => { b.onclick = async () => { if (await confirmDialog(`${t('delete_domain')}: ${b.dataset.dd}?`, { danger: true, okText: t('delete') })) { const r = await api(`/api/privacy/domain/${b.dataset.dd}`, { method: 'DELETE' }); toast(`✕ ${r.deleted}`); privacy(v); } }; });
+  $('#expAll').onclick = async () => { if (window.JARVIS_MOCK) return toast(t('demo_no_export')); const d = await api('/api/privacy/export'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' })); a.download = 'jarvis-export.json'; a.click(); };
 }
 
 // ===================================================== Settings
@@ -330,6 +330,6 @@ async function settings(v) {
 export const VIEWS = [
   ['sec_core'], ['command', '◉', command], ['conversation', '◍', conversation], ['map', '⌬', map], ['agents', '⎔', agents], ['automations', '⟳', automations], ['knowledge', '⛁', knowledge],
   ['sec_life'], ['planner', '✓', planner], ['wealth', '₪', wealth], ['home', '⌂', home],
-  ['sec_system'], ['devices', '⌚', devices], ['console', '⌨', consoleView], ['privacy', '⛨', privacy], ['settings', '⚙', settings],
+  ['sec_system'], ['devices', '⌚', devices], ['console', '⌨', consoleView], ['privacy', '⛨', privacy], ['preferences', '⚙', settings],
 ];
 export { toggleListening };

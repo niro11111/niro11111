@@ -10,7 +10,7 @@ import { DemoHomeAdapter } from '../../server/home/smarthome.js';
 
 const require = createRequire(import.meta.url);
 const { chromium } = require('playwright');
-const VIEWS = ['command', 'conversation', 'map', 'agents', 'automations', 'knowledge', 'planner', 'wealth', 'home', 'devices', 'console', 'privacy', 'settings'];
+const VIEWS = ['command', 'conversation', 'map', 'agents', 'automations', 'knowledge', 'planner', 'wealth', 'home', 'devices', 'console', 'privacy', 'preferences'];
 
 const s = await createApp({ router: new ModelRouter(), home: new DemoHomeAdapter(), fetch: async () => { throw new Error('offline'); } });
 const srv = createServer(s, 'e2e', { rateLimit: 100000 });
@@ -60,8 +60,8 @@ try {
     await page.fill('.composer input', 'פתח את הדלת'); await page.press('.composer input', 'Enter');
     await page.waitForSelector('.chat [data-approve]');
     assert.equal((await s.home.devices()).find((d) => d.id === 'lock.front_door').state, 'locked', 'nothing happens before approval');
-    page.once('dialog', (d) => d.accept());
     await page.click('.chat [data-approve]');
+    await page.click('.dlg-yes'); // in-page confirmation, showing what will happen
     await page.waitForFunction(() => !document.querySelector('.chat [data-approve]'));
     await page.waitForTimeout(200);
     assert.equal((await s.home.devices()).find((d) => d.id === 'lock.front_door').state, 'unlocked');

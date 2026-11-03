@@ -2,28 +2,28 @@
  "he": {
   "lang": "he",
   "status": "approval",
-  "time": "2026-11-03T13:45:00.514Z",
+  "time": "2026-11-03T13:49:52.677Z",
   "nextEvent": {
    "title": "פגישת צוות",
-   "start": "2026-11-03T16:45:00.278Z"
+   "start": "2026-11-03T16:49:52.406Z"
   },
   "tasks": [
    {
-    "id": "task_a263a6f9b36f4b71",
+    "id": "task_0ca463398a0d4b09",
     "title": "להגיש דוח רבעוני"
    },
    {
-    "id": "task_419123a970f84972",
+    "id": "task_eb299740038f474b",
     "title": "לקבוע תור לרופא שיניים"
    },
    {
-    "id": "task_6a6517e7c1694cbd",
+    "id": "task_04e7810cf4a547a2",
     "title": "Renew car insurance"
    }
   ],
   "approvals": [
    {
-    "id": "appr_9e2f810cffb740d8",
+    "id": "appr_cedd104297e649ab",
     "summary": "unlock lock.front_door",
     "risk": "sensitive"
    }
@@ -42,9 +42,9 @@
  },
  "approvals": [
   {
-   "id": "appr_9e2f810cffb740d8",
-   "createdAt": "2026-11-03T13:45:00.449Z",
-   "taskId": "task_621eaf28145c4777",
+   "id": "appr_cedd104297e649ab",
+   "createdAt": "2026-11-03T13:49:52.626Z",
+   "taskId": "task_b2364fb728d244df",
    "step": 1,
    "tool": "home.control",
    "agent": "smarthome",
@@ -57,8 +57,8 @@
    },
    "actionHash": "74ce149654451607a00917e8a152ddb006981e5b58bfd31b321330bf87e1395a",
    "status": "pending",
-   "requestedAt": "2026-11-03T13:45:00.449Z",
-   "expiresAt": "2026-11-03T14:00:00.449Z"
+   "requestedAt": "2026-11-03T13:49:52.626Z",
+   "expiresAt": "2026-11-03T14:04:52.626Z"
   }
  ]
 }
