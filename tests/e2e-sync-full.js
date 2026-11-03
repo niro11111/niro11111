@@ -24,8 +24,8 @@ for(let i=0;i<3;i++){await A.evaluate(i=>{const q=document.querySelector('#insta
 for(let i=0;i<3;i++){await A.evaluate(i=>{const q=document.querySelector('#install .q[data-i="'+i+'"]');q.querySelector('label.r input').click();},i);}
 await A.click('#install details.notes summary');await A.fill('#install [data-note]','note from A');
 await A.goto(U+'#tracks');await A.waitForTimeout(200);await A.click('[data-track="be"]');
-await A.click('#lookBtn');await A.click('[data-look="ocean"]');await A.keyboard.press('Escape');
 await A.click('#themeBtn');
+await A.click('#lookBtn');await A.click('[data-look="ocean"]');await A.keyboard.press('Escape');
 await settle();
 const xpA=await xp(A);ok(xpA>0,'A earned XP ('+xpA+')');
 // B loads fresh and receives everything

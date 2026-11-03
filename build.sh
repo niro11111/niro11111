@@ -11,12 +11,15 @@ s = open("src/claude-code-course.html", encoding="utf-8").read()
 open(sys.argv[1], "w", encoding="utf-8").write(s[s.index("<script>") + 8 : s.rindex("</script>")])
 PY
 node --check "$tmp/page.js" || { echo "build failed: script syntax error" >&2; exit 1; }
-{
-  echo '<!doctype html>'
-  echo '<html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"></head><body>'
-  cat src/claude-code-course.html
-  echo '</body></html>'
-} > index.html
+# head material (title, meta, fonts, style) goes into <head>, the app into <body>
+python3 - <<'PY'
+s = open("src/claude-code-course.html", encoding="utf-8").read()
+i = s.index('<div class="app"')
+out = ('<!DOCTYPE html>\n<html lang="he" dir="rtl">\n<head>\n<meta charset="utf-8">\n'
+       '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
+       + s[:i].strip() + '\n</head>\n<body>\n' + s[i:].strip() + '\n</body>\n</html>\n')
+open("index.html", "w", encoding="utf-8").write(out)
+PY
 echo "built index.html"
 
 # Website / installable app (GitHub Pages): index.html plus the PWA layer from web/
@@ -26,7 +29,8 @@ head='<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" 
 python3 - "$head" <<'PY'
 import sys
 s = open("index.html", encoding="utf-8").read()
-s = s.replace("</head>", sys.argv[1] + "</head>", 1).replace("</body></html>", '<script src="app.js" defer></script></body></html>', 1)
+s = s.replace("</head>", sys.argv[1] + "\n</head>", 1).replace("</body>\n</html>", '<script src="app.js" defer></script>\n</body>\n</html>', 1)
+assert "app.js" in s and "manifest.webmanifest" in s, "site head/body injection failed"
 open("site/index.html", "w", encoding="utf-8").write(s)
 PY
 cp web/app.js web/manifest.webmanifest site/
