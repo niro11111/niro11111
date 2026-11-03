@@ -82,6 +82,16 @@ $('#langBtn').textContent = getLang() === 'he' ? 'EN' : 'עב';
 buildNav();
 tickClock(); setInterval(tickClock, 1000);
 
+// Storage indicator for the in-browser runtime.
+addEventListener('jarvis:storage', (e) => {
+  let el = document.getElementById('storeBadge');
+  if (!el) { el = document.createElement('span'); el.id = 'storeBadge'; document.querySelector('.top-right')?.prepend(el); }
+  const d = e.detail;
+  el.className = `tag xs ${d.state === 'error' ? 'bad' : d.state === 'saving' ? 'info' : 'ok'}`;
+  el.textContent = `${d.kind === 'claude' ? '☁' : '💾'} ${t(`st_${d.state}`)}`;
+  el.title = d.message || '';
+});
+
 async function boot() {
   if (!auth.get() && !window.JARVIS_MOCK && !window.JARVIS_LOCAL) return showLogin();
   document.getElementById('bootMsg')?.remove();

@@ -265,7 +265,7 @@ ${(a.memories ?? []).map((m) => `- ${m.content} [${m.provenance}]`).join('\n') |
     const minor = Number.isInteger(a.amountMinor) ? a.amountMinor : toMinor(a.amount);
     const t = wealth.record(ctx, { amount: a.kind === 'income' ? Math.abs(minor) : -Math.abs(minor), description: a.description, category: a.category });
     const he = ctx.lang === 'he';
-    return { data: t, summary: he ? `נרשם${t.amount > 0 ? 'ה הכנסה' : 'ה הוצאה'}: ${fmt(Math.abs(t.amount))} · ${t.description} (${t.category})` : `Recorded ${t.amount > 0 ? 'income' : 'expense'}: ${fmt(Math.abs(t.amount))} · ${t.description} (${t.category})` };
+    return { data: t, summary: he ? `${t.amount > 0 ? 'נרשמה הכנסה' : 'נרשמה הוצאה'}: ${fmt(Math.abs(t.amount))} · ${t.description} (${t.category})` : `Recorded ${t.amount > 0 ? 'income' : 'expense'}: ${fmt(Math.abs(t.amount))} · ${t.description} (${t.category})` };
   }), verify: (r) => !!store.get('transactions', r.data.id) });
   def('wealth.bill_paid', { risk: RISK.WRITE, desc: 'Mark a bill as paid in the records', run: W(async (a, ctx) => {
     const b = wealth.markBillPaid(ctx, a.name);

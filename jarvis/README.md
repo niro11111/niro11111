@@ -10,11 +10,22 @@ A personal AI operating system for one household. It covers:
 cd jarvis && npm install && npm start     # http://127.0.0.1:7777, then paste the token printed in the console
 npm test                                  # 46 unit / integration / API tests
 npm run test:e2e                          # browser tests: all screens, RTL/LTR, a11y, approvals, phone width
-npm run build:prototypes                  # prototypes/demo: the real UI on recorded data, no server needed
+npm run build:webapp                      # dist/webapp: the COMPLETE JARVIS running in the browser (no server)
+npm run build:prototypes                  # prototypes/demo: the real UI on recorded data
 ```
 
 📘 **Setup guide, including what only you can do:** [`docs/SETUP_GUIDE.he.md`](docs/SETUP_GUIDE.he.md)
 📊 **Status of every spec section:** [`docs/EVOLUTION.md`](docs/EVOLUTION.md) · Design: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+
+## Three ways to run it
+
+| | Server (`npm start`) | Standalone web app (`dist/webapp`) | claude.ai artifact (`dist/artifact`) |
+|---|---|---|---|
+| Brain | Node | the same code, bundled for the browser | same |
+| Data | `data/jarvis.json` | this device (localStorage) | your private claude.ai storage |
+| AI | `ANTHROPIC_API_KEY` | your own key (optional, stored in the browser) | Claude via the viewer's account, acting through JARVIS tools |
+| Microphone | browser | browser permission prompt | blocked by the frame: use keyboard dictation |
+| Devices / sync / watch / desktop bridge | ✓ | — | — |
 
 ## System map
 

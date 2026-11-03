@@ -147,7 +147,9 @@ export class WealthService {
   }
   contribute(ctx, ref, amount) {
     if (!Number.isInteger(amount) || amount <= 0) throw Object.assign(new Error('positive integer amount required'), { status: 400 });
-    const q = String(ref ?? '').toLowerCase();
+    const HE = { 'קרן חירום': 'emergency', חירום: 'emergency', חופשה: 'vacation', חופש: 'vacation', רכב: 'car', דירה: 'home', לימודים: 'education', פנסיה: 'pension' };
+    let q = String(ref ?? '').toLowerCase().replace(/^(?:ה|ל)/, '');
+    for (const [he, en] of Object.entries(HE)) if (q.includes(he)) { q = en; break; }
     const goal = this.scoped('goals', ctx.householdId).find((g) => g.id === ref || g.name.toLowerCase().includes(q) || q.includes(g.name.toLowerCase().split(' ')[0]))
       ?? (this.scoped('goals', ctx.householdId).length === 1 ? this.scoped('goals', ctx.householdId)[0] : null);
     if (!goal) throw Object.assign(new Error(`no savings goal matching "${ref}"`), { status: 404 });

@@ -38,7 +38,7 @@ async function handleTask(task, channel) {
   }
   push({ role: 'jarvis', text: task.response ?? task.error ?? task.state, meta: `${task.state}${steps ? ` · ${steps}` : ''}`, approval });
   setCoreState(task.state === 'FAILED' ? 'error' : approval ? 'approval' : 'idle');
-  if (channel === 'voice' && task.response) speak(task.response);
+  if ((channel === 'voice' || local.get('speakAll', false)) && task.response) speak(task.response);
   chatEvents.dispatchEvent(new Event('task'));
 }
 
@@ -63,8 +63,23 @@ export function chatPanel({ cls = 'tall', title = true } = {}) {
   const el = document.createElement('div');
   el.className = 'panel glass corner';
   el.innerHTML = `${title ? `<h2>${t('conversation')}</h2>` : ''}<div class="chat ${cls}" aria-live="polite"></div><div class="interim muted small" dir="auto"></div>
-    <form class="composer"><button type="button" class="mic-btn" aria-label="${t('talk')}">🎙</button><input dir="auto" aria-label="${t('ask_ph')}" placeholder="${t('ask_ph')}"><button class="btn primary">${t('send')}</button></form>`;
+    <form class="composer"><button type="button" class="mic-btn" aria-label="${t('talk')}">🎙</button><label class="mic-btn att-btn" title="${t('attach_image')}" aria-label="${t('attach_image')}">📎<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden></label><input dir="auto" aria-label="${t('ask_ph')}" placeholder="${t('ask_ph')}"><button class="btn primary">${t('send')}</button></form>`;
   el.querySelector('.mic-btn').onclick = () => toggleListening();
+  el.querySelector('.att-btn input').onchange = async (e) => {
+    const f = e.target.files[0]; e.target.value = '';
+    if (!f) return;
+    if (f.size > 5e6) return toast('5 MB max');
+    const input = el.querySelector('form input:not([type=file])');
+    const prompt = input.value.trim(); input.value = '';
+    const data = await new Promise((res) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1]); r.readAsDataURL(f); });
+    push({ role: 'user', text: `🖼 ${f.name}${prompt ? ` · ${prompt}` : ''}` });
+    setCoreState('thinking');
+    try {
+      const r = await api('/api/input', { method: 'POST', body: { kind: 'image', mediaType: f.type, data, prompt } });
+      push({ role: 'jarvis', text: r.response, meta: `vision · ${r.state}` });
+      setCoreState(r.state === 'FAILED' ? 'error' : 'idle');
+    } catch (err) { push({ role: 'jarvis', text: err.message }); setCoreState('error'); }
+  };
   el.querySelector('form').onsubmit = (e) => { e.preventDefault(); const i = el.querySelector('input'); send(i.value); i.value = ''; };
   return el;
 }

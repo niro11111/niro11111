@@ -89,6 +89,10 @@ async function conversation(v) {
     <button id="convBtn" class="talk-btn">◉ ${esc(t('talk').toUpperCase())}</button>
     <div class="row"><button id="stopBtn" class="btn sm">■ ${t('stop')}</button><span class="xs muted">Alt+Space · Esc</span></div>
     ${voice.supported ? '' : `<p class="err small">${t('no_stt')}</p>`}
+    <div class="panel glass" style="width:100%;padding:12px"><div class="row"><b class="small grow">${t('mic_state')}</b><span id="micState" class="tag xs">…</span><button id="micReq" class="btn sm">🎙 ${t('mic_request')}</button></div>
+      <p id="micNote" class="xs muted" style="margin:6px 0 0"></p>
+      <div class="row" style="margin-top:8px"><b class="small grow">${t('notif_perm')}</b><span id="notifState" class="tag xs">…</span><button id="notifReq" class="btn sm">🔔 ${t('notif_request')}</button></div>
+      <label class="row small" style="margin-top:8px"><input id="speakAll" type="checkbox"> ${t('speech_out')}</label></div>
     <div class="kv small" style="width:100%"><label for="vLang">${t('language')}</label><select id="vLang"><option value="he-IL">עברית</option><option value="en-US">English</option></select>
     <label for="vVoice">${t('voice')}</label><select id="vVoice"></select>
     <label for="vRate">${t('voice_rate')}</label><input id="vRate" type="range" min="0.6" max="1.6" step="0.1">
@@ -105,6 +109,25 @@ async function conversation(v) {
   $('#vBarge').onchange = (e) => { voice.bargeIn = e.target.checked; saveVoicePrefs(); };
   $('#convBtn').onclick = () => { if (voice.live) stopAll(); else { voice.conversation = true; startListening(); } };
   $('#stopBtn').onclick = () => { stopAll(); setCoreState('idle'); };
+  // Microphone permission: show the real state and ask through the browser's own prompt.
+  const showMic = async () => {
+    let st = 'prompt';
+    try { st = (await navigator.permissions.query({ name: 'microphone' })).state; } catch { /* not supported */ }
+    const el = $('#micState'); if (!el) return;
+    el.textContent = t(st === 'granted' ? 'mic_granted' : st === 'denied' ? 'mic_denied' : 'mic_prompt');
+    el.className = `tag xs ${st === 'granted' ? 'ok' : st === 'denied' ? 'bad' : 'warn'}`;
+  };
+  showMic();
+  $('#micReq').onclick = async () => {
+    try { const s2 = await navigator.mediaDevices.getUserMedia({ audio: true }); s2.getTracks().forEach((tr) => tr.stop()); $('#micNote').textContent = ''; toast(t('mic_granted')); }
+    catch { $('#micNote').textContent = t('mic_blocked_frame'); }
+    showMic();
+  };
+  const showNotif = () => { const n = 'Notification' in window ? Notification.permission : 'denied'; $('#notifState').textContent = t(n === 'granted' ? 'mic_granted' : n === 'denied' ? 'mic_denied' : 'mic_prompt'); $('#notifState').className = `tag xs ${n === 'granted' ? 'ok' : n === 'denied' ? 'bad' : 'warn'}`; };
+  showNotif();
+  $('#notifReq').onclick = async () => { try { await Notification.requestPermission(); } catch { /* blocked in this frame */ } showNotif(); };
+  $('#speakAll').checked = local.get('speakAll', false);
+  $('#speakAll').onchange = (e) => local.set('speakAll', e.target.checked);
 }
 
 // ===================================================== System Map
@@ -341,7 +364,19 @@ async function privacy(v) {
 // ===================================================== Settings
 async function settings(v) {
   const [p, w, st] = await Promise.all([api('/api/settings/personality'), api('/api/context/weather'), api('/api/status')]);
-  v.innerHTML = `<div class="grid"><div class="c6 panel glass corner"><h2>${t('personality')}</h2><form id="pf" class="kv">
+  const L = window.JARVIS_LOCAL;
+  const ls = L?.settings() ?? {};
+  const store = L?.storage();
+  const runtime = L ? `<div class="c12 panel glass corner"><h2>${t('runtime')}</h2>
+    <div class="kv small"><span class="muted">${t('runtime')}</span><span>${t(L.mode === 'claude' ? 'rt_claude' : 'rt_browser')}</span>
+      <span class="muted">${t('storage')}</span><span id="stState"><span class="tag ${store.state === 'error' ? 'bad' : 'ok'} xs">${t(`st_${store.state}`)}</span> ${esc(store.message ?? '')}</span>
+      <span class="muted">${t('ai_brain')}</span><span><span class="tag ${L.ai === 'none' ? 'warn' : 'ok'} xs">${t(L.ai === 'claude' ? 'ai_claude' : L.ai === 'anthropic-key' ? 'ai_key' : 'ai_none')}</span></span></div>
+    <form id="rtF" class="kv" style="margin-top:12px">
+      ${L.ai === 'claude' ? '' : `<label for="akey">${t('api_key')}</label><input id="akey" name="anthropicKey" type="password" autocomplete="off" placeholder="${ls.anthropicKey ? '•••• (saved)' : 'sk-ant-…'}">`}
+      <label for="haurl">${t('ha_url')}</label><input id="haurl" name="haUrl" value="${esc(ls.haUrl ?? '')}" placeholder="https://homeassistant.local:8123">
+      <label for="hatok">${t('ha_token')}</label><input id="hatok" name="haToken" type="password" autocomplete="off" placeholder="${ls.haToken ? '•••• (saved)' : ''}">
+      <span></span><div class="row"><button class="btn primary sm">${t('apply_reload')}</button>${L.permissions ? `<button type="button" id="permBtn" class="btn sm">⛨ ${t('manage_perms')}</button>` : ''}<button type="button" id="wipeBtn" class="btn danger sm">${t('wipe')}</button></div></form></div>` : '';
+  v.innerHTML = `<div class="grid">${runtime}<div class="c6 panel glass corner"><h2>${t('personality')}</h2><form id="pf" class="kv">
     <label>${t('name')}</label><input name="name" value="${esc(p.name)}">
     <label>${t('style')}</label><select name="style">${['professional', 'friendly', 'witty', 'concise'].map((x) => `<option ${x === p.style ? 'selected' : ''}>${x}</option>`).join('')}</select>
     <label>${t('verbosity')}</label><select name="verbosity">${['auto', 'short', 'detailed'].map((x) => `<option ${x === p.verbosity ? 'selected' : ''}>${x}</option>`).join('')}</select>
@@ -355,6 +390,13 @@ async function settings(v) {
   $('#pf').onsubmit = async (e) => { e.preventDefault(); const f = Object.fromEntries(new FormData(e.target)); f.humor = !!e.target.humor.checked; await api('/api/settings/personality', { method: 'PUT', body: f }); toast(t('saved')); };
   $('#lf').onsubmit = async (e) => { e.preventDefault(); const f = Object.fromEntries(new FormData(e.target)); try { await api('/api/context/location', { method: 'PUT', body: { name: f.name, lat: Number(f.lat), lon: Number(f.lon) } }); toast(t('saved')); } catch (err) { toast(err.message); } };
   $('#logout').onclick = () => { auth.set(''); location.reload(); };
+  if (L) {
+    $('#rtF').onsubmit = (e) => { e.preventDefault(); const f = Object.fromEntries(new FormData(e.target)); const patch = {};
+      for (const [k, val] of Object.entries(f)) if (val || k === 'haUrl') patch[k] = val; // empty secret fields keep the saved value
+      if (!L.saveSettings(patch)) return toast('storage blocked'); L.flush().then(() => location.reload()); };
+    $('#permBtn')?.addEventListener('click', () => L.permissions.manage().catch(() => toast(t('manage_perms'))));
+    $('#wipeBtn').onclick = async () => { if (await confirmDialog(t('wipe_q'), { danger: true, okText: t('wipe') })) L.wipe(); };
+  }
   $('#clr').onclick = () => { clearChat(); toast(t('updated')); };
 }
 

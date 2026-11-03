@@ -7,8 +7,9 @@ export function evaluate(expression) {
     .replace(/[,]/g, '')
     .replace(/×|x(?=\s*\d)/g, '*').replace(/÷/g, '/').replace(/−/g, '-')
     .replace(/(\d+(?:\.\d+)?)\s*%\s*(?:of|מ-?|מתוך)\s*(\d+(?:\.\d+)?)/g, '($1/100*$2)')
-    .replace(/(\d+(?:\.\d+)?)\s*%/g, '($1/100)')
-    .replace(/[^\d.+\-*/^()\s]/g, ' ');
+    .replace(/(\d+(?:\.\d+)?)\s*%/g, '($1/100)');
+  if (/[a-z\u0590-\u05FF]/i.test(src)) throw new Error('not a pure arithmetic expression');
+  src = src.replace(/[^\d.+\-*/^()\s]/g, ' ');
   const tokens = src.match(/\d+(?:\.\d+)?|[+\-*/^()]/g);
   if (!tokens?.length) throw new Error('no arithmetic expression found');
   let i = 0;
