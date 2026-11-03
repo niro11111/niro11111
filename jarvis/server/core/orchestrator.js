@@ -168,6 +168,7 @@ export class Core {
         step.status = 'done';
         step.summary = out.summary;
         step.data = out.data;
+        if (out.output) (task.outputs ??= []).push(out.output); // files / apps the step produced
         this.audit.log(task.actor, `tool.${step.tool}`, { taskId: task.id, agent: step.agent, args: redact(stripCtx(step.args)) });
         if (step.tool === 'home.control') convo.lastEntities = task.plan.steps.filter((s) => s.tool === 'home.control').map((s) => s.args.entityId);
       } catch (e) {
@@ -240,7 +241,7 @@ export class Core {
   /** JARVIS tools offered to a language model. Each call goes through validate + policy. */
   modelTools(ctx) {
     const SKIP = new Set(['llm.answer', 'research.web', 'research.fetch', 'vision.describe', 'automation.run', 'voice.note']);
-    return Object.values(this.tools).filter((t) => !SKIP.has(t.name) && !t.name.startsWith('computer.')).map((t) => ({
+    return Object.values(this.tools).filter((t) => !SKIP.has(t.name) && !/^(computer|ai|agents)\./.test(t.name)).map((t) => ({
       name: t.name.replace(/\./g, '_'),
       description: `${t.desc}. Risk: ${typeof t.risk === 'function' ? 'depends on the device (locks/alarms are sensitive)' : t.risk}. Returns a short summary.`.slice(0, 1000),
       inputSchema: toJsonSchema(t.input, t.name),

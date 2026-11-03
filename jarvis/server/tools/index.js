@@ -276,6 +276,39 @@ ${(a.memories ?? []).map((m) => `- ${m.content} [${m.provenance}]`).join('\n') |
     return { data: g, summary: ctx.lang === 'he' ? `נרשמה הפקדה ל"${g.name}": עכשיו ${fmt(g.saved)} מתוך ${fmt(g.target)}.` : `Deposit recorded for "${g.name}": now ${fmt(g.saved)} of ${fmt(g.target)}.` };
   }) });
 
+  // ---------- AI engines (generative) ----------
+  const he = (ctx) => ctx.lang === 'he';
+  def('ai.generate', { risk: RISK.WRITE, desc: 'Generate a document, table, email, plan, code, JSON or calendar file', run: async (a, ctx) => {
+    const r = await s.ai.generate({ ...a, lang: ctx.lang });
+    const preview = r.content.length > 1500 ? `${r.content.slice(0, 1500)}…` : r.content;
+    return { data: { id: r.id, kind: r.kind }, output: { type: 'file', id: r.id, title: r.filename, kind: r.kind },
+      summary: `${he(ctx) ? `נוצר "${r.filename}" (נשמר בסטודיו ה-AI ובמסמכים).` : `Created "${r.filename}" (saved in AI Studio and Documents).`}\n\n${preview}` };
+  }, verify: (r) => !!store.get('generated', r.data.id) });
+  def('ai.build_app', { risk: RISK.WRITE, desc: 'Build a small self-contained app that runs sandboxed', run: async (a, ctx) => {
+    const r = await s.ai.buildApp({ ...a, lang: ctx.lang });
+    return { data: { id: r.id }, output: { type: 'app', id: r.id, title: r.title },
+      summary: he(ctx) ? `האפליקציה "${r.title}" נבנתה. פתחו אותה בסטודיו ה-AI ← אפליקציות. היא רצה בסביבה מבודדת בלי גישה לנתונים שלך.` : `Built the app "${r.title}". Open it in AI Studio → Apps. It runs sandboxed with no access to your data.` };
+  }, verify: (r) => !!store.get('apps', r.data.id) });
+  def('ai.council', { risk: RISK.READ, desc: 'Ask a council of experts and get a synthesis', run: async (a, ctx) => {
+    const r = await s.ai.council({ question: a.question, lang: ctx.lang });
+    return { data: { id: r.id }, output: { type: 'council', id: r.id, title: a.question.slice(0, 60) },
+      summary: `${r.synthesis}\n\n${r.opinions.map((o) => `— ${o.expert}: ${o.text.split('\n').filter(Boolean).slice(0, 2).join(' ')}`).join('\n')}` };
+  } });
+  def('ai.plan_run', { risk: RISK.WRITE, desc: 'Turn a goal into steps and run them with JARVIS tools (approvals still apply)', run: async (a, ctx) => {
+    const r = await s.ai.planRun({ goal: a.goal, lang: ctx.lang, ctx });
+    const icon = { done: '✓', awaiting_approval: '⏸', failed: '✕', advice: '•', not_run: '–', planned: '·' };
+    return { data: { id: r.id }, output: { type: 'plan', id: r.id, title: a.goal.slice(0, 60) },
+      summary: `${r.summary}\n${r.steps.map((st) => `${icon[st.status] ?? '·'} ${st.title}${st.result ? ` — ${String(st.result).split('\n')[0].slice(0, 160)}` : ''}`).join('\n')}${r.steps.some((st) => st.status === 'awaiting_approval') ? `\n\n${he(ctx) ? 'חלק מהצעדים ממתינים לאישורך.' : 'Some steps are waiting for your approval.'}` : ''}` };
+  } });
+  def('agents.create', { risk: RISK.WRITE, desc: 'Create a custom agent from a description', run: async (a, ctx) => {
+    const r = await s.ai.designAgent({ description: a.description, lang: ctx.lang });
+    return { data: { id: r.id }, summary: he(ctx) ? `נוצר הסוכן ${r.name} (@${r.handle}). כלים: ${r.tools.join(', ') || 'ללא'}. כדי לפנות אליו כתבו: @${r.handle} ההודעה שלך` : `Created agent ${r.name} (@${r.handle}). Tools: ${r.tools.join(', ') || 'none'}. Talk to it with: @${r.handle} your message` };
+  }, verify: (r) => !!store.get('custom_agents', r.data.id) });
+  def('agents.invoke', { risk: RISK.READ, desc: 'Send a message to a custom agent', run: async (a, ctx) => {
+    const r = await s.ai.invokeAgent(a.handle, a.message, ctx);
+    return { data: r, summary: `@${r.agent}: ${r.text}` };
+  } });
+
   return T;
 }
 

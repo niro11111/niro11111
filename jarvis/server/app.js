@@ -21,6 +21,7 @@ import { Metrics } from './observability/metrics.js';
 import { Weather } from './context/weather.js';
 import { Privacy } from './privacy/privacy.js';
 import { expoPushSender } from './notify/expo-push.js';
+import { AIEngines } from './ai/engines.js';
 
 export async function createApp(opts = {}) {
   const { file = null, router = null, home = null, seed = true } = opts;
@@ -49,6 +50,7 @@ export async function createApp(opts = {}) {
   s.router.onCall = (c) => s.metrics.modelCall(c);
   s.tools = buildTools(s);
   s.core = new Core(s);
+  s.ai = new AIEngines(s);
   s.automations = new Automations({ ...s, ctx: { householdId, actor: 'automation' } });
   return s;
 }

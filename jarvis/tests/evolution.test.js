@@ -210,7 +210,7 @@ test('HTTP: device tokens are scoped and revocable; watch glance/actions; rate l
     assert.equal(ask2.state, 'COMPLETED');
     assert.equal((await call(`/api/devices/${reg.device.id}`, 'owner', { method: 'DELETE' })).status, 200);
     assert.equal((await call('/api/watch/glance', reg.token)).status, 401, 'revoked token rejected');
-    assert.equal((await (await call('/api/system/map', 'owner')).json()).engines.length, 6);
+    assert.equal((await (await call('/api/system/map', 'owner')).json()).engines.length, 7);
     const img = await (await call('/api/input', 'owner', { method: 'POST', body: { kind: 'image', mediaType: 'image/png', data: 'iVBORw0KGgo=' } })).json();
     assert.equal(img.state, 'FAILED', 'no vision provider: honest failure');
     let last;

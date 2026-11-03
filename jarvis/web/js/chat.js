@@ -13,7 +13,7 @@ export function clearChat() { messages.length = 0; local.set('messages', []); re
 
 export function renderChats() {
   $$('.chat').forEach((box) => {
-    box.innerHTML = messages.map((m) => `<div class="msg ${m.role}" dir="auto">${esc(m.text)}${m.meta ? `<span class="meta" dir="ltr">${esc(m.meta)}</span>` : ''}${m.approval ? `<div class="approval-card"><div class="small">${esc(m.approval.consequences ?? '')}</div><div class="row" style="margin-top:8px"><button class="btn ok sm" data-approve="${m.approval.id}">${t('approve')}</button><button class="btn danger sm" data-reject="${m.approval.id}">${t('reject')}</button></div></div>` : ''}</div>`).join('')
+    box.innerHTML = messages.map((m) => `<div class="msg ${m.role}" dir="auto">${esc(m.text)}${m.meta ? `<span class="meta" dir="ltr">${esc(m.meta)}</span>` : ''}${m.outputs?.length ? `<div class="row" style="margin-top:8px">${m.outputs.map((o) => `<a class="btn sm" href="#ai">${o.type === 'app' ? '▶' : o.type === 'file' ? '📄' : '✦'} ${esc(o.title)} · ${t('open_studio')}</a>`).join('')}</div>` : ''}${m.approval ? `<div class="approval-card"><div class="small">${esc(m.approval.consequences ?? '')}</div><div class="row" style="margin-top:8px"><button class="btn ok sm" data-approve="${m.approval.id}">${t('approve')}</button><button class="btn danger sm" data-reject="${m.approval.id}">${t('reject')}</button></div></div>` : ''}</div>`).join('')
       || `<p class="empty">${esc(t('try_hint'))}</p>`;
     box.scrollTop = box.scrollHeight;
   });
@@ -36,7 +36,8 @@ async function handleTask(task, channel) {
     const list = await api('/api/approvals').catch(() => []);
     approval = list.find((a) => a.id === task.approvalId) ?? { id: task.approvalId };
   }
-  push({ role: 'jarvis', text: task.response ?? task.error ?? task.state, meta: `${task.state}${steps ? ` · ${steps}` : ''}`, approval });
+  push({ role: 'jarvis', text: task.response ?? task.error ?? task.state, meta: `${task.state}${steps ? ` · ${steps}` : ''}`, approval, outputs: task.outputs });
+  if (local.get('dictation', false)) setTimeout(() => document.querySelector('.composer input[dir=auto]')?.focus(), 50);
   setCoreState(task.state === 'FAILED' ? 'error' : approval ? 'approval' : 'idle');
   if ((channel === 'voice' || local.get('speakAll', false)) && task.response) speak(task.response);
   chatEvents.dispatchEvent(new Event('task'));
@@ -62,9 +63,22 @@ voice.onInterim = (txt) => $$('.interim').forEach((x) => { x.textContent = txt; 
 export function chatPanel({ cls = 'tall', title = true } = {}) {
   const el = document.createElement('div');
   el.className = 'panel glass corner';
-  el.innerHTML = `${title ? `<h2>${t('conversation')}</h2>` : ''}<div class="chat ${cls}" aria-live="polite"></div><div class="interim muted small" dir="auto"></div>
-    <form class="composer"><button type="button" class="mic-btn" aria-label="${t('talk')}">🎙</button><label class="mic-btn att-btn" title="${t('attach_image')}" aria-label="${t('attach_image')}">📎<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden></label><input dir="auto" aria-label="${t('ask_ph')}" placeholder="${t('ask_ph')}"><button class="btn primary">${t('send')}</button></form>`;
+  el.innerHTML = `${title ? `<h2>${t('conversation')}</h2>` : ''}<div class="chat ${cls}" aria-live="polite"></div><div class="interim muted small" dir="auto"></div><p class="dict-hint xs muted hidden" style="margin:6px 0 0">${t('dictation_on')} ${t('dict_hint')}</p>
+    <form class="composer"><button type="button" class="mic-btn" aria-label="${t('talk')}">🎙</button><button type="button" class="mic-btn dict-btn" aria-pressed="false" title="${t('dictation')}" aria-label="${t('dictation')}">⌨</button><label class="mic-btn att-btn" title="${t('attach_image')}" aria-label="${t('attach_image')}">📎<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden></label><input dir="auto" aria-label="${t('ask_ph')}" placeholder="${t('ask_ph')}"><button class="btn primary">${t('send')}</button></form>`;
   el.querySelector('.mic-btn').onclick = () => toggleListening();
+  // Dictation mode: the OS dictation (keyboard mic, Win+H, Fn Fn) types into the field and
+  // JARVIS sends after a short pause, for a hands-free conversation where the browser mic is blocked.
+  const dict = el.querySelector('.dict-btn'); const hint = el.querySelector('.dict-hint');
+  const text = el.querySelector('form input:not([type=file])');
+  const setDict = (on) => { local.set('dictation', on); dict.setAttribute('aria-pressed', String(on)); dict.classList.toggle('live', on); hint.classList.toggle('hidden', !on); if (on) text.focus(); };
+  setDict(local.get('dictation', false));
+  dict.onclick = () => setDict(!local.get('dictation', false));
+  let pause;
+  text.addEventListener('input', () => {
+    if (!local.get('dictation', false)) return;
+    clearTimeout(pause);
+    pause = setTimeout(() => { if (text.value.trim().length > 1) el.querySelector('form').requestSubmit(); }, 1800);
+  });
   el.querySelector('.att-btn input').onchange = async (e) => {
     const f = e.target.files[0]; e.target.value = '';
     if (!f) return;

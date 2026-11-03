@@ -10,7 +10,7 @@ const IO = {
 const A = (id, name, nameHe, scope, tools, extra = {}) => ({ id, name, nameHe, scope, tools, maxSteps: 6, dataScopes: ['general'], delegatesTo: [], ...IO, ...extra });
 
 export const AGENTS = [
-  A('executive', 'Executive Intelligence', 'מודיעין מנהלי', 'Coordinates JARVIS, breaks goals into steps and delegates to specialists', ['llm.answer', 'tasks.create', 'tasks.list'],
+  A('executive', 'Executive Intelligence', 'מודיעין מנהלי', 'Coordinates JARVIS, breaks goals into steps and delegates to specialists', ['llm.answer', 'tasks.create', 'tasks.list', 'ai.council', 'ai.plan_run', 'agents.create', 'agents.invoke'],
     { maxSteps: 12, delegatesTo: ['assistant', 'research', 'browser', 'finance', 'household', 'smarthome', 'communication', 'coding', 'knowledge', 'creative', 'automation'] }),
   A('assistant', 'Personal Assistant', 'עוזר אישי', 'Calendar, reminders, tasks, shopping and daily planning',
     ['briefing.daily', 'briefing.weekly', 'tasks.create', 'tasks.list', 'tasks.complete', 'calendar.create', 'calendar.list', 'reminders.create', 'shopping.add', 'shopping.list', 'calc.evaluate', 'date.until', 'convert.units', 'timer.start', 'notes.add', 'notes.list'], { dataScopes: ['general', 'family', 'work'] }),
@@ -22,7 +22,7 @@ export const AGENTS = [
   A('household', 'Household', 'משק בית', 'Family logistics: bills, maintenance tasks, shopping', ['wealth.bills', 'wealth.bill_paid', 'tasks.create', 'reminders.create', 'shopping.add', 'shopping.list', 'timer.start'], { dataScopes: ['general', 'family'] }),
   A('smarthome', 'Smart Home', 'בית חכם', 'Connected devices, scenes and home status', ['home.devices', 'home.control', 'home.scene'], { maxSteps: 10 }),
   A('communication', 'Communication', 'תקשורת', 'Drafts and summarizes messages; never sends on its own', ['llm.answer', 'notify.send'], { maxSteps: 4 }),
-  A('coding', 'Coding', 'פיתוח', 'Code generation, review and debugging', ['llm.answer'], { maxSteps: 4, dataScopes: ['general', 'work'] }),
+  A('coding', 'Coding', 'פיתוח', 'Code generation, review and debugging', ['llm.answer', 'ai.generate', 'ai.build_app'], { maxSteps: 4, dataScopes: ['general', 'work'] }),
   A('knowledge', 'Knowledge', 'ידע', 'Personal knowledge base and memory retrieval', ['memory.remember', 'memory.search', 'documents.search', 'notes.add', 'notes.list', 'llm.answer'], { maxSteps: 4, dataScopes: ['general', 'family', 'work'] }),
   A('vision', 'Vision', 'ראייה', 'Image and screenshot understanding', ['vision.describe', 'computer.screenshot'], { maxSteps: 3 }),
   A('audio', 'Audio', 'שמע', 'Speech, voice notes and transcripts', ['voice.note', 'llm.answer'], { maxSteps: 3 }),
@@ -30,7 +30,7 @@ export const AGENTS = [
   A('security', 'Security', 'אבטחה', 'Audit review, permission and anomaly monitoring', ['security.review'], { maxSteps: 3 }),
   A('learning', 'Learning', 'למידה', 'Learns user-approved preferences and workflows', ['memory.remember', 'memory.search'], { maxSteps: 3 }),
   A('automation', 'Automation', 'אוטומציה', 'Creates, schedules and runs approved workflows', ['automation.run', 'notify.send'], { maxSteps: 10 }),
-  A('creative', 'Creative', 'יצירה', 'Writing, ideas, presentations and planning', ['llm.answer', 'tasks.create'], { maxSteps: 6, dataScopes: ['general', 'work'] }),
+  A('creative', 'Creative', 'יצירה', 'Writing, documents, files, apps and ideas', ['llm.answer', 'tasks.create', 'ai.generate', 'ai.build_app'], { maxSteps: 6, dataScopes: ['general', 'work'] }),
 ];
 
 export const agentById = (id) => AGENTS.find((a) => a.id === id) ?? null;

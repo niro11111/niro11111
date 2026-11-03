@@ -400,8 +400,72 @@ async function settings(v) {
   $('#clr').onclick = () => { clearChat(); toast(t('updated')); };
 }
 
+// ===================================================== AI Studio
+async function aiStudio(v) {
+  const [eng, files, apps, agents, councils, plans] = await Promise.all([api('/api/ai/engines'), api('/api/ai/generated'), api('/api/ai/apps'), api('/api/ai/agents'), api('/api/ai/councils'), api('/api/ai/plans')]);
+  const kinds = ['document', 'table', 'email', 'plan', 'code', 'json', 'calendar'];
+  const busy = (btn, on) => { btn.disabled = on; btn.dataset.label ??= btn.textContent; btn.textContent = on ? t('working') : btn.dataset.label; };
+  const stIcon = { done: '✓', awaiting_approval: '⏸', failed: '✕', advice: '•', not_run: '–' };
+  v.innerHTML = `<div class="grid">
+    <div class="c12 panel glass corner"><h2>${t('engines_title')}</h2>${eng.ai ? '' : `<p class="small warn-t" style="margin:0 0 10px">⚠ ${t('needs_ai')}</p>`}
+      <div class="agent-grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">${eng.engines.map((e) => `<div class="agent-chip"><span class="dot ${e.status === 'online' ? 'ok' : e.status === 'limited' ? 'warn' : 'bad'}"></span><span class="grow"><b>${esc(he() ? e.nameHe : e.name)}</b><div class="xs muted">${esc(e.detail)}</div></span></div>`).join('')}</div></div>
+    <div class="c6 panel glass corner"><h2>${t('gen_title')}</h2><form id="genF" class="col"><select name="kind" aria-label="${t('kind')}">${kinds.map((k) => `<option value="${k}">${t(`kind_${k}`)}</option>`).join('')}</select>
+      <textarea name="prompt" dir="auto" required style="font-family:var(--font);min-height:80px" placeholder="${t('gen_ph')}" aria-label="${t('gen_title')}"></textarea><button class="btn primary" style="align-self:flex-start">✦ ${t('generate')}</button></form><div id="genOut" style="margin-top:10px"></div></div>
+    <div class="c6 panel glass corner"><h2>${t('apps_title')}</h2><form id="appF" class="col"><textarea name="prompt" dir="auto" required style="font-family:var(--font);min-height:80px" placeholder="${t('app_ph')}" aria-label="${t('apps_title')}"></textarea><button class="btn primary" style="align-self:flex-start">⚙ ${t('build')}</button></form>
+      <ul class="list" style="margin-top:8px">${apps.map((a) => `<li class="small"><span class="grow" dir="auto">${esc(a.title)}<div class="xs muted">${(a.size / 1024).toFixed(1)} KB</div></span><button class="btn sm" data-appopen="${a.id}">▶ ${t('open')}</button><button class="btn danger sm" data-appdel="${a.id}" aria-label="${t('delete')}">✕</button></li>`).join('') || '<li class="empty">—</li>'}</ul>
+      <div id="appStage"></div><p class="xs muted">${t('app_sandbox')}</p></div>
+    <div class="c12 panel glass corner"><h2>${t('files_title')}</h2><div style="max-height:320px;overflow:auto"><table>${files.map((f) => `<tr><td dir="auto">${esc(f.filename)}</td><td class="xs muted">${esc(t(`kind_${f.kind}`))}</td><td class="xs mono">${esc(f.createdAt.slice(0, 16).replace('T', ' '))}</td><td><div class="row"><button class="btn sm" data-fopen="${f.id}">${t('open')}</button><button class="btn sm" data-fdl="${f.id}">⬇ ${t('download')}</button>${f.kind === 'calendar' ? `<button class="btn ok sm" data-fcal="${f.id}">${t('add_to_cal')}</button>` : ''}<button class="btn danger sm" data-fdel="${f.id}" aria-label="${t('delete')}">✕</button></div></td></tr>`).join('') || '<tr><td class="empty">—</td></tr>'}</table></div><div id="fileView"></div></div>
+    <div class="c6 panel glass corner"><h2>${t('council_title')}</h2><form id="cF" class="row"><input name="question" class="grow" dir="auto" required placeholder="${t('council_ph')}" aria-label="${t('council_title')}"><button class="btn primary sm">${t('ask_council')}</button></form><div id="cOut">${councils[0] ? councilHtml(councils[0]) : ''}</div></div>
+    <div class="c6 panel glass corner"><h2>${t('plan_title')}</h2><form id="pF" class="row"><input name="goal" class="grow" dir="auto" required placeholder="${t('plan_ph')}" aria-label="${t('plan_title')}"><button class="btn primary sm">${t('run_plan')}</button></form><div id="pOut">${plans[0] ? planHtml(plans[0]) : ''}</div></div>
+    <div class="c12 panel glass corner"><h2>${t('agents_title')}</h2><form id="agF" class="row"><input name="description" class="grow" dir="auto" required placeholder="${t('agent_ph')}" aria-label="${t('agents_title')}"><button class="btn primary sm">${t('create_agent')}</button></form>
+      <ul class="list" style="margin-top:8px">${agents.map((a) => `<li class="small"><span class="tag info mono xs">@${esc(a.handle)}</span><span class="grow" dir="auto"><b>${esc(a.name)}</b> · ${esc(a.description)}<div class="xs muted">${esc(a.tools.join(', ') || '—')}</div></span><button class="btn sm" data-agtalk="${esc(a.handle)}">💬</button><button class="btn danger sm" data-agdel="${a.id}" aria-label="${t('delete')}">✕</button></li>`).join('') || `<li class="empty">—</li>`}</ul></div></div>`;
+  function councilHtml(c) { return `<div class="small out" dir="auto" style="margin-top:10px"><b>${esc(c.question)}</b>\n\n${esc(c.synthesis)}</div><details style="margin-top:6px"><summary class="xs muted">${c.opinions.length} experts</summary>${c.opinions.map((o) => `<div class="small out" dir="auto" style="margin-top:6px"><b>${esc(o.expert)}</b>\n${esc(o.text)}</div>`).join('')}</details>`; }
+  function planHtml(p) { return `<div class="small" style="margin-top:10px" dir="auto"><b>${esc(p.goal)}</b><div class="muted">${esc(p.summary)}</div>${p.steps.map((st) => `<div class="block ${st.status === 'awaiting_approval' ? 'approval' : st.status === 'done' ? 'notify' : ''}"><span class="bt">${stIcon[st.status] ?? '·'} ${esc(st.status)}</span><span class="grow" dir="auto">${esc(st.title)}${st.result ? `<div class="xs muted">${esc(String(st.result).slice(0, 200))}</div>` : ''}</span>${st.tool ? `<span class="xs mono muted">${esc(st.tool)}</span>` : ''}</div>`).join('')}</div>`; }
+  const fileText = async (id) => api(`/api/ai/generated/${id}`);
+  const showFile = (f) => {
+    const box = $('#fileView');
+    if (f.kind === 'table') {
+      const rows = f.content.split(/\r?\n/).filter(Boolean).map((r) => r.match(/("([^"]|"")*"|[^,]*)(,|$)/g).filter((c) => c !== '').map((c) => c.replace(/,$/, '').replace(/^"|"$/g, '').replace(/""/g, '"')));
+      box.innerHTML = `<div style="overflow:auto;margin-top:10px"><table><tr>${rows[0].map((h) => `<th>${esc(h)}</th>`).join('')}</tr>${rows.slice(1).map((r) => `<tr>${r.map((c) => `<td dir="auto">${esc(c)}</td>`).join('')}</tr>`).join('')}</table></div>`;
+    } else box.innerHTML = `<pre class="out small" dir="auto" style="margin-top:10px;max-height:420px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:12px">${esc(f.content)}</pre>`;
+  };
+  const download = async (f) => {
+    if (window.JARVIS_LOCAL) return toast(await window.JARVIS_LOCAL.exportFile(f.filename, f.content));
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([f.content], { type: f.mime })); a.download = f.filename; a.click();
+  };
+  $('#genF').onsubmit = async (e) => { e.preventDefault(); const btn = e.submitter ?? $('#genF button'); busy(btn, true);
+    try { const f = await api('/api/ai/generate', { method: 'POST', body: { ...Object.fromEntries(new FormData(e.target)), lang: getLang() } }); toast(f.filename); await aiStudio(v); showFile(f); }
+    catch (err) { busy(btn, false); $('#genOut').innerHTML = `<p class="err small">${esc(err.message)}</p>`; } };
+  $('#appF').onsubmit = async (e) => { e.preventDefault(); const btn = $('#appF button'); busy(btn, true);
+    try { const a = await api('/api/ai/apps', { method: 'POST', body: { prompt: e.target.prompt.value, lang: getLang() } }); await aiStudio(v); openApp(a.id); }
+    catch (err) { busy(btn, false); toast(err.message); } };
+  const openApp = async (id) => {
+    const a = await api(`/api/ai/apps/${id}`);
+    const stage = $('#appStage'); stage.innerHTML = '';
+    const f = document.createElement('iframe');
+    f.setAttribute('sandbox', 'allow-scripts allow-forms'); // no allow-same-origin: the app cannot reach JARVIS or its data
+    f.title = a.title; f.srcdoc = a.html;
+    f.style.cssText = 'width:100%;height:440px;border:1px solid var(--line-strong);border-radius:12px;background:#03060d;margin-top:10px';
+    stage.append(f);
+  };
+  $('#cF').onsubmit = async (e) => { e.preventDefault(); const btn = $('#cF button'); busy(btn, true);
+    try { const c = await api('/api/ai/council', { method: 'POST', body: { question: e.target.question.value, lang: getLang() } }); $('#cOut').innerHTML = councilHtml(c); } catch (err) { toast(err.message); } busy(btn, false); };
+  $('#pF').onsubmit = async (e) => { e.preventDefault(); const btn = $('#pF button'); busy(btn, true);
+    try { const p = await api('/api/ai/plan', { method: 'POST', body: { goal: e.target.goal.value, lang: getLang() } }); $('#pOut').innerHTML = planHtml(p); } catch (err) { toast(err.message); } busy(btn, false); };
+  $('#agF').onsubmit = async (e) => { e.preventDefault(); const btn = $('#agF button'); busy(btn, true);
+    try { const a = await api('/api/ai/agents', { method: 'POST', body: { description: e.target.description.value, lang: getLang() } }); toast(`@${a.handle}`); aiStudio(v); } catch (err) { busy(btn, false); toast(err.message); } };
+  $$('[data-appopen]', v).forEach((b) => { b.onclick = () => openApp(b.dataset.appopen); });
+  $$('[data-appdel]', v).forEach((b) => { b.onclick = async () => { if (await confirmDialog(t('delete'), { danger: true, okText: t('delete') })) { await api(`/api/ai/apps/${b.dataset.appdel}`, { method: 'DELETE' }); aiStudio(v); } }; });
+  $$('[data-fopen]', v).forEach((b) => { b.onclick = async () => showFile(await fileText(b.dataset.fopen)); });
+  $$('[data-fdl]', v).forEach((b) => { b.onclick = async () => download(await fileText(b.dataset.fdl)); });
+  $$('[data-fcal]', v).forEach((b) => { b.onclick = async () => { const r = await api(`/api/ai/generated/${b.dataset.fcal}/to-calendar`, { method: 'POST' }); toast(`+${r.added}`); }; });
+  $$('[data-fdel]', v).forEach((b) => { b.onclick = async () => { await api(`/api/ai/generated/${b.dataset.fdel}`, { method: 'DELETE' }); aiStudio(v); }; });
+  $$('[data-agdel]', v).forEach((b) => { b.onclick = async () => { if (await confirmDialog(t('delete'), { danger: true, okText: t('delete') })) { await api(`/api/ai/agents/${b.dataset.agdel}`, { method: 'DELETE' }); aiStudio(v); } }; });
+  $$('[data-agtalk]', v).forEach((b) => { b.onclick = () => { location.hash = 'conversation'; setTimeout(() => { const i = document.querySelector('.composer input[dir=auto]'); if (i) { i.value = `@${b.dataset.agtalk} `; i.focus(); } }, 300); }; });
+}
+
 export const VIEWS = [
-  ['sec_core'], ['command', '◉', command], ['conversation', '◍', conversation], ['map', '⌬', map], ['agents', '⎔', agents], ['automations', '⟳', automations], ['knowledge', '⛁', knowledge],
+  ['sec_core'], ['command', '◉', command], ['conversation', '◍', conversation], ['map', '⌬', map], ['agents', '⎔', agents], ['ai', '✦', aiStudio], ['automations', '⟳', automations], ['knowledge', '⛁', knowledge],
   ['sec_life'], ['planner', '✓', planner], ['wealth', '₪', wealth], ['home', '⌂', home],
   ['sec_system'], ['devices', '⌚', devices], ['console', '⌨', consoleView], ['privacy', '⛨', privacy], ['preferences', '⚙', settings],
 ];

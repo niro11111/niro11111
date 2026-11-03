@@ -161,6 +161,30 @@ export function createApi(s, token, opts = {}) {
   r('POST', '/api/wealth/assets', (req) => s.wealth.addAsset(ctx(req), { name: req.body.name, type: req.body.type, value: minor(req.body.value, 'value') }));
   r('DELETE', '/api/wealth/demo', (req) => ({ removed: s.wealth.clearDemo(ctx(req)) }));
 
+  // --- AI engines & studio ---
+  const lang = (req) => (req.body.lang === 'en' || req.body.lang === 'he' ? req.body.lang : detectLang(JSON.stringify(req.body)));
+  r('GET', '/api/ai/engines', () => ({ engines: s.ai.list(), ...s.ai.available() }));
+  r('POST', '/api/ai/generate', (req) => s.ai.generate({ kind: req.body.kind, prompt: req.body.prompt, title: req.body.title, lang: lang(req) }));
+  r('GET', '/api/ai/generated', () => s.store.all('generated').slice().reverse().map(({ content, ...g }) => ({ ...g, size: content.length })));
+  r('GET', '/api/ai/generated/:id', (req, p) => s.store.get('generated', p.id));
+  r('DELETE', '/api/ai/generated/:id', (req, p) => ({ deleted: s.store.remove('generated', p.id) }));
+  r('POST', '/api/ai/generated/:id/to-calendar', (req, p) => {
+    const g = s.store.get('generated', p.id);
+    if (!g?.events?.length) throw Object.assign(new Error('no events in this file'), { status: 400 });
+    return { added: g.events.filter((e) => e.title && !Number.isNaN(Date.parse(e.start))).map((e) => s.productivity.createEvent({ title: e.title, start: new Date(e.start).toISOString(), end: e.end ? new Date(e.end).toISOString() : null, location: e.location ?? null })).length };
+  });
+  r('POST', '/api/ai/apps', (req) => s.ai.buildApp({ prompt: req.body.prompt, lang: lang(req) }));
+  r('GET', '/api/ai/apps', () => s.store.all('apps').slice().reverse().map(({ html, ...a }) => ({ ...a, size: html.length })));
+  r('GET', '/api/ai/apps/:id', (req, p) => s.store.get('apps', p.id));
+  r('DELETE', '/api/ai/apps/:id', (req, p) => ({ deleted: s.store.remove('apps', p.id) }));
+  r('POST', '/api/ai/council', (req) => s.ai.council({ question: req.body.question, lang: lang(req) }));
+  r('GET', '/api/ai/councils', () => s.store.all('councils').slice(-20).reverse());
+  r('POST', '/api/ai/plan', (req) => s.ai.planRun({ goal: req.body.goal, lang: lang(req), execute: req.body.execute !== false, ctx: ctx(req) }));
+  r('GET', '/api/ai/plans', () => s.store.all('plans').slice(-20).reverse());
+  r('GET', '/api/ai/agents', () => s.store.all('custom_agents'));
+  r('POST', '/api/ai/agents', (req) => (req.body.description && !req.body.instructions ? s.ai.designAgent({ description: req.body.description, lang: lang(req) }) : s.ai.createAgent(req.body)));
+  r('DELETE', '/api/ai/agents/:id', (req, p) => ({ deleted: s.store.remove('custom_agents', p.id) }));
+
   // --- notes & habits ---
   r('GET', '/api/notes', (req) => (req.query.get('q') ? s.productivity.searchNotes(req.query.get('q')) : s.productivity.listNotes()));
   r('POST', '/api/notes', (req) => s.productivity.addNote(req.body));

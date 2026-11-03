@@ -73,6 +73,20 @@ export function parseClause(raw, convo = {}) {
     return [{ agent: 'assistant', tool: 'calc.evaluate', args: { expression: m[1] } }];
   }
   if (/^[\d\s.+\-*/^()%×÷,]+=?\s*\??$/.test(text) && /\d\s*[+\-*/^×÷%]/.test(text)) return [{ agent: 'assistant', tool: 'calc.evaluate', args: { expression: text.replace(/[=?]/g, '') } }];
+  // --- AI engines: custom agents, generator, app builder, council, plan & execute ---
+  if ((m = text.match(/^@([\p{L}\p{N}_-]+)\s+([\s\S]+)/u))) return [{ agent: 'executive', tool: 'agents.invoke', args: { handle: m[1], message: m[2] } }];
+  if ((m = text.match(/^(?:צור סוכן|תיצור סוכן|סוכן חדש|create (?:an? )?agent|new agent)[:\s]+([\s\S]+)/i))) return [{ agent: 'executive', tool: 'agents.create', args: { description: m[1] } }];
+  if ((m = text.match(/^(?:מועצה|מועצת מומחים|תתייעץ(?: עם מומחים)?|התייעצות|council|ask the council)[:\s]+([\s\S]+)/i))) return [{ agent: 'executive', tool: 'ai.council', args: { question: m[1] } }];
+  if ((m = text.match(/^(?:תכנן ובצע|בצע מטרה|מטרה|plan and (?:do|run|execute)|goal)[:\s]+([\s\S]+)/i))) return [{ agent: 'executive', tool: 'ai.plan_run', args: { goal: m[1] } }];
+  if ((m = text.match(/^(?:בנה|תבנה|צור|תיצור|תכין)\s+(?:לי\s+)?(?:אפליקציה|אפליקציית|יישומון|כלי|מחשבון|משחק|דשבורד|טופס)([\s\S]*)/)) || (m = text.match(/^(?:build|make|create)\s+(?:me\s+)?(?:an?\s+)?(?:[\w-]+\s+){0,4}(?:app|tool|calculator|game|widget|dashboard|form|tracker)\b([\s\S]*)/i))) {
+    return [{ agent: 'creative', tool: 'ai.build_app', args: { prompt: text } }];
+  }
+  const GEN = [[/טבלה|גיליון|אקסל|csv|spreadsheet|table/i, 'table'], [/מייל|אימייל|email|e-mail/i, 'email'], [/קובץ יומן|ics|לוח אירועים|calendar file|calendar/i, 'calendar'], [/תוכנית|תכנית|plan\b/i, 'plan'], [/קוד|סקריפט|פונקציה|code|script|function/i, 'code'], [/json/i, 'json']];
+  if ((m = text.match(/^(?:צור|תיצור|תכין|הכן|כתוב|תכתוב|תנסח|נסח|ייצר|תייצר)\s+(?:לי\s+)?(מסמך|דוח|דו"ח|מכתב|מייל|אימייל|טבלה|גיליון|קובץ|תוכנית|תכנית|רשימה|קוד|סקריפט|json|סיכום|הצעה|חוזה)([\s\S]*)/i))
+    || (m = text.match(/^(?:create|make|generate|write|draft)\s+(?:me\s+)?(?:an?\s+)?(document|report|letter|email|table|spreadsheet|csv|file|plan|list|code|script|json|summary|proposal|contract|calendar file)\b([\s\S]*)/i))) {
+    const kind = GEN.find(([re]) => re.test(m[1] + (m[1] === 'קובץ' || m[1] === 'file' ? m[2] : '')))?.[1] ?? 'document';
+    return [{ agent: kind === 'code' ? 'coding' : 'creative', tool: 'ai.generate', args: { kind, prompt: text } }];
+  }
   // --- briefings ---
   if (has(t, /organi[sz]e my day|daily brief|my day|what'?s (on )?today|תארגן לי את היום|תדריך|מה יש לי היום|סדר יום/)) {
     return [{ agent: 'assistant', tool: 'briefing.daily', args: {} }];

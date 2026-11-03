@@ -73,11 +73,19 @@ try {
     assert.match(await page.textContent('#view'), /ספורט/);
   });
   await check('every screen renders in the standalone app', async () => {
-    for (const v of ['command', 'map', 'agents', 'automations', 'knowledge', 'planner', 'wealth', 'home', 'devices', 'console', 'privacy', 'preferences']) {
+    for (const v of ['command', 'map', 'agents', 'ai', 'automations', 'knowledge', 'planner', 'wealth', 'home', 'devices', 'console', 'privacy', 'preferences']) {
       await page.goto(`${url}#${v}`); await page.waitForTimeout(400);
       assert.ok(!(await page.$('#view .panel.err')), v);
     }
     assert.deepEqual(errors, []);
+  });
+  await check('dictation mode sends automatically after a pause', async () => {
+    await page.goto(`${url}#conversation`); await page.waitForSelector('#view .composer');
+    await page.click('.dict-btn');
+    assert.equal(await page.getAttribute('.dict-btn', 'aria-pressed'), 'true');
+    await page.type('.composer input[dir=auto]', 'הפתקים שלי', { delay: 20 });
+    await page.waitForFunction(() => /לקנות מתנה לנועה/.test([...document.querySelectorAll('.chat .msg.jarvis')].pop()?.textContent ?? ''), null, { timeout: 8000 });
+    await page.click('.dict-btn');
   });
   await check('wealth forms record a transaction', async () => {
     await page.goto(`${url}#wealth`); await page.waitForSelector('#txF');
@@ -89,6 +97,7 @@ try {
   // ---------------- claude.ai mode (simulated viewer runtime) ----------------
   const c2 = await browser.newContext({ viewport: { width: 1400, height: 900 } });
   await c2.addInitScript(() => {
+    if (window.top !== window) return; // the simulated viewer runtime exists only in the top page, not in sandboxed app frames
     const docs = (window.__docs = new Map(JSON.parse(sessionStorage.getItem('fakedb') ?? '[]')));
     const persist = () => sessionStorage.setItem('fakedb', JSON.stringify([...docs]));
     const snap = (p) => ({ id: p.split('/').pop(), exists: docs.has(p), data: () => (docs.has(p) ? structuredClone(docs.get(p)) : undefined) });
@@ -96,6 +105,9 @@ try {
     window.__toolCalls = [];
     const sample = async (input, opts = {}) => {
       const last = input[input.length - 1].content;
+      const sys = input[0].content;
+      if (/Return ONLY CSV/.test(sys)) return { text: 'item,price\nmilk,7\nbread,12', truncated: false, modelTierApplied: 'default' };
+      if (/self-contained web apps/.test(sys)) return { text: '<!doctype html><html><head><title>Counter</title></head><body><button id="b">0</button><script>let n=0;b.onclick=()=>b.textContent=++n</script></body></html>', truncated: false, modelTierApplied: 'default' };
       if (opts.tools && /מטלה/.test(last)) {
         const create = opts.tools.find((t) => t.name === 'tasks_create');
         const unlock = opts.tools.find((t) => t.name === 'home_control');
@@ -131,10 +143,26 @@ try {
     await p2.goto(`${url}#planner`); await p2.waitForSelector('#nf');
     assert.match(await p2.textContent('#view'), /לתקן את הברז/);
   });
+  await check('claude.ai mode: generator makes a CSV table and AI Studio shows it', async () => {
+    await p2.goto(`${url}#conversation`); await p2.waitForSelector('#view .composer');
+    await ask(p2, 'צור לי טבלה של מחירי מצרכים', /נוצר/);
+    await p2.goto(`${url}#ai`); await p2.waitForSelector('#genF');
+    assert.match(await p2.textContent('#view'), /\.csv/);
+    await p2.click('[data-fopen]'); await p2.waitForSelector('#fileView table');
+    assert.match(await p2.textContent('#fileView'), /bread/);
+  });
+  await check('claude.ai mode: app builder runs the app in a sandboxed frame', async () => {
+    await p2.fill('#appF textarea', 'מונה לחיצות'); await p2.click('#appF button');
+    const frame = await (await p2.waitForSelector('#appStage iframe', { timeout: 15000 })).contentFrame();
+    assert.equal(await p2.getAttribute('#appStage iframe', 'sandbox'), 'allow-scripts allow-forms');
+    await frame.click('#b'); await frame.click('#b');
+    assert.equal(await frame.textContent('#b'), '2');
+    assert.equal(await frame.evaluate(() => { try { return !!window.parent.document; } catch { return 'blocked'; } }), 'blocked', 'the app cannot reach JARVIS');
+  });
   await check('claude.ai mode: data survives reload from the database', async () => {
     await p2.reload(); await p2.goto(`${url}#planner`); await p2.waitForSelector('#nf', { timeout: 15000 });
     assert.match(await p2.textContent('#view'), /נשמר בענן/);
-    assert.deepEqual(e2, []);
+    assert.deepEqual(e2, [], JSON.stringify(e2));
   });
 } finally { await browser.close(); srv.close(); }
 console.log(failures ? `\n${failures} failed` : '\nall webapp checks passed');
