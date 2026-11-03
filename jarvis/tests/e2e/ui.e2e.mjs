@@ -55,9 +55,9 @@ try {
 
   await check('Hebrew command gets a Hebrew answer; approval flow from the chat', async () => {
     await page.goto(`${url}#conversation`); await page.waitForTimeout(300);
-    await page.fill('.composer input', 'תארגן לי את היום'); await page.press('.composer input', 'Enter');
+    await page.fill('.composer input[dir=auto]', 'תארגן לי את היום'); await page.press('.composer input[dir=auto]', 'Enter');
     await page.waitForFunction(() => /תדריך ליום/.test(document.querySelector('.chat').textContent));
-    await page.fill('.composer input', 'פתח את הדלת'); await page.press('.composer input', 'Enter');
+    await page.fill('.composer input[dir=auto]', 'פתח את הדלת'); await page.press('.composer input[dir=auto]', 'Enter');
     await page.waitForSelector('.chat [data-approve]');
     assert.equal((await s.home.devices()).find((d) => d.id === 'lock.front_door').state, 'locked', 'nothing happens before approval');
     await page.click('.chat [data-approve]');

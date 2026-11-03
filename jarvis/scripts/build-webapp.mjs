@@ -49,7 +49,7 @@ fs.rmSync(art, { recursive: true, force: true });
 fs.cpSync(out, art, { recursive: true });
 for (const f of ['404.html', '.nojekyll', 'manifest.webmanifest']) fs.rmSync(path.join(art, f), { force: true });
 const body = html.slice(html.indexOf('<body>') + 6, html.indexOf('</body>')).trim();
-fs.writeFileSync(path.join(art, 'index.html'), `<title>JARVIS Command Center</title>
+fs.writeFileSync(path.join(art, 'index.html'), `<title>JARVIS Personal OS</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Orbitron:wght@500;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
 <link rel="stylesheet" href="styles.css">
 <link rel="icon" href="icon.svg">

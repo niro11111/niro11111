@@ -25,7 +25,7 @@ let failures = 0;
 const check = async (name, fn) => { try { await fn(); console.log(`ok - ${name}`); } catch (e) { failures++; console.log(`not ok - ${name}\n  ${e.message.split('\n')[0]}`); } };
 
 async function ask(page, text, expect) {
-  await page.fill('.composer input', text); await page.press('.composer input', 'Enter');
+  await page.fill('.composer input[dir=auto]', text); await page.press('.composer input[dir=auto]', 'Enter');
   try {
     await page.waitForFunction((re) => new RegExp(re).test([...document.querySelectorAll('.chat .msg.jarvis')].pop()?.textContent ?? ''), expect.source, { timeout: 15000 });
   } catch { throw new Error(`"${text}" -> ${await page.evaluate(() => [...document.querySelectorAll('.chat .msg.jarvis')].pop()?.textContent)}`); }

@@ -80,6 +80,6 @@ export function chatPanel({ cls = 'tall', title = true } = {}) {
       setCoreState(r.state === 'FAILED' ? 'error' : 'idle');
     } catch (err) { push({ role: 'jarvis', text: err.message }); setCoreState('error'); }
   };
-  el.querySelector('form').onsubmit = (e) => { e.preventDefault(); const i = el.querySelector('input'); send(i.value); i.value = ''; };
+  el.querySelector('form').onsubmit = (e) => { e.preventDefault(); const i = el.querySelector('input:not([type=file])'); send(i.value); i.value = ''; };
   return el;
 }
