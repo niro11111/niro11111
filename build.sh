@@ -18,3 +18,20 @@ node --check "$tmp/page.js" || { echo "build failed: script syntax error" >&2; e
   echo '</body></html>'
 } > index.html
 echo "built index.html"
+
+# Website / installable app (GitHub Pages): index.html plus the PWA layer from web/
+rm -rf site && mkdir -p site/icons
+ver=$(sha256sum index.html web/app.js web/sw.js | sha256sum | cut -c1-12)
+head='<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0f1816"><link rel="icon" href="icons/icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta property="og:title" content="אקדמיית Claude Code"><meta property="og:description" content="קורס אינטראקטיבי בעברית ל-Claude Code ממתחילים ועד מומחים"><meta property="og:image" content="icons/icon-512.png">'
+python3 - "$head" <<'PY'
+import sys
+s = open("index.html", encoding="utf-8").read()
+s = s.replace("</head>", sys.argv[1] + "</head>", 1).replace("</body></html>", '<script src="app.js" defer></script></body></html>', 1)
+open("site/index.html", "w", encoding="utf-8").write(s)
+PY
+cp web/app.js web/manifest.webmanifest site/
+cp web/icons/* site/icons/
+sed "s/__BUILD__/$ver/" web/sw.js > site/sw.js
+cp site/index.html site/404.html
+touch site/.nojekyll
+echo "built site/ (version $ver)"

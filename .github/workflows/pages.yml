@@ -1,0 +1,46 @@
+name: Deploy website
+on:
+  push:
+    branches: [claude/advanced-code-block-course-epnmvh]
+  workflow_dispatch: {}
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check that GitHub Pages is enabled
+        id: pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh api "repos/${{ github.repository }}/pages" >/dev/null 2>&1; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::GitHub Pages is not enabled yet. Settings → Pages → Source: GitHub Actions, then re-run this workflow."
+          fi
+      - uses: actions/setup-node@v4
+        if: steps.pages.outputs.enabled == 'true'
+        with:
+          node-version: 22
+      - run: ./build.sh
+        if: steps.pages.outputs.enabled == 'true'
+      - uses: actions/configure-pages@v5
+        if: steps.pages.outputs.enabled == 'true'
+      - uses: actions/upload-pages-artifact@v3
+        if: steps.pages.outputs.enabled == 'true'
+        with:
+          path: site
+      - id: deployment
+        if: steps.pages.outputs.enabled == 'true'
+        uses: actions/deploy-pages@v4
