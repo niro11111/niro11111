@@ -16,8 +16,23 @@ const DEFAULTS = {
   financial: 'approve', // and can never be lowered: see effective()
 };
 
+// Autonomy levels:
+// 1 Advisory    - JARVIS only answers and recommends; nothing beyond reading is executed.
+// 2 Assisted    - JARVIS prepares every non-read action and asks before executing.
+// 3 Controlled  - (default) pre-authorized low-risk actions run; sensitive/financial ask.
+// 4 Delegation  - like 3, with larger multi-step budgets. Sensitive/financial still ask.
+export const AUTONOMY = { 1: 'advisory', 2: 'assisted', 3: 'controlled', 4: 'delegation' };
+
 export class Policy {
   constructor(store) { this.store = store; }
+  autonomy() { return this.store.getMeta('autonomy', 3); }
+  setAutonomy(level) {
+    const l = Number(level);
+    if (!AUTONOMY[l]) throw Object.assign(new Error('autonomy must be 1-4'), { status: 400 });
+    this.store.setMeta('autonomy', l);
+    return l;
+  }
+  stepBudget(agent) { return agent.maxSteps * (this.autonomy() === 4 ? 2 : 1); }
   settings() { return { ...DEFAULTS, ...this.store.getMeta('policy', {}) }; }
   set(risk, mode) {
     if (!['allow', 'approve', 'deny'].includes(mode)) throw new Error('mode must be allow|approve|deny');
@@ -29,11 +44,15 @@ export class Policy {
   }
   /**
    * @param {{name:string, risk:string, alwaysConfirm?:boolean}} tool  risk already resolved for these args
-   * @returns {'allow'|'approve'|'deny'}
+   * @returns {'allow'|'approve'|'deny'|'advise'}
    */
   effective(tool, agent) {
     if (agent && !agent.tools.includes(tool.name)) return 'deny';
     const mode = this.settings()[tool.risk] ?? 'approve';
+    if (mode === 'deny') return 'deny';
+    const level = this.autonomy();
+    if (tool.risk !== RISK.READ && level === 1) return 'advise';
+    if (tool.risk !== RISK.READ && level === 2) return 'approve';
     if (tool.risk === RISK.FINANCIAL || tool.risk === RISK.SENSITIVE || tool.alwaysConfirm) {
       return mode === 'deny' ? 'deny' : 'approve';
     }

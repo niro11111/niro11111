@@ -64,11 +64,11 @@ export class WealthService {
     const topIncrease = cmp.categories.filter((c) => c.change > 0).slice(0, 3);
 
     const recommendations = [];
-    for (const b of over) recommendations.push({ kind: 'budget', text: `Category "${b.category}" is over budget by ${C.fmt(-b.remaining)}.`, basis: 'budgetStatus' });
-    for (const c of topIncrease) recommendations.push({ kind: 'spending', text: `"${c.category}" rose by ${C.fmt(c.change)} vs last month - worth reviewing.`, basis: 'compareMonths' });
+    for (const b of over) recommendations.push({ kind: 'budget', text: `Category "${b.category}" is over budget by ${C.fmt(-b.remaining)}.`, textHe: `הקטגוריה "${b.category}" חרגה מהתקציב ב-${C.fmt(-b.remaining)}.`, basis: 'budgetStatus' });
+    for (const c of topIncrease) recommendations.push({ kind: 'spending', text: `"${c.category}" rose by ${C.fmt(c.change)} vs last month - worth reviewing.`, textHe: `"${c.category}" עלתה ב-${C.fmt(c.change)} לעומת החודש הקודם - כדאי לבדוק.`, basis: 'compareMonths' });
     const subs = rec.filter((r) => ['subscriptions', 'מנויים'].includes(r.category));
-    if (subs.length) recommendations.push({ kind: 'savings', text: `${subs.length} recurring subscriptions total ${C.fmt(C.sum(subs, (s) => s.monthly))}/month. Review which are still used.`, basis: 'recurring' });
-    for (const a of anom.possibleDuplicates) recommendations.push({ kind: 'anomaly', text: `Possible duplicate charge: "${a.description}" ${C.fmt(a.amount)}.`, basis: 'anomalies' });
+    if (subs.length) recommendations.push({ kind: 'savings', text: `${subs.length} recurring subscriptions total ${C.fmt(C.sum(subs, (s) => s.monthly))}/month. Review which are still used.`, textHe: `${subs.length} מנויים חוזרים בסך ${C.fmt(C.sum(subs, (s) => s.monthly))} בחודש. כדאי לבדוק באילו עדיין משתמשים.`, basis: 'recurring' });
+    for (const a of anom.possibleDuplicates) recommendations.push({ kind: 'anomaly', text: `Possible duplicate charge: "${a.description}" ${C.fmt(a.amount)}.`, textHe: `חיוב כפול אפשרי: "${a.description}" ${C.fmt(a.amount)}.`, basis: 'anomalies' });
 
     const potential = C.sum(subs, (s) => s.monthly) + C.sum(over, (b) => -b.remaining);
     return {
@@ -77,6 +77,12 @@ export class WealthService {
       calculations: { expenseChange: cmp.expenseChange, categoryChanges: cmp.categories, budgets, recurring: rec, anomalies: anom, potentialMonthlySaving: potential },
       forecasts: fc,
       recommendations,
+      // Where every number comes from, so facts are never confused with estimates.
+      dataQuality: {
+        transactionsBySource: txs.reduce((m, x) => { const k = x.demo ? 'demo' : x.source ?? 'imported'; m[k] = (m[k] ?? 0) + 1; return m; }, {}),
+        labels: { facts: 'recorded transactions (imported or user-entered)', calculations: 'deterministic arithmetic on facts', forecasts: 'prediction based on an assumption', recommendations: 'suggestion, not advice' },
+        assumptions: [fc.assumption],
+      },
       disclaimer: 'Analysis only. JARVIS is not a licensed financial adviser and does not move money.',
     };
   }
@@ -93,6 +99,14 @@ export class WealthService {
       a.disclaimer,
     ];
     return { ...a, text: lines.join('\n') };
+  }
+
+  /** Income/expenses/net for the last n months (oldest first), for charts. */
+  series(ctx, n = 6) {
+    const txs = this.read('transactions', ctx);
+    const out = []; let k = this.currentMonth(ctx);
+    for (let i = 0; i < n; i++) { out.unshift(C.monthSummary(txs, k)); k = C.prevMonth(k); }
+    return out.map(({ month, income, expenses, net }) => ({ month, income, expenses, net }));
   }
 
   simulate(ctx, cuts) { return C.simulateCuts(this.read('transactions', ctx), this.currentMonth(ctx), cuts); }

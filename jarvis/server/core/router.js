@@ -43,8 +43,17 @@ export class ModelRouter {
   async complete(need, req) {
     const r = this.route(need);
     const p = this.providers[r.provider];
-    const out = await p.complete({ ...req, model: r.model, effort: r.effort, webSearch: need.webSearch && p.capabilities().webSearch });
-    return { ...out, route: r };
+    if (need.vision && !p.capabilities().vision) return { text: '', noVision: true, offline: true, route: r };
+    const t0 = Date.now();
+    let out; let error = null;
+    try {
+      out = await p.complete({ ...req, model: r.model, effort: r.effort, webSearch: need.webSearch && p.capabilities().webSearch });
+      return { ...out, route: r };
+    } catch (e) { error = e.message; throw e; } finally {
+      // Metadata only: no prompt or answer content is recorded.
+      this.onCall?.({ provider: r.provider, model: r.model, tier: r.tier, latencyMs: Date.now() - t0, inputTokens: out?.usage?.input_tokens ?? 0,
+        outputTokens: out?.usage?.output_tokens ?? 0, ok: !error && !out?.offline, offline: !!out?.offline, error });
+    }
   }
 
   status() {

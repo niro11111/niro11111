@@ -14,8 +14,15 @@ import { Core } from './core/orchestrator.js';
 import { Automations } from './automation/engine.js';
 import { seedDemo } from './lib/seed.js';
 import { Documents } from './documents/documents.js';
+import { Personality } from './core/personality.js';
+import { Health } from './health/health.js';
+import { Devices } from './devices/devices.js';
+import { Metrics } from './observability/metrics.js';
+import { Weather } from './context/weather.js';
+import { Privacy } from './privacy/privacy.js';
 
-export async function createApp({ file = null, router = null, home = null, seed = true } = {}) {
+export async function createApp(opts = {}) {
+  const { file = null, router = null, home = null, seed = true } = opts;
   const store = new Store(file);
   if (seed) seedDemo(store);
   const householdId = 'hh_demo';
@@ -32,6 +39,13 @@ export async function createApp({ file = null, router = null, home = null, seed 
     router: router ?? await ModelRouter.fromEnv(),
   };
   s.documents = new Documents(store, s.memory, audit);
+  s.personality = new Personality(store);
+  s.health = new Health(store, audit);
+  s.devices = new Devices(store, audit);
+  s.metrics = new Metrics(store);
+  s.weather = new Weather(store, opts.fetch);
+  s.privacy = new Privacy(store, audit);
+  s.router.onCall = (c) => s.metrics.modelCall(c);
   s.tools = buildTools(s);
   s.core = new Core(s);
   s.automations = new Automations({ ...s, ctx: { householdId, actor: 'automation' } });
@@ -48,10 +62,12 @@ export function startScheduler(s, { everyMs = 30_000 } = {}) {
         s.productivity.markFired(r.id);
       }
       s.notifications.flushDeferred();
+      s.core.expireApprovals();
+      s.privacy.purgeVoice();
       s.memory.purgeExpired();
       await s.automations.tick();
-      const prefs = s.store.getMeta('proactive', { enabled: true });
-      if (prefs.enabled && Date.now() - lastProactive > 60 * 60e3) {
+      const prefs = s.store.getMeta('proactive', {});
+      if (s.privacy.get().proactiveEnabled && Date.now() - lastProactive > 60 * 60e3) {
         lastProactive = Date.now();
         const { scan } = await import('./proactive/engine.js');
         const items = await scan({ ...s, ctx: { householdId: s.householdId, actor: 'proactive' }, prefs });

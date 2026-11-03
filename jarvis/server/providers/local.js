@@ -4,7 +4,8 @@ export class LocalProvider {
   constructor() { this.name = 'local'; }
   capabilities() { return { text: true, vision: false, webSearch: false, local: true }; }
   async complete({ messages, context }) {
-    const last = messages[messages.length - 1]?.content ?? '';
+    const c = messages[messages.length - 1]?.content ?? '';
+    const last = typeof c === 'string' ? c : c.filter((b) => b.type === 'text').map((b) => b.text).join(' ');
     const mem = context?.memories ?? [];
     if (mem.length) {
       return { text: `From your memory:\n${mem.map((m) => `- ${m.content} (${m.provenance})`).join('\n')}`, model: 'local' };

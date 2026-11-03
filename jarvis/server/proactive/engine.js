@@ -5,7 +5,7 @@ export function score({ urgency, importance, confidence }, weight = 1) {
   return Math.round((urgency * 0.4 + importance * 0.35 + confidence * 0.25) * weight * 100) / 100;
 }
 
-export async function scan({ productivity, wealth, home, ctx, prefs = {}, today = new Date().toISOString().slice(0, 10) }) {
+export async function scan({ productivity, wealth, home, store, ctx, prefs = {}, today = new Date().toISOString().slice(0, 10) }) {
   const out = [];
   const w = (k) => prefs.weights?.[k] ?? 1;
   const t0 = Date.parse(today);
@@ -21,7 +21,8 @@ export async function scan({ productivity, wealth, home, ctx, prefs = {}, today 
         score: score({ urgency: b.overdue ? 1 : 0.7, importance: 0.8, confidence: 1 }, w('bill')) });
     }
     const a = wealth.analysis({ ...ctx, actor: 'proactive' });
-    for (const u of a.calculations.anomalies.unusual.slice(0, 3)) {
+    const seenU = new Set();
+    for (const u of a.calculations.anomalies.unusual.filter((x) => !seenU.has(x.description) && seenU.add(x.description)).slice(0, 3)) {
       out.push({ kind: 'finance_anomaly', title: `Unusual expense: ${u.description}`, ref: u.transactionId,
         score: score({ urgency: 0.5, importance: 0.7, confidence: 0.6 }, w('finance_anomaly')) });
     }
@@ -45,6 +46,27 @@ export async function scan({ productivity, wealth, home, ctx, prefs = {}, today 
       if (Date.parse(b.start) < aEnd) out.push({ kind: 'calendar_conflict', title: `Calendar conflict: ${a.title} / ${b.title}`, score: score({ urgency: 0.7, importance: 0.7, confidence: 1 }, w('calendar_conflict')) });
     }
   }
+  if (store) {
+    // Unfinished projects: open tasks in a project untouched for 14+ days.
+    const byProject = {};
+    for (const t of productivity.listTasks().filter((x) => x.project)) (byProject[t.project] ??= []).push(t);
+    for (const [p, list] of Object.entries(byProject)) {
+      const last = Math.max(...list.map((t) => Date.parse(t.updatedAt ?? t.createdAt)));
+      if (t0 - last > 14 * 864e5) out.push({ kind: 'stale_project', title: `Project "${p}" has ${list.length} open task(s) untouched for 2+ weeks`, why: 'no task activity in 14 days', score: score({ urgency: 0.4, importance: 0.7, confidence: 0.9 }, w('stale_project')) });
+    }
+    // Automation suggestions: the same command repeated 3+ times in 14 days.
+    const counts = {};
+    for (const t of store.all('tasks_exec', (x) => x.state === 'COMPLETED' && t0 - Date.parse(x.createdAt) < 14 * 864e5 && x.actor === 'user')) {
+      const k = t.objective.trim().toLowerCase(); counts[k] = (counts[k] ?? 0) + 1;
+    }
+    for (const [k, n] of Object.entries(counts).filter(([, n]) => n >= 3)) {
+      out.push({ kind: 'automation_suggestion', title: `You asked "${k}" ${n} times recently - make it an automation?`, why: `${n} identical requests in 14 days`, score: score({ urgency: 0.3, importance: 0.6, confidence: 0.8 }, w('automation_suggestion')) });
+    }
+    // Recurring household issue: same device offline in several past notifications.
+    const offlineNotes = store.all('notifications', (n) => n.event === 'proactive:device_offline');
+    if (offlineNotes.some((n) => (n.count ?? 1) >= 3)) out.push({ kind: 'recurring_issue', title: 'A device keeps going offline - check its power or Wi-Fi', why: 'offline alert repeated 3+ times', score: score({ urgency: 0.5, importance: 0.6, confidence: 0.8 }, w('recurring_issue')) });
+  }
+  for (const x of out) x.why ??= { deadline: 'due date within 2 days', bill: 'unpaid bill due within 7 days', finance_anomaly: 'more than 2.5x the category median', budget: 'spent more than the budget', device_offline: 'device reports unavailable', calendar_conflict: 'overlapping events' }[x.kind];
   const threshold = prefs.threshold ?? 0.55;
   return out.filter((x) => x.score >= threshold).sort((a, b) => b.score - a.score).slice(0, prefs.max ?? 10);
 }

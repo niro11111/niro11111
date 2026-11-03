@@ -7,6 +7,11 @@ import crypto from 'node:crypto';
 export const newId = (prefix = 'id') => `${prefix}_${crypto.randomUUID().replace(/-/g, '').slice(0, 16)}`;
 export const now = () => new Date().toISOString();
 
+// Collections that are synchronised to devices. Every change gets a monotonically
+// increasing sequence number so a device can ask for "everything since seq N".
+export const SYNCED = new Set(['tasks', 'reminders', 'events', 'notifications', 'approvals', 'workflows', 'shopping', 'memories', 'settings']);
+const MAX_CHANGES = 5000;
+
 export class Store {
   /** @param {string|null} file path to persist to, or null for in-memory only */
   constructor(file = null) {
@@ -16,12 +21,24 @@ export class Store {
       this.data = JSON.parse(fs.readFileSync(file, 'utf8'));
     }
   }
+  track(col, op, rec) {
+    if (!SYNCED.has(col)) return;
+    const meta = (this.data._meta ??= {});
+    meta.seq = (meta.seq ?? 0) + 1;
+    const ch = (this.data._changes ??= []);
+    const { vector, ...clean } = rec ?? {};
+    ch.push({ seq: meta.seq, col, op, id: rec?.id, at: now(), rec: op === 'delete' ? null : clean });
+    if (ch.length > MAX_CHANGES) ch.splice(0, ch.length - MAX_CHANGES);
+  }
+  seq() { return this.data._meta?.seq ?? 0; }
+  changesSince(seq) { return (this.data._changes ?? []).filter((c) => c.seq > seq); }
   col(name) { return (this.data[name] ??= []); }
   all(name, pred = () => true) { return this.col(name).filter(pred); }
   get(name, id) { return this.col(name).find((r) => r.id === id) ?? null; }
   insert(name, rec) {
     const r = { id: rec.id ?? newId(name.slice(0, 4)), createdAt: now(), ...rec };
     this.col(name).push(r);
+    this.track(name, 'upsert', r);
     this.save();
     return r;
   }
@@ -29,6 +46,7 @@ export class Store {
     const r = this.get(name, id);
     if (!r) return null;
     Object.assign(r, patch, { updatedAt: now() });
+    this.track(name, 'upsert', r);
     this.save();
     return r;
   }
@@ -36,7 +54,8 @@ export class Store {
     const c = this.col(name);
     const i = c.findIndex((r) => r.id === id);
     if (i < 0) return false;
-    c.splice(i, 1);
+    const [gone] = c.splice(i, 1);
+    this.track(name, 'delete', gone);
     this.save();
     return true;
   }

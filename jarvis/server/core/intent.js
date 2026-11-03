@@ -18,7 +18,7 @@ export function parseClause(raw, convo = {}) {
   // --- reminders first ("remind me to pay the bill" is not a payment) ---
   if ((m = text.match(/(?:remind me (?:to |that |about )?|תזכיר לי (?:ל|ש)?|תזכורת:?\s*)(.+)/i))) {
     const at = parseWhen(m[1]) ?? new Date(Date.now() + 36e5).toISOString();
-    return [{ agent: 'executive', tool: 'reminders.create', args: { text: stripWhen(m[1]) || m[1], at } }];
+    return [{ agent: 'assistant', tool: 'reminders.create', args: { text: stripWhen(m[1]) || m[1], at } }];
   }
   // --- memory ---
   if ((m = text.match(/^(?:remember(?: that)?|תזכור ש|תזכור כי|זכור ש)\s*(.+)/i))) {
@@ -27,24 +27,37 @@ export function parseClause(raw, convo = {}) {
   if ((m = text.match(/(?:what do you (?:know|remember) about|מה אתה (?:יודע|זוכר) על)\s*(.+)/i))) {
     return [{ agent: 'knowledge', tool: 'memory.search', args: { query: m[1] } }];
   }
+  // --- shopping list ---
+  if ((m = text.match(/(?:add\s+(.+?)\s+to (?:the |my )?shopping list|(?:תוסיף|הוסף)\s+(.+?)\s+לרשימת (?:ה)?קניות)/i))) {
+    return [{ agent: 'household', tool: 'shopping.add', args: { item: (m[1] ?? m[2]).trim() } }];
+  }
+  if (has(t, /shopping list|רשימת (ה)?קניות/)) return [{ agent: 'household', tool: 'shopping.list', args: {} }];
+  // --- health (optional, consent-gated) ---
+  if (has(t, /how did i sleep|my sleep|steps|heart rate|activity this week|איך ישנתי|כמה צעדים|שינה שלי|דופק|פעילות השבוע/)) {
+    return [{ agent: 'health', tool: 'health.summary', args: {} }];
+  }
+  // --- documents ---
+  if ((m = text.match(/(?:search (?:my )?documents for|in my documents|חפש במסמכים|במסמכים שלי)\s*(.+)/i))) {
+    return [{ agent: 'knowledge', tool: 'documents.search', args: { query: m[1] } }];
+  }
   // --- briefings ---
   if (has(t, /organi[sz]e my day|daily brief|my day|what'?s (on )?today|תארגן לי את היום|תדריך|מה יש לי היום|סדר יום/)) {
-    return [{ agent: 'executive', tool: 'briefing.daily', args: {} }];
+    return [{ agent: 'assistant', tool: 'briefing.daily', args: {} }];
   }
-  if (has(t, /weekly (report|summary|brief)|דוח שבועי|סיכום שבועי/)) return [{ agent: 'executive', tool: 'briefing.weekly', args: {} }];
+  if (has(t, /weekly (report|summary|brief)|דוח שבועי|סיכום שבועי/)) return [{ agent: 'assistant', tool: 'briefing.weekly', args: {} }];
   // --- tasks ---
   if ((m = text.match(/(?:add (?:a )?task|new task|create (?:a )?task|הוסף משימה|משימה חדשה)[:\s]+(.+)/i))) {
     const due = parseWhen(m[1]);
-    return [{ agent: 'executive', tool: 'tasks.create', args: { title: stripWhen(m[1]), due, priority: /urgent|important|דחוף|חשוב/i.test(m[1]) ? 'high' : 'normal' } }];
+    return [{ agent: 'assistant', tool: 'tasks.create', args: { title: stripWhen(m[1]), due, priority: /urgent|important|דחוף|חשוב/i.test(m[1]) ? 'high' : 'normal' } }];
   }
-  if (has(t, /my tasks|open tasks|to-?do list|מה המשימות|המשימות שלי|רשימת משימות/)) return [{ agent: 'executive', tool: 'tasks.list', args: {} }];
+  if (has(t, /my tasks|open tasks|to-?do list|מה המשימות|המשימות שלי|רשימת משימות/)) return [{ agent: 'assistant', tool: 'tasks.list', args: {} }];
   if ((m = text.match(/(?:schedule|add (?:an )?(?:event|meeting)|קבע (?:פגישה|אירוע)|תקבע)\s+(.+)/i))) {
     const start = parseWhen(m[1]);
-    if (start) return [{ agent: 'executive', tool: 'calendar.create', args: { title: stripWhen(m[1]), start } }];
+    if (start) return [{ agent: 'assistant', tool: 'calendar.create', args: { title: stripWhen(m[1]), start } }];
   }
   if (has(t, /family schedule|weekly family|לוח זמנים משפחתי|תכנון שבועי למשפחה/)) {
-    return [{ agent: 'executive', tool: 'calendar.list', args: { from: new Date().toISOString(), to: new Date(Date.now() + 7 * 864e5).toISOString() } },
-      { agent: 'executive', tool: 'tasks.list', args: {} }];
+    return [{ agent: 'assistant', tool: 'calendar.list', args: { from: new Date().toISOString(), to: new Date(Date.now() + 7 * 864e5).toISOString() } },
+      { agent: 'assistant', tool: 'tasks.list', args: {} }];
   }
 
   // --- finance: money movement is detected and routed to the guard ---
@@ -61,27 +74,27 @@ export function parseClause(raw, convo = {}) {
   if (has(t, /how much did (we|i) spend|spent this month|check my finances|what needs attention|כמה הוצאנו|כמה הוצאתי|המצב הכלכלי|הכספים שלי/)) return [{ agent: 'finance', tool: 'wealth.analysis', args: { focus: 'spend' } }];
 
   // --- smart home ---
-  if (has(t, /offline|not (connected|responding)|לא מחובר|מנותק/)) return [{ agent: 'home', tool: 'home.devices', args: { offlineOnly: true } }];
+  if (has(t, /offline|not (connected|responding)|לא מחובר|מנותק/)) return [{ agent: 'smarthome', tool: 'home.devices', args: { offlineOnly: true } }];
   if ((m = t.match(/(?:activate|start|turn on)\s+(\w+)\s+(?:mode|scene)|(?:הפעל|תפעיל)\s+(?:את\s+)?מצב\s+(\S+)/))) {
     const word = m[1] ?? m[2];
     const map = { evening: 'evening', ערב: 'evening', night: 'night', לילה: 'night' };
-    return [{ agent: 'home', tool: 'home.scene', args: { sceneId: `scene.${map[word] ?? word}` } }];
+    return [{ agent: 'smarthome', tool: 'home.scene', args: { sceneId: `scene.${map[word] ?? word}` } }];
   }
   if ((m = t.match(/(?:temperature|thermostat|ac|מזגן|טמפרטורה)\D*(\d{2})|(?:set|תכוון|כוון)\D*(\d{2})\s*(?:degrees|°|מעלות)/))) {
-    return [{ agent: 'home', tool: 'home.control', args: { query: 'climate', action: 'set_temperature', data: { temperature: Number(m[1] ?? m[2]) } } }];
+    return [{ agent: 'smarthome', tool: 'home.control', args: { query: 'climate', action: 'set_temperature', data: { temperature: Number(m[1] ?? m[2]) } } }];
   }
   const lightOff = has(t, /turn off|switch off|turn (it|them) off|lights? off|כבה|תכבה|לכבות/);
   const lightOn = has(t, /turn on|switch on|turn (it|them) on|lights? on|הדלק|תדליק|להדליק/);
   if ((lightOff || lightOn) && has(t, /light|lamp|אור|תאורה|מנורה|\bit\b|\bthem\b|אותו|אותם/)) {
     const pronoun = has(t, /\bit\b|\bthem\b|אותו|אותם/) && !has(t, /light|אור|תאורה/);
-    return [{ agent: 'home', tool: 'home.control', args: { query: pronoun ? null : text, useLast: pronoun, domain: 'light', action: lightOff ? 'turn_off' : 'turn_on' } }];
+    return [{ agent: 'smarthome', tool: 'home.control', args: { query: pronoun ? null : text, useLast: pronoun, domain: 'light', action: lightOff ? 'turn_off' : 'turn_on' } }];
   }
-  if (has(t, /unlock|open the (front )?door|פתח את הדלת|תפתח את הדלת/)) return [{ agent: 'home', tool: 'home.control', args: { entityId: 'lock.front_door', action: 'unlock' } }];
-  if (has(t, /lock the (front )?door|נעל את הדלת|תנעל/)) return [{ agent: 'home', tool: 'home.control', args: { entityId: 'lock.front_door', action: 'lock' } }];
-  if (has(t, /devices|home status|מצב הבית|המכשירים/)) return [{ agent: 'home', tool: 'home.devices', args: {} }];
+  if (has(t, /unlock|open the (front )?door|פתח את הדלת|תפתח את הדלת/)) return [{ agent: 'smarthome', tool: 'home.control', args: { entityId: 'lock.front_door', action: 'unlock' } }];
+  if (has(t, /lock the (front )?door|נעל את הדלת|תנעל/)) return [{ agent: 'smarthome', tool: 'home.control', args: { entityId: 'lock.front_door', action: 'lock' } }];
+  if (has(t, /devices|home status|מצב הבית|המכשירים/)) return [{ agent: 'smarthome', tool: 'home.devices', args: {} }];
 
   // --- research ---
-  if ((m = text.match(/https?:\/\/\S+/))) return [{ agent: 'research', tool: 'research.fetch', args: { url: m[0] } }];
+  if ((m = text.match(/https?:\/\/\S+/))) return [{ agent: 'browser', tool: 'research.fetch', args: { url: m[0] } }];
   if ((m = text.match(/^(?:research|look up|find out about|חקור|תחקור|תבדוק לי)\s+(.+)/i))) return [{ agent: 'research', tool: 'research.web', args: { query: m[1] } }];
 
   // --- computer ---
@@ -93,7 +106,8 @@ export function parseClause(raw, convo = {}) {
   // --- fall through to the language model ---
   const agent = has(t, /code|bug|function|debug|קוד|באג/) ? 'coding'
     : has(t, /email|message|draft|מייל|הודעה|טיוטה/) ? 'communication'
-    : has(t, /plan|project|break down|תכנן|פרויקט|פרק/) ? 'planning' : 'knowledge';
+    : has(t, /plan|project|break down|תכנן|פרויקט|פרק/) ? 'executive'
+    : has(t, /write|poem|story|idea|presentation|כתוב|שיר|סיפור|רעיון|מצגת/) ? 'creative' : 'knowledge';
   const complexity = text.length > 280 || has(t, /analy[sz]e|compare|strategy|best solution|נתח|אסטרטגיה|הפתרון הטוב/) ? 'high' : text.length < 40 ? 'low' : 'medium';
   return [{ agent, tool: 'llm.answer', args: { prompt: text, complexity } }];
 }

@@ -1,6 +1,7 @@
 // Tasks, calendar events, reminders, projects and the daily / weekly briefings.
 import { now } from '../lib/store.js';
 import { fmt } from '../wealth/calc.js';
+import { t as tr } from '../lib/i18n.js';
 
 export class Productivity {
   constructor(store) { this.store = store; }
@@ -45,42 +46,43 @@ export class Productivity {
   dueReminders(at = new Date().toISOString()) { return this.store.all('reminders', (r) => !r.fired && r.at <= at); }
   markFired(id) { return this.store.update('reminders', id, { fired: true }); }
 
-  dailyBriefing({ today = new Date().toISOString().slice(0, 10), wealth, approvals = [], home = [] } = {}) {
+  dailyBriefing({ today = new Date().toISOString().slice(0, 10), wealth, approvals = [], home = [], lang = 'en' } = {}) {
     const events = this.eventsOn(today);
     const tasks = this.listTasks().slice(0, 7);
     const overdue = tasks.filter((t) => t.due && t.due.slice(0, 10) < today);
     const reminders = this.store.all('reminders', (r) => !r.fired && r.at.slice(0, 10) === today);
     const bills = wealth?.upcomingBills ?? [];
     const offline = home.filter((d) => !d.online);
+    const L = (k, v) => tr(lang, k, v);
     const next = [];
-    if (overdue.length) next.push(`Close overdue task: ${overdue[0].title}`);
-    if (bills.some((b) => b.overdue)) next.push('Pay overdue bills');
-    if (approvals.length) next.push(`Review ${approvals.length} pending approval(s)`);
-    if (!next.length && tasks[0]) next.push(`Start with: ${tasks[0].title}`);
+    if (overdue.length) next.push(L('next_overdue_task', { t: overdue[0].title }));
+    if (bills.some((b) => b.overdue)) next.push(L('next_pay_bills'));
+    if (approvals.length) next.push(L('next_review_approvals', { n: approvals.length }));
+    if (!next.length && tasks[0]) next.push(L('next_start', { t: tasks[0].title }));
     const text = [
-      `Briefing for ${today}`,
-      events.length ? `Schedule: ${events.map((e) => `${e.start.slice(11, 16)} ${e.title}`).join('; ')}` : 'Schedule: no events today.',
-      tasks.length ? `Top tasks: ${tasks.slice(0, 3).map((t) => t.title).join('; ')}` : 'No open tasks.',
-      bills.length ? `Bills soon: ${bills.map((b) => `${b.name} ${fmt(b.amount)} (${b.dueDate})`).join('; ')}` : 'No bills due in the next 14 days.',
-      approvals.length ? `Pending approvals: ${approvals.length}` : null,
-      offline.length ? `Offline devices: ${offline.map((d) => d.name).join(', ')}` : null,
-      next.length ? `Recommended next: ${next.join('; ')}` : null,
+      L('briefing_title', { day: today }),
+      events.length ? L('schedule', { list: events.map((e) => `${e.start.slice(11, 16)} ${e.title}`).join('; ') }) : L('no_events'),
+      tasks.length ? L('top_tasks', { list: tasks.slice(0, 3).map((t) => t.title).join('; ') }) : L('no_tasks'),
+      bills.length ? L('bills_soon', { list: bills.map((b) => `${b.name} ${fmt(b.amount)} (${b.dueDate})`).join('; ') }) : L('no_bills'),
+      approvals.length ? L('pending_approvals', { n: approvals.length }) : null,
+      offline.length ? L('offline_devices', { list: offline.map((d) => d.name).join(', ') }) : null,
+      next.length ? L('recommended', { list: next.join('; ') }) : null,
     ].filter(Boolean).join('\n');
     return { today, events, tasks, overdue, reminders, bills, approvals: approvals.length, offlineDevices: offline, recommended: next, text };
   }
 
-  weeklyReport({ since = new Date(Date.now() - 7 * 864e5).toISOString(), wealthSummary = null } = {}) {
+  weeklyReport({ since = new Date(Date.now() - 7 * 864e5).toISOString(), wealthSummary = null, lang = 'en' } = {}) {
+    const L = (k, v) => tr(lang, k, v);
     const done = this.store.all('tasks', (t) => t.done && (t.completedAt ?? '') >= since);
     const open = this.listTasks();
     const week = new Date(Date.now() + 7 * 864e5).toISOString();
     const deadlines = open.filter((t) => t.due && t.due <= week);
     const text = [
-      `Weekly report since ${since.slice(0, 10)}`,
-      `Completed: ${done.length}${done.length ? ` (${done.slice(0, 5).map((t) => t.title).join('; ')})` : ''}`,
-      `Open: ${open.length}`,
-      `Deadlines this week: ${deadlines.length ? deadlines.map((t) => t.title).join('; ') : 'none'}`,
-      wealthSummary ? `Finances: expenses ${fmt(wealthSummary.expenses)}, net ${fmt(wealthSummary.net)}` : null,
-      open[0] ? `Suggested priority: ${open[0].title}` : null,
+      L('weekly_title', { d: since.slice(0, 10) }),
+      `${L('weekly_done', { n: done.length })}${done.length ? ` (${done.slice(0, 5).map((t) => t.title).join('; ')})` : ''}`,
+      L('weekly_open', { n: open.length }),
+      L('weekly_deadlines', { list: deadlines.length ? deadlines.map((t) => t.title).join('; ') : L('none') }),
+      wealthSummary ? `${lang === 'he' ? 'כספים' : 'Finances'}: ${fmt(wealthSummary.expenses)} / ${fmt(wealthSummary.net)}` : null,
     ].filter(Boolean).join('\n');
     return { completed: done, open, deadlines, text };
   }

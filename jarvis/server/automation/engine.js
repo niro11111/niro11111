@@ -7,6 +7,7 @@
 //            { type:'condition', if:{ path:'analysis.calculations.anomalies.unusual.length', op:'>', value:0 }, then:[...], else:[...] },
 //            { type:'notify', title:'...', body:'{{analysis.month}}', priority:'high' },
 //            { type:'approval', summary:'...' }, { type:'delay', ms:1000 }, { type:'agent', prompt:'...' } ] }
+// A tool step may carry onError: [...steps] (error branch) or continueOnError: true.
 import { now } from '../lib/store.js';
 import { riskOf } from '../tools/index.js';
 
@@ -97,7 +98,12 @@ export class Automations {
               lastErr = null; break;
             } catch (e) { lastErr = e; attempt++; this.log(run, { step: key, tool: st.tool, ok: false, error: e.message, attempt }); }
           }
-          if (lastErr) { if (st.continueOnError) break; throw lastErr; }
+          if (lastErr) {
+            run.vars.lastError = lastErr.message;
+            if (st.onError?.length) { const r = await this.exec(st.onError, run, [...path, i, 'err']); if (r === 'paused') return r; break; }
+            if (st.continueOnError) break;
+            throw lastErr;
+          }
           break;
         }
         case 'condition': {
