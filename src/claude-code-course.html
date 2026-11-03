@@ -8,7 +8,7 @@
   --bg:#f2f5f4; --surface:#ffffff; --surface-2:#e7edeb; --ink:#13201d; --muted:#55635f; --line:#d2dbd8;
   --accent:#0d7568; --accent-ink:#ffffff; --amber:#9c5600; --red:#b42335; --ok:#16794a;
   --term-bg:#0f1816; --term-ink:#d6e4df; --term-dim:#7d958f; --term-green:#5fd3a8; --term-amber:#f2b45a; --term-line:#24332f;
-  --lv1:#16794a; --lv2:#1d63c9; --lv3:#7b3fc4; --lv4:#b8431f; --lv5:#0d7568; --lv6:#9c5600; --lv7:#b0256f; --lv8:#2b6f8c; --lv9:#5a6e00; --lv10:#4c51bf;
+  --lv1:#16794a; --lv2:#1d63c9; --lv3:#7b3fc4; --lv4:#b8431f; --lv5:#0d7568; --lv6:#9c5600; --lv7:#b0256f; --lv8:#2b6f8c; --lv9:#5a6e00; --lv10:#4c51bf; --lv11:#0e7490;
   --display:"Secular One","Assistant",system-ui,sans-serif; --body:"Assistant","Segoe UI",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
   --shadow:0 1px 2px rgba(10,30,25,.05),0 8px 24px rgba(10,30,25,.06);
 }
@@ -16,14 +16,14 @@
   :root:not([data-theme="light"]){
     --bg:#0c1211; --surface:#131b1a; --surface-2:#1a2523; --ink:#e3ebe8; --muted:#93a39e; --line:#26332f;
     --accent:#3cc8b0; --accent-ink:#04201b; --amber:#f0a845; --red:#ff7487; --ok:#4fd28e;
-    --lv1:#4fd28e; --lv2:#6aa5ff; --lv3:#b48cff; --lv4:#ff8a63; --lv5:#3cc8b0; --lv6:#f0a845; --lv7:#ff7ab8; --lv8:#6cc7e0; --lv9:#bcd96a; --lv10:#a5b4fc;
+    --lv1:#4fd28e; --lv2:#6aa5ff; --lv3:#b48cff; --lv4:#ff8a63; --lv5:#3cc8b0; --lv6:#f0a845; --lv7:#ff7ab8; --lv8:#6cc7e0; --lv9:#bcd96a; --lv10:#a5b4fc; --lv11:#67e8f9;
     --shadow:0 1px 2px rgba(0,0,0,.35),0 8px 24px rgba(0,0,0,.3); color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --bg:#0c1211; --surface:#131b1a; --surface-2:#1a2523; --ink:#e3ebe8; --muted:#93a39e; --line:#26332f;
   --accent:#3cc8b0; --accent-ink:#04201b; --amber:#f0a845; --red:#ff7487; --ok:#4fd28e;
-  --lv1:#4fd28e; --lv2:#6aa5ff; --lv3:#b48cff; --lv4:#ff8a63; --lv5:#3cc8b0; --lv6:#f0a845; --lv7:#ff7ab8; --lv8:#6cc7e0; --lv9:#bcd96a; --lv10:#a5b4fc;
+  --lv1:#4fd28e; --lv2:#6aa5ff; --lv3:#b48cff; --lv4:#ff8a63; --lv5:#3cc8b0; --lv6:#f0a845; --lv7:#ff7ab8; --lv8:#6cc7e0; --lv9:#bcd96a; --lv10:#a5b4fc; --lv11:#67e8f9;
   --shadow:0 1px 2px rgba(0,0,0,.35),0 8px 24px rgba(0,0,0,.3); color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -202,6 +202,28 @@ html.retro main::after{content:"";position:fixed;inset:0;pointer-events:none;bac
 .skip{position:absolute;inset-inline-start:-999px;top:8px;z-index:90;background:var(--accent);color:var(--accent-ink);padding:8px 14px;border-radius:8px}
 .skip:focus{inset-inline-start:8px}
 button:disabled{opacity:.45;cursor:not-allowed}
+.cp-grid{display:grid;gap:6px;margin:10px 0}
+details.cp{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:6px 12px}
+details.cp.on{border-color:var(--lv11)}
+details.cp summary{display:flex;gap:8px;align-items:center;cursor:pointer;flex-wrap:wrap}
+details.cp summary .hint{flex:1;min-width:160px}
+.sl-preview{direction:ltr;text-align:left;font-family:var(--mono);background:var(--term-bg);color:var(--term-green);padding:8px 14px;border-radius:8px;border:1px solid var(--term-line);margin:8px 0}
+.looks{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-top:10px}
+.look{display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--surface);color:var(--ink);cursor:pointer;font:600 .9rem var(--body)}
+.look span{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--a) 50%,var(--b) 50%);border:1px solid var(--line);flex:none}
+.look.on{outline:2px solid var(--accent)}
+.proto-frame{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;height:420px}
+.proto-frame iframe{width:100%;height:100%;border:0}
+body{font-size:calc(17px * var(--fs, 1))}
+html.compact main{padding-block:16px}
+html.compact .box,html.compact .trick,html.compact .steps>li{padding:10px 12px;margin:8px 0}
+html.compact h2{margin-top:1.1em}
+html.theme-midnight{--bg:#120f1e;--surface:#1b1730;--surface-2:#252040;--ink:#ece8ff;--muted:#a59fc8;--line:#352e5a;--accent:#b48cff;--accent-ink:#160f2a;--amber:#ffc46b;--red:#ff7a9a;--ok:#6ee7b7;color-scheme:dark}
+html.theme-ocean{--bg:#0b1622;--surface:#10202f;--surface-2:#16293c;--ink:#e3f0ff;--muted:#8fb0cc;--line:#1f3a52;--accent:#3aa0ff;--accent-ink:#04121f;--amber:#ffcf5c;--red:#ff7b7b;--ok:#5ee0a0;color-scheme:dark}
+html.theme-paper{--bg:#f6f0e4;--surface:#fffaf0;--surface-2:#efe6d3;--ink:#2b2118;--muted:#6f5f4b;--line:#ddd0b8;--accent:#9c4a1a;--accent-ink:#fff;--amber:#8a5a00;--red:#a8321c;--ok:#3d6b2a;color-scheme:light}
+html.theme-solar{--bg:#fdf6e3;--surface:#fffbef;--surface-2:#eee8d5;--ink:#073642;--muted:#586e75;--line:#e0d8bf;--accent:#b58900;--accent-ink:#fff;--amber:#cb4b16;--red:#dc322f;--ok:#859900;color-scheme:light}
+html.theme-contrast{--bg:#000;--surface:#000;--surface-2:#1a1a1a;--ink:#fff;--muted:#e6e6e6;--line:#fff;--accent:#ffd400;--accent-ink:#000;--amber:#ffd400;--red:#ff6b6b;--ok:#5dff8f;color-scheme:dark}
+html.theme-contrast a{text-decoration:underline}
 .levels .lv{border:1px solid var(--line);border-top:4px solid var(--c);border-radius:10px;padding:12px;background:var(--surface)}
 .levels .lv b{color:var(--c);display:block;font-size:1.02rem}
 .levels .lv span{font-size:.9rem;color:var(--muted)}
@@ -331,7 +353,7 @@ main{overflow-wrap:break-word}
     <div>
       <h1>Claude Code ברמה הכי גבוהה, בעברית ובתרגול אמיתי</h1>
       <p class="lead">Claude Code הוא סוכן תכנות שעובד בתוך הטרמינל, ה-IDE, הדפדפן וה-CI שלכם: קורא קוד, עורך קבצים, מריץ פקודות ופותח PR. הקורס הזה לוקח אתכם מההתקנה הראשונה ועד בניית סוכנים, אוטומציות ואינטגרציות משלכם.</p>
-      <div class="row"><button class="btn pri" type="button" data-go="install">להתחיל מההתחלה</button><button class="btn" type="button" data-go="dashboard">לוח הבקרה שלי</button><button class="btn" type="button" data-go="tricks">40 טריקים</button><button class="btn" type="button" data-go="slides">מצגות</button><button class="btn" type="button" data-go="generator">מחולל פרויקטים</button><button class="btn" type="button" data-go="hidden">חדר הסודות</button><button class="btn" type="button" data-go="buildalong">פרויקט מלא</button><button class="btn" type="button" data-go="intrecipes">אינטגרציות</button><button class="btn" type="button" data-go="sim">סימולטור</button><button class="btn" type="button" data-go="exam">למבחן הגמר</button></div>
+      <div class="row"><button class="btn pri" type="button" data-go="install">להתחיל מההתחלה</button><button class="btn" type="button" data-go="dashboard">לוח הבקרה שלי</button><button class="btn" type="button" data-go="tricks">40 טריקים</button><button class="btn" type="button" data-go="slides">מצגות</button><button class="btn" type="button" data-go="generator">מחולל פרויקטים</button><button class="btn" type="button" data-go="hidden">חדר הסודות</button><button class="btn" type="button" data-go="buildalong">פרויקט מלא</button><button class="btn" type="button" data-go="intrecipes">אינטגרציות</button><button class="btn" type="button" data-go="cmdpack">חבילת פקודות</button><button class="btn" type="button" data-go="prototype">פרוטוטייפ</button><button class="btn" type="button" data-go="sim">סימולטור</button><button class="btn" type="button" data-go="exam">למבחן הגמר</button></div>
     </div>
     <div class="term" aria-hidden="true"><div class="tb"><i></i><i></i><i></i></div><div class="body" id="heroTerm"></div></div>
   </div>
@@ -345,6 +367,7 @@ main{overflow-wrap:break-word}
     <div class="lv" style="--c:var(--lv7)"><b>מאסטר</b><span>40 טריקים של מקצוענים, 6 דוגמאות מלאות מקצה לקצה וספריית פרומפטים מוכנים.</span></div>
     <div class="lv" style="--c:var(--lv9)"><b>סודות מתקדמים</b><span>שרת MCP משלכם, לולאות אוטונומיות, צוות סוכנים, Hooks ברמת מאסטר, בוט SDK, סוכני לילה, ניטור ארגוני, מדריך פקודות מלא, חדר הסודות ופיתוח פרויקטים מלאים.</span></div>
     <div class="lv" style="--c:var(--lv10)"><b>אינטגרציות ופרויקטים</b><span>11 מתכוני אינטגרציה, בונה אינטגרציות לצוות, פרויקט מלא אמיתי שנבנה ונבדק, ותרחישי החלטה.</span></div>
+    <div class="lv" style="--c:var(--lv11)"><b>ארגז הכלים של המומחה</b><span>חבילה של 25 פקודות, 8 סוכנים ו-6 Skills עם סקריפט התקנה, 16 דפוסי פרומפט ובונה פרומפטים, גלריית התאמה אישית ופרוטוטייפ מהיר עם מחולל חי.</span></div>
     <div class="lv" style="--c:var(--lv8)"><b>מצגות</b><span>6 מצגות שמסכמות את הקורס, עם מסך מלא. מתאימות גם להצגה לצוות.</span></div>
     <div class="lv" style="--c:var(--lv5)"><b>סדנת תרגול</b><span>סימולטור (20 משימות), מחוללים, מחולל פרויקט מלא, מעבדת פרומפטים, אתגרים, כרטיסיות, פרויקט גמר, בודק הגדרות, מילון ואתגר יומי.</span></div>
     <div class="lv" style="--c:var(--lv6)"><b>מבחן גמר</b><span>15 שאלות אקראיות מכל הקורס. עוברים ב-80% ומקבלים תעודה על המסך.</span></div>
@@ -1914,6 +1937,108 @@ fly deploy</pre></div></li>
   <div id="scBody"></div>
 </section>
 
+<!-- ================= EXPERT TOOLBOX ================= -->
+<section class="mod" id="cmdpack" data-level="ארגז הכלים של המומחה" data-title="חבילת פקודות, סוכנים ו-Skills">
+  <div class="eyebrow"></div>
+  <h1>חבילת המומחה: 25 פקודות, 8 סוכנים ו-6 Skills מוכנים</h1>
+  <p class="lead">ספרייה של קבצים מוכנים לשימוש, שנכתבו לפי מה שעובד בצוותים אמיתיים. סמנו מה שאתם רוצים, ולחצו "סקריפט התקנה": מקבלים פקודת bash אחת שיוצרת את כל הקבצים בפרויקט. אפשר גם להעתיק כל קובץ בנפרד.</p>
+  <div class="row" style="margin:8px 0;gap:6px">
+    <input class="search" id="cpSearch" type="search" placeholder="חיפוש: ci, release, a11y…" aria-label="חיפוש בחבילה" style="max-width:260px;margin:0">
+    <button class="btn sm" type="button" id="cpAll">סימון הכול</button><button class="btn sm" type="button" id="cpNone">ניקוי</button>
+    <label class="tick"><input type="radio" name="cpScope" value="project" checked> לפרויקט (.claude/)</label>
+    <label class="tick"><input type="radio" name="cpScope" value="user"> אישי (~/.claude/)</label>
+    <span class="hint" id="cpCount"></span>
+  </div>
+  <div class="tabs" id="cpFilter"></div>
+  <div class="cp-grid" id="cpList"></div>
+  <h2>סקריפט התקנה</h2>
+  <p class="hint">הריצו את הסקריפט בשורש הפרויקט. הוא לא דורס קבצים קיימים, אלא מדלג עליהם ומדווח.</p>
+  <div class="code" data-lang="bash" data-file="install-claude-pack.sh" id="cpScript"><pre></pre></div>
+  <div class="quiz" data-q="cmdpack"></div>
+</section>
+
+<section class="mod" id="promptpro" data-level="ארגז הכלים של המומחה" data-title="פרומפטים מיוחדים ובונה פרומפטים">
+  <div class="eyebrow"></div>
+  <h1>פרומפטים מיוחדים: דפוסים שמקצוענים משתמשים בהם</h1>
+  <p class="lead">16 דפוסי פרומפט שמשנים את איכות העבודה: "פרה-מורטם", "צוות אדום" לתוכנית, "חמישה למה", "רק diff", ועוד. לכל דפוס מוסבר מתי להשתמש בו, ויש תבנית להעתקה. בהמשך הפרק יש בונה פרומפטים שמרכיב פרומפט מקצועי מהשדות שלכם.</p>
+  <div class="tricks" id="ppList"></div>
+  <h2>בונה הפרומפטים</h2>
+  <div class="grid2">
+    <div class="form">
+      <label>סוג משימה<select id="pbType"></select></label>
+      <label>מה המטרה?<textarea id="pbGoal" rows="2">Users get logged out about an hour after signing in.</textarea></label>
+      <label>קבצים והקשר (מופרדים בפסיק)<input id="pbFiles" class="ltr" value="src/auth/session.ts, src/middleware/refresh.ts"></label>
+      <label>גבולות<input id="pbLimits" class="ltr" value="don't change the public API; no new dependencies"></label>
+      <label>איך נדע שהצלחנו?<input id="pbDone" class="ltr" value="all auth tests and lint pass"></label>
+      <b>תוספות</b>
+      <div class="chk" id="pbOpts"></div>
+    </div>
+    <div>
+      <div class="code" data-lang="prompt" id="pbOut"><pre style="white-space:pre-wrap"></pre></div>
+      <div class="row"><span class="hint" id="pbScore"></span><button class="btn sm" type="button" id="pbToLab">למעבדת הפרומפטים</button></div>
+    </div>
+  </div>
+  <div class="quiz" data-q="promptpro"></div>
+</section>
+
+<section class="mod" id="gallery" data-level="ארגז הכלים של המומחה" data-title="גלריית התאמה אישית">
+  <div class="eyebrow"></div>
+  <h1>גלריית התאמה אישית: שורות סטטוס, סגנונות פלט ו-Hooks מיוחדים</h1>
+  <p class="lead">הפכו את Claude Code לכלי שלכם: שורת סטטוס עם המידע שחשוב לכם, סגנון תגובה שמתאים לכם, ו-Hooks שאף אחד לא חשב עליהם.</p>
+  <h2>שורות סטטוס</h2>
+  <div class="tabs" id="slTabs"></div>
+  <div class="sl-preview" id="slPrev"></div>
+  <div class="code" data-lang="bash" id="slCode"><pre></pre></div>
+  <div class="code" data-lang="json" data-file="~/.claude/settings.json"><pre>{ "statusLine": { "type": "command", "command": "~/.claude/statusline.sh" } }</pre></div>
+  <h2>סגנונות פלט (Output Styles)</h2>
+  <div class="tabs" id="osTabs"></div>
+  <div class="code" data-lang="markdown" id="osCode"><pre></pre></div>
+  <h2>Hooks מיוחדים</h2>
+  <div class="tricks" id="hxList"></div>
+  <div class="quiz" data-q="gallery"></div>
+</section>
+
+<section class="mod" id="prototype" data-level="ארגז הכלים של המומחה" data-title="פרוטוטייפ מהיר">
+  <div class="eyebrow"></div>
+  <h1>פרוטוטייפ מהיר: מרעיון לדבר שאפשר ללחוץ עליו, ב-30 דקות</h1>
+  <p class="lead">Claude Code מעולה לבניית פרוטוטייפים: מסך שאפשר להראות ללקוח, דמו למשקיעים, או בדיקה אם רעיון בכלל עובד. הסוד הוא לעבוד בשלבים, לזרוק בלי רחמים, ולדעת מתי פרוטוטייפ הופך לקוד אמיתי.</p>
+  <h2>חמש רמות של פרוטוטייפ</h2>
+  <div class="tbl"><table>
+    <tr><th>רמה</th><th>מה בונים</th><th>זמן</th><th>הפרומפט</th></tr>
+    <tr><td>1. קובץ HTML אחד</td><td>מסך סטטי עם עיצוב, בלי שרת</td><td>5 דק'</td><td><code>build a single-file HTML prototype of…, open it</code></td></tr>
+    <tr><td>2. אינטראקטיבי</td><td>לחיצות, טפסים, מעברי מסך עם נתוני דמה</td><td>15 דק'</td><td><code>add fake data with 20 realistic items in Hebrew…</code></td></tr>
+    <tr><td>3. API מדומה</td><td>frontend אמיתי מול שרת דמה (json-server / MSW)</td><td>30 דק'</td><td><code>mock the API from docs/api.md with MSW…</code></td></tr>
+    <tr><td>4. פרוסה אמיתית</td><td>זרימה אחת מקצה לקצה עם DB</td><td>שעות</td><td>לפי פרק "פיתוח פרויקטים מלאים"</td></tr>
+    <tr><td>5. מוצר</td><td>בדיקות, אבטחה, פריסה</td><td>ימים</td><td>מתחילים מחדש עם מפרט, לא מרחיבים את הפרוטוטייפ</td></tr>
+  </table></div>
+  <h2>טכניקות פרוטוטייפ שעובדות</h2>
+  <div class="grid2">
+    <div class="box"><b>📸 מתמונה לקוד</b><br>צלמו סקיצה על לוח או נייר, הדביקו (Ctrl+V), וכתבו "build this as a clickable HTML prototype". Claude קורא את התמונה.</div>
+    <div class="box"><b>👀 Claude רואה את התוצאה</b><br>‏<code>npx playwright screenshot</code> שומר צילום מסך, ו-Claude פותח אותו עם Read ומשווה. אין צורך ב-MCP.</div>
+    <div class="box"><b>🎲 נתוני דמה אמינים</b><br>"generate 30 realistic Israeli customers with Hebrew names, cities and phone formats". נתונים טובים מוכרים את הדמו.</div>
+    <div class="box"><b>🔀 שלוש וריאציות</b><br>"build 3 different layouts for this screen as proto-a.html, proto-b.html, proto-c.html". בוחרים ומשלבים.</div>
+    <div class="box"><b>🌿 ענף זריקה</b><br>כל פרוטוטייפ בענף <code>proto/...</code> או ב-worktree. לא ממזגים ל-main, אלא כותבים את המוצר מחדש.</div>
+    <div class="box"><b>🎤 מצב דמו</b><br>"add a ?demo=1 mode that auto-plays the main flow with delays". מושלם להצגה בלי לגעת בעכבר.</div>
+  </div>
+  <h2>מחולל פרוטוטייפים חי</h2>
+  <p>בחרו סוג, שם וצבע, וקבלו פרוטוטייפ HTML שעובד מיד, עם תצוגה חיה. מעתיקים לקובץ, פותחים בדפדפן, וממשיכים לפתח עם Claude Code לפי הפרומפטים שמתחת.</p>
+  <div class="grid2">
+    <div class="form">
+      <label>סוג<select id="ptType"><option value="landing">דף נחיתה</option><option value="dashboard">דשבורד</option><option value="mobile">מסך אפליקציה</option><option value="wizard">טופס רב-שלבי</option><option value="kanban">לוח משימות (Kanban)</option></select></label>
+      <label>שם המוצר<input id="ptName" value="TaskFlow"></label>
+      <label>משפט אחד על המוצר<input id="ptPitch" value="ניהול משימות לצוותים קטנים, בלי כאב ראש"></label>
+      <label>צבע ראשי<input id="ptColor" type="color" value="#4c51bf"></label>
+      <label>שפה<select id="ptLang"><option value="he">עברית (RTL)</option><option value="en">English (LTR)</option></select></label>
+    </div>
+    <div><div class="proto-frame"><iframe id="ptView" title="תצוגת פרוטוטייפ" sandbox=""></iframe></div></div>
+  </div>
+  <div class="code" data-lang="html" data-file="prototype.html" id="ptCode"><pre></pre></div>
+  <h3>להמשיך עם Claude Code</h3>
+  <div class="code" data-lang="text" id="ptNext"><pre></pre></div>
+  <div class="note warn"><b>כלל הזהב של פרוטוטייפים</b>פרוטוטייפ נועד ללמוד, לא לשלוח ללקוחות. בלי אבטחה, בלי טיפול בשגיאות ובלי בדיקות. כשהרעיון מוכח, כותבים את הגרסה האמיתית מאפס לפי השיטה בפרק "פיתוח פרויקטים מלאים", ומשתמשים בפרוטוטייפ כמפרט חזותי.</div>
+  <div class="quiz" data-q="prototype"></div>
+</section>
+
 <section class="mod" id="slides" data-level="מצגות" data-title="מצגות">
   <div class="eyebrow"></div>
   <h1>מצגות</h1>
@@ -2178,7 +2303,7 @@ const store = {
   get(k, d){ try{ const v = localStorage.getItem("cca-"+k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
   set(k, v){ try{ localStorage.setItem("cca-"+k, JSON.stringify(v)); }catch(e){} if(typeof onStoreChange === "function") onStoreChange(k); }
 };
-const LEVEL_COLOR = {"פתיחה":"var(--lv5)","מתחילים":"var(--lv1)","בינוני":"var(--lv2)","מתקדמים":"var(--lv3)","מומחים":"var(--lv4)","מאסטר":"var(--lv7)","סודות מתקדמים":"var(--lv9)","אינטגרציות ופרויקטים":"var(--lv10)","מצגות":"var(--lv8)","סדנת תרגול":"var(--lv5)","מבחן גמר":"var(--lv6)"};
+const LEVEL_COLOR = {"פתיחה":"var(--lv5)","מתחילים":"var(--lv1)","בינוני":"var(--lv2)","מתקדמים":"var(--lv3)","מומחים":"var(--lv4)","מאסטר":"var(--lv7)","סודות מתקדמים":"var(--lv9)","אינטגרציות ופרויקטים":"var(--lv10)","ארגז הכלים של המומחה":"var(--lv11)","מצגות":"var(--lv8)","סדנת תרגול":"var(--lv5)","מבחן גמר":"var(--lv6)"};
 const mods = $$(".mod");
 const ids = mods.map(m => m.id);
 let state = store.get("state", {done:{}, xp:0, awarded:{}, days:[]});
@@ -2231,7 +2356,7 @@ function show(id, push){
   $("#rail").classList.remove("open");
   if(push !== false && location.hash !== "#"+ids[i]){ try{ history.replaceState(null, "", "#"+ids[i]); }catch(e){ location.hash = ids[i]; } }
   window.scrollTo(0,0);
-  if(["dashboard","sim","builders","cards","prompts","slides","tracks","glossary","generator","intrecipes","intbuilder"].includes(ids[i])) markDone(ids[i]);
+  if(["dashboard","sim","builders","cards","prompts","slides","tracks","glossary","generator","intrecipes","intbuilder","cmdpack","gallery"].includes(ids[i])) markDone(ids[i]);
   if(ids[i] === "sim") setTimeout(()=>$("#simIn").focus({preventScroll:true}), 50);
 }
 document.addEventListener("click", e => { const g = e.target.closest("[data-go]"); if(g){ e.preventDefault(); show(g.dataset.go); } });
@@ -2478,6 +2603,25 @@ const Q = {
     ["למה הבדיקות נכתבו לפני המימוש?", ["כדי להאט","כדי שיהיה יעד ברור לבדוק אותו, ושהמימוש לא ישנה את הבדיקות","זה חובה של Vitest","אין סיבה"], 1, "‏TDD: הבדיקות הן הגדרת ההצלחה."],
     ["למה ה-alphabet של הקודים בלי 0/o ו-1/l?", ["חיסכון","כדי למנוע בלבול כשקוראים או מקלידים קישור","בגלל SQLite","מקרי"], 1, "קישורים מוקלדים גם ידנית."],
     ["למה הקונטיינר רץ כמשתמש node?", ["מהירות","הרשאות מינימליות: פריצה לאפליקציה לא נותנת root","בגלל Fly","אין סיבה"], 1, "‏non-root הוא בסיס לאבטחת קונטיינרים."]
+  ],
+  cmdpack: [
+    ["מה עושה הסקריפט כשקובץ פקודה כבר קיים?", ["דורס אותו","מדלג ומדווח","מוחק את התיקייה","נכשל"], 1, "הוא לא דורס עבודה קיימת שלכם."],
+    ["מה ההבדל בין התקנה לפרויקט להתקנה אישית?", ["אין","‏.claude/ משותף לצוות דרך git, ו-~/.claude/ אישי לכל הפרויקטים","אישי מהיר יותר","פרויקט עובד רק ב-CI"], 1, "בוחרים לפי מי צריך את הפקודה."],
+    ["למה לסוכן explorer נותנים model: haiku?", ["כדי שיטעה","חיפוש וקריאה הם משימה פשוטה, ו-haiku מהיר וזול","זה חובה","כדי שיכתוב קוד"], 1, "מודל זול למשימות קלות."]
+  ],
+  promptpro: [
+    ["מתי משתמשים בפרה-מורטם?", ["אחרי שהכול נשבר","לפני שינוי גדול, כדי לצפות כשלים מראש","אף פעם","רק בבדיקות"], 1, "מדמיינים כישלון ומונעים אותו מראש."],
+    ["מה מטרת דפוס 'הגדרת גמר'?", ["לקצר את הפרומפט","למנוע מ-Claude להכריז 'סיימתי' לפני שכל התנאים נבדקו","להאט","לשנות מודל"], 1, "רשימה מפורשת עם ראיות."],
+    ["מה עושה דפוס 'מורה סוקרטי'?", ["נותן פתרון מלא","שואל שאלות מנחות כדי שתמצאו לבד","כותב בדיקות","מתרגם"], 1, "ללמוד, לא רק לקבל תשובה."]
+  ],
+  gallery: [
+    ["מאיפה שורת הסטטוס מקבלת את שם המודל והתיקייה?", ["מנחשת","JSON שמגיע ב-stdin של הסקריפט","קובץ CLAUDE.md","משתנה גלובלי"], 1, "הסקריפט קורא JSON מ-stdin ומדפיס שורה."],
+    ["איפה שמים Output Style אישי?", ["~/.claude/output-styles/","‏/etc","‏node_modules","‏.git"], 0, "קובץ Markdown עם frontmatter."]
+  ],
+  prototype: [
+    ["מה עושים עם פרוטוטייפ אחרי שהרעיון הוכח?", ["מרחיבים אותו למוצר","כותבים את המוצר מחדש לפי מפרט, ומשתמשים בפרוטוטייפ כמפרט חזותי","מוחקים בלי להסתכל","שולחים ללקוחות"], 1, "פרוטוטייפ הוא כלי למידה, לא בסיס קוד."],
+    ["איך Claude יכול לראות את הפרוטוטייפ בלי שרת MCP?", ["אי אפשר","‏npx playwright screenshot ואז Read על התמונה","מבקשים ממנו לדמיין","דרך CLAUDE.md"], 1, "הכלי Read פותח גם תמונות."],
+    ["איפה מפתחים פרוטוטייפ?", ["על main","בענף proto/ או ב-worktree נפרד","ב-production","בתיקייה של מישהו אחר"], 1, "ענף זריקה."]
   ],
   ideas: [
     ["איזה מנגנון מבטיח שClaude לא יסיים עם בדיקות אדומות?", ["CLAUDE.md","Hook על Stop שמחזיר 2 אם הבדיקות נכשלו","Output style","Status line"], 1, "Stop hook יכול לחסום סיום ולבקש להמשיך."],
@@ -2748,7 +2892,7 @@ const CARDS = [
   ["claude mcp add --transport http","הוספת שרת MCP מרוחק"],[".mcp.json","שרתי MCP משותפים לצוות (scope project)"],["plugin.json","מטא-דאטה של Plugin, בתיקייה .claude-plugin"],
   ["claude -p","מצב headless לסקריפטים ול-CI"],["--output-format json","פלט שאפשר לעבד: תוצאה, עלות ו-session_id"],["--max-turns","הגבלת סבבים בריצה אוטומטית"],
   ["claude-agent-sdk","ספריית Python לבניית סוכנים על אותו מנוע"],["git worktree","תיקיית עבודה נפרדת לכל סשן מקביל"],["opusplan","Opus לתכנון ו-Sonnet לביצוע"],
-  ["/install-github-app","מגדיר את Claude ב-GitHub לתגובה ל-@claude"],["claude --add-dir","גישה לתיקייה נוספת באותו סשן"],["ultrathink","בקשה לחשיבה מעמיקה במיוחד לבעיה קשה"],["/security-review","סריקת אבטחה מובנית של השינויים בענף"],["\"ראיין אותי\"","Claude שואל שאלות עד שהדרישות ברורות ואז כותב מפרט"],["Ctrl+O","תצוגת transcript מלאה של כל הפעולות"],["env ב-settings.json","משתני סביבה לכל סשן בפרויקט"],["FastMCP","דרך מהירה לבנות שרת MCP ב-Python עם decorators"],["stop_hook_active","דגל שמונע לולאה אינסופית ב-Stop hook"],["permissionDecision","החלטת JSON של PreToolUse hook: allow / deny / ask"],["~/.claude/projects","שם נשמרות כל השיחות כ-JSONL"],["CLAUDE_CODE_ENABLE_TELEMETRY","מפעיל שליחת מדדים ל-OpenTelemetry"],["managed settings","מדיניות ארגונית שגוברת על הכול"],["gh CLI","הדרך הקלה לחבר את Claude ל-GitHub, עם כללי Bash(gh ...)"],["DB read-only","המשתמש היחיד שנותנים ל-Claude במסד נתונים"],["/ticket + /ship","שתי פקודות שמחברות טיקט, קוד, PR והתראה"],["app.inject","בדיקת Fastify בלי לפתוח פורט אמיתי"],["/statusline","שורת סטטוס מותאמת מסקריפט"]
+  ["/install-github-app","מגדיר את Claude ב-GitHub לתגובה ל-@claude"],["claude --add-dir","גישה לתיקייה נוספת באותו סשן"],["ultrathink","בקשה לחשיבה מעמיקה במיוחד לבעיה קשה"],["/security-review","סריקת אבטחה מובנית של השינויים בענף"],["\"ראיין אותי\"","Claude שואל שאלות עד שהדרישות ברורות ואז כותב מפרט"],["Ctrl+O","תצוגת transcript מלאה של כל הפעולות"],["env ב-settings.json","משתני סביבה לכל סשן בפרויקט"],["FastMCP","דרך מהירה לבנות שרת MCP ב-Python עם decorators"],["stop_hook_active","דגל שמונע לולאה אינסופית ב-Stop hook"],["permissionDecision","החלטת JSON של PreToolUse hook: allow / deny / ask"],["~/.claude/projects","שם נשמרות כל השיחות כ-JSONL"],["CLAUDE_CODE_ENABLE_TELEMETRY","מפעיל שליחת מדדים ל-OpenTelemetry"],["managed settings","מדיניות ארגונית שגוברת על הכול"],["gh CLI","הדרך הקלה לחבר את Claude ל-GitHub, עם כללי Bash(gh ...)"],["DB read-only","המשתמש היחיד שנותנים ל-Claude במסד נתונים"],["/ticket + /ship","שתי פקודות שמחברות טיקט, קוד, PR והתראה"],["app.inject","בדיקת Fastify בלי לפתוח פורט אמיתי"],["פרה-מורטם","לדמיין שהשינוי נכשל ולמנוע את הסיבות מראש"],["Read על תמונה","Claude Code רואה צילומי מסך, תרשימים ו-PDF"],["$CLAUDE_ENV_FILE","בגרסאות חדשות: Hook של SessionStart כותב לשם משתני סביבה לסשן"],["?demo=1","מצב דמו שמריץ את הזרימה לבד בהצגה"],["/statusline","שורת סטטוס מותאמת מסקריפט"]
 ];
 let boxes = store.get("cards", {}), fcI = -1;
 function nextCard(){
@@ -3224,6 +3368,7 @@ function checkConfig(src){
   if(body.trim().length < 30) add("warn", "גוף ההנחיות קצר מאוד. תנו צעדים ברורים ופורמט פלט.");
   return {type, items:out};
 }
+window.checkConfig = checkConfig;   // used by tests/validate-pack.js
 (function(){
   const ICON = {ok:"✓", warn:"!", err:"✗", info:"i"};
   const run = () => {
@@ -4070,7 +4215,7 @@ document.addEventListener("change", e => {
 }, true);
 
 // ================= dashboard =================
-const LEVEL_ORDER = ["פתיחה","מתחילים","בינוני","מתקדמים","מומחים","מאסטר","סודות מתקדמים","אינטגרציות ופרויקטים","מצגות","סדנת תרגול","מבחן גמר"];
+const LEVEL_ORDER = ["פתיחה","מתחילים","בינוני","מתקדמים","מומחים","מאסטר","סודות מתקדמים","אינטגרציות ופרויקטים","ארגז הכלים של המומחה","מצגות","סדנת תרגול","מבחן גמר"];
 function nextRecommended(){
   const t = TRACKS[store.get("track", null)];
   const order = t ? t.m.concat(ids) : ids;
@@ -4266,6 +4411,283 @@ BADGES.push(
   ["az","🔬","מנתחים","ניתחתם פרויקט אמיתי", () => !!state.awarded.analyzer],
   ["mist","🩹","לומדים מטעויות","תיקנתם את כל הטעויות השמורות", () => !!state.awarded["mist-clear"]]
 );
+checkBadges(true);
+
+// ================= expert pack: commands, agents, skills =================
+// [kind, name, category, hebrew description, frontmatter extras, body]
+const PACK = [
+  ["cmd","onboard","היכרות","סיור מודרך בפרויקט למצטרפים חדשים","argument-hint: [area, optional]","Give me a guided tour of this codebase (focus area, if given: $ARGUMENTS):\n1. Purpose and main user flows (from README and code).\n2. Architecture: modules, how a request flows end to end, with file:line.\n3. How to run, test and debug locally (verify each command).\n4. The 5 files I should read first, and why.\n5. Gotchas and risky areas.\nWrite it to docs/onboarding.md as well."],
+  ["cmd","explain-diff","היכרות","הסבר של השינויים הנוכחיים בשפה פשוטה","allowed-tools: Bash(git diff:*), Bash(git log:*)","Changes: !`git diff --stat HEAD`\n\nExplain the current changes for a reviewer who hasn't seen them: what changed, why it likely changed, what could break, and what to test. Group by feature, not by file."],
+  ["cmd","tdd","פיתוח","פיתוח מונחה בדיקות: בדיקה נכשלת, מימוש, ירוק","argument-hint: [behavior to build]","Build this with strict TDD: $ARGUMENTS\n1. Write the smallest failing test that describes the behavior. Run it and show it fails.\n2. Implement the minimum to pass. Run the test.\n3. Refactor while green. Run the related suite and lint.\n4. Repeat for the next behavior. Never modify a test to make it pass without telling me."],
+  ["cmd","spike","פיתוח","ניסוי מהיר ומבודד לבדיקת רעיון","argument-hint: [question to answer]","Run a time-boxed spike to answer: $ARGUMENTS\nWork on a new branch spike/<short-name>. Prefer the quickest path that answers the question; skip polish. At the end write SPIKE.md: the answer, evidence, risks, and what a production version would need. Do not merge."],
+  ["cmd","refactor-safe","פיתוח","refactor בטוח עם רשת בדיקות","argument-hint: [target and goal]","Refactor safely: $ARGUMENTS\n1. Check test coverage of the current behavior; add characterization tests where missing and commit them first.\n2. Refactor in small steps, running tests after each.\n3. No behavior changes, no public API changes unless I approve.\n4. Summarize the before/after structure."],
+  ["cmd","bug-repro","באגים","שחזור באג בבדיקה לפני כל תיקון","argument-hint: [bug description or issue #]","Bug: $ARGUMENTS\nDo NOT fix yet.\n1. Find the code path involved (file:line).\n2. Write a failing test that reproduces the bug.\n3. State the root cause in one paragraph and propose the minimal fix.\nWait for my go-ahead before changing code."],
+  ["cmd","fix-ci","באגים","ניתוח ותיקון של כשלון CI","allowed-tools: Bash(gh run:*), Bash(gh pr checks:*)","Latest CI runs: !`gh run list --limit 5`\n\nFind the failing job on this branch, read its log with gh run view --log-failed, reproduce locally, fix the root cause and push. No skipping or retrying tests. If the failure is not caused by this branch, explain and stop."],
+  ["cmd","flaky","באגים","איתור בדיקה לא יציבה ותיקון אמיתי","argument-hint: [test name]","The test $ARGUMENTS is flaky. Run it in a loop (at least 30 times) to measure the failure rate, find the source of nondeterminism (time, order, shared state, network, randomness), fix it properly, and re-run 50 times to prove it. No retries, no longer timeouts."],
+  ["cmd","hotfix","באגים","תיקון דחוף ומינימלי לייצור","argument-hint: [incident summary]","Hotfix for: $ARGUMENTS\nSmallest possible change, on branch hotfix/<name> from the production tag. Add a regression test. Run the full suite. Write the PR with: impact, root cause, the fix, rollback plan. Flag anything risky."],
+  ["cmd","perf","ביצועים","מדידה, צוואר בקבוק ושיפור מוכח","argument-hint: [slow endpoint or screen]","Make this faster: $ARGUMENTS\n1. Measure first (timings, queries, profile). Show numbers.\n2. Identify the bottleneck with evidence.\n3. Propose 2-3 fixes with expected gains and trade-offs.\n4. Implement the best one, measure again, and report before/after."],
+  ["cmd","test-gaps","בדיקות","מיפוי פערי בדיקות והשלמה","argument-hint: [dir, optional]","Find untested or weakly tested logic in $ARGUMENTS (the whole project if no argument was given): branches, error paths, edge cases. List the top 10 gaps by risk. Then write tests for the top 3 and run them."],
+  ["cmd","sec-audit","אבטחה","סריקת אבטחה ממוקדת עם ממצאים אמיתיים","argument-hint: [dir or diff]","Security review of $ARGUMENTS (the current branch if no argument was given): injection, authz bypass, secrets, SSRF, unsafe deserialization, XSS, dependency risks. Only real findings with file:line, severity, exploit scenario and fix. No style comments."],
+  ["cmd","deps-upgrade","תחזוקה","עדכון תלויות בטוח עם בדיקות","","List outdated and vulnerable dependencies. Upgrade patch and minor versions in one commit, run tests. For each major upgrade: read the changelog, list breaking changes that affect our code, and do it in its own commit only if tests pass. Report what's left for me."],
+  ["cmd","cleanup","תחזוקה","ניקוי קוד מת והערות ישנות","argument-hint: [dir]","In $ARGUMENTS (src/ if no argument was given): find unused exports, dead branches, commented-out code, stale TODOs older than the last release, and unused dependencies. Show the list with evidence first; delete only after I confirm."],
+  ["cmd","db-migration","נתונים","מיגרציה בטוחה לטבלאות גדולות","argument-hint: [schema change]","Plan a safe migration for: $ARGUMENTS\nAssume large tables and zero downtime. Split into expand/backfill/contract steps, avoid long locks, batch backfills, make each step reversible. Write the migration files and a runbook to docs/migrations/. Do not run them."],
+  ["cmd","api-docs","תיעוד","תיעוד API מהקוד עצמו","","Generate API documentation from the actual route handlers: method, path, auth, request/response schemas with examples, error codes. Write docs/api.md (or update the OpenAPI file if one exists). Verify every example against a test or a real call."],
+  ["cmd","adr","תיעוד","רישום החלטה ארכיטקטונית","argument-hint: [decision]","Write an Architecture Decision Record for: $ARGUMENTS\nFile docs/decisions/NNNN-<slug>.md with: context, options considered (with pros/cons), decision, consequences, and how we'd know it was wrong. Ask me for missing context first."],
+  ["cmd","changelog","שחרור","סיכום שינויים מאז הגרסה הקודמת","allowed-tools: Bash(git describe:*), Bash(git log:*)","Last tag: !`git describe --tags --abbrev=0`\n\nWrite release notes since that tag from commits and merged PRs: breaking changes first (with migration snippet), then features, fixes, internal. Plain language for users. Prepend to CHANGELOG.md."],
+  ["cmd","release","שחרור","שחרור גרסה מקצה לקצה","argument-hint: [major|minor|patch]","Prepare a $ARGUMENTS release: run full tests and build, bump the version, update CHANGELOG.md, commit, create the tag, and draft GitHub release notes with gh. Stop before pushing the tag and show me everything."],
+  ["cmd","pr-review","סקירה","ריוויו של PR לפי מספר","argument-hint: [PR number]","allowed-tools: Bash(gh pr view:*), Bash(gh pr diff:*), Bash(gh pr checkout:*)","Review PR #$ARGUMENTS: read the description and diff, check it out, run tests. Report: correctness bugs, security issues, missing tests, then smaller notes. Each with file:line and a concrete suggestion. Draft the review comments but don't post them."],
+  ["cmd","a11y","UI","בדיקת נגישות של מסך","argument-hint: [page or component]","Audit accessibility of $ARGUMENTS: semantic HTML, labels, keyboard navigation and focus order, contrast, aria usage, reduced motion. Use Playwright to tab through it if available. Fix issues and list what needs design decisions."],
+  ["cmd","i18n-he","UI","תמיכה בעברית ו-RTL","argument-hint: [area]","Add Hebrew and RTL support to $ARGUMENTS: extract strings to the i18n system, add he translations, use logical CSS properties (margin-inline etc.), mirror icons that imply direction, format dates/numbers with he-IL. Screenshot both languages and compare."],
+  ["cmd","standup","צוות","סיכום עבודה לסטנדאפ","allowed-tools: Bash(git log:*), Bash(gh pr list:*)","My commits since yesterday: !`git log --since=yesterday --author=\"$(git config user.email)\" --oneline`\n\nWrite my standup in Hebrew: what I did (in plain words, not commit messages), what's next, blockers. Max 6 lines."],
+  ["cmd","retro","צוות","רטרוספקטיבה מתוך הנתונים","argument-hint: [period, e.g. last 2 weeks]","For $ARGUMENTS: analyze merged PRs, CI failures, reverts and hotfixes. Find patterns (slow reviews, flaky areas, repeated bugs). Suggest 3 concrete improvements, including CLAUDE.md rules or hooks that would have prevented issues."],
+  ["cmd","handoff","צוות","מסמך העברה לפני חופשה או החלפה","","Write HANDOFF.md for my current work: branches and their state, open PRs, what's half-done and the next step for each, gotchas, who to ask. Include exact commands to resume. Check git status and gh pr list for accuracy."],
+  ["agent","code-reviewer","סוכנים","סוקר בכיר שבודק כל diff","tools: Read, Grep, Glob, Bash\nmodel: sonnet","You are a senior reviewer. Run git diff (staged and unstaged). Check, in order: correctness and edge cases, security, error handling, tests for the change, readability. Report findings by severity with file:line and a concrete fix. Never edit files. If everything is fine, say so in one line."],
+  ["agent","test-runner","סוכנים","מריץ בדיקות ומחזיר רק כשלונות","tools: Read, Grep, Glob, Bash\nmodel: haiku","Run the relevant tests for the recent changes (or the full suite if unclear). For each failure: test name, the assertion, the likely cause with file:line. Keep the report under 30 lines. Do not fix anything."],
+  ["agent","debugger","סוכנים","משחזר באג ומוצא שורש בעיה","tools: Read, Grep, Glob, Bash, Edit\nmodel: opus","Reproduce the reported bug with a failing test, then find the root cause by reading code and adding temporary logs if needed. Propose the minimal fix and apply it only if asked. Remove temporary logs. Report: cause, fix, test."],
+  ["agent","security-auditor","סוכנים","סורק אבטחה בלי הרשאות כתיבה","tools: Read, Grep, Glob\nmodel: opus","Audit the given scope for OWASP Top 10 issues, secrets in code, unsafe input handling and authz gaps. Only report findings you can tie to specific code, with an exploit scenario and fix. No edits."],
+  ["agent","perf-profiler","סוכנים","מאתר צווארי בקבוק עם מדידות","tools: Read, Grep, Glob, Bash\nmodel: sonnet","Measure before claiming: time the slow path, count queries, profile if possible. Report the top bottleneck with numbers, 2 fix options with expected gain, and the measurement command to verify."],
+  ["agent","docs-writer","סוכנים","כותב ומעדכן תיעוד לפי הקוד","tools: Read, Grep, Glob, Edit, Write\nmodel: sonnet","Update documentation to match the code: README, docs/, docstrings for public APIs. Verify every command and example actually works. Keep the existing tone. Report what changed."],
+  ["agent","explorer","סוכנים","חוקר קוד מהיר וזול","tools: Read, Grep, Glob\nmodel: haiku","Answer where/how questions about the codebase. Search broadly, read only what's needed, and return a short map: relevant files with one-line roles and the key file:line references. No edits, no opinions."],
+  ["agent","a11y-checker","סוכנים","בודק נגישות לרכיבי UI","tools: Read, Grep, Glob, Bash\nmodel: sonnet","Check changed UI components for accessibility: semantics, labels, keyboard support, focus, contrast tokens, RTL. Report issues with file:line and the fix. Do not edit."],
+  ["skill","release-notes","Skills","כתיבת release notes בפורמט הצוות","","Use when the user asks for release notes, a changelog, or what changed since a version.\n\n1. Find the previous tag (git describe --tags --abbrev=0).\n2. Collect commits and merged PRs since then.\n3. Group: Breaking (with migration steps), Features, Fixes, Internal.\n4. Write for users, not developers. Hebrew first, English below if asked."],
+  ["skill","db-migration","Skills","מיגרציות בטוחות לבסיס נתונים","","Use when the user asks to change a database schema.\n\n- Always expand → backfill (batched) → contract.\n- Never combine a column add with a NOT NULL default on large tables.\n- Every migration must be reversible; write the down step.\n- Write a runbook in docs/migrations/ and never run migrations against shared environments."],
+  ["skill","hebrew-rtl-ui","Skills","ממשקים בעברית ו-RTL","","Use when building or reviewing UI that must support Hebrew.\n\n- dir=\"rtl\" on the root, logical CSS properties only (inline-start/end).\n- Mirror directional icons (arrows, chevrons), not logos or media controls.\n- Isolate LTR runs (code, emails, URLs) with <bdi> or unicode-bidi: isolate.\n- Numbers and dates via Intl with he-IL.\n- Screenshot both directions before finishing."],
+  ["skill","incident-postmortem","Skills","תחקיר אירוע ללא האשמה","","Use when the user asks for a postmortem or incident report.\n\nSections: summary, impact (users, duration, money), timeline (UTC), root cause (5 whys), what went well, what went wrong, action items with owners and due dates. Blameless tone. Pull facts from logs, deploys and chat links the user provides; mark guesses clearly."],
+  ["skill","pr-description","Skills","תיאור PR מקצועי","","Use when opening or updating a pull request.\n\nWrite: what changed (bullets), why, how it was tested (exact commands), risks and rollback, screenshots needed. Follow .github/pull_request_template.md if it exists. Keep it scannable; link the ticket."],
+  ["skill","api-client","Skills","יצירת לקוח API מטיפוסים","","Use when the user wants a typed client for an HTTP API.\n\n1. Read the OpenAPI spec or route handlers.\n2. Generate a typed client with one function per operation, shared error type, retries with backoff for idempotent calls only.\n3. Add tests against recorded fixtures.\n4. Document usage in the module header."]
+];
+const PACK_FIX = PACK.map(p => p.length === 7 ? [p[0], p[1], p[2], p[3], p[4] + "\n" + p[5], p[6]] : p);   // pr-review had two frontmatter lines
+function packFile(p, scope){
+  const base = scope === "user" ? "~/.claude" : ".claude", [kind, name, , desc, fm, body] = p;
+  if(kind === "cmd") return [base + "/commands/" + name + ".md", "---\ndescription: " + desc + "\n" + (fm ? fm + "\n" : "") + "---\n" + body + "\n"];
+  if(kind === "agent") return [base + "/agents/" + name + ".md", "---\nname: " + name + "\ndescription: " + desc + ". Use PROACTIVELY when relevant.\n" + fm + "\n---\n" + body + "\n"];
+  return [base + "/skills/" + name + "/SKILL.md", "---\nname: " + name + "\ndescription: " + desc + ". " + body.split("\n")[0] + "\n---\n# " + name + "\n" + body.split("\n").slice(1).join("\n").trim() + "\n"];
+}
+(function(){
+  const cats = ["הכול", "פקודות", "סוכנים", "Skills", ...new Set(PACK_FIX.filter(p => p[0] === "cmd").map(p => p[2]))]; let f = "הכול";
+  const sel = new Set(store.get("packSel", PACK_FIX.slice(0, 6).map(p => p[1]).concat(["code-reviewer","test-runner","explorer","release-notes"])));
+  const scope = () => (document.querySelector('input[name="cpScope"]:checked') || {}).value || "project";
+  const match = p => (f === "הכול" || (f === "פקודות" && p[0] === "cmd") || (f === "סוכנים" && p[0] === "agent") || (f === "Skills" && p[0] === "skill") || p[2] === f);
+  const draw = () => {
+    const q = ($("#cpSearch").value || "").toLowerCase();
+    $("#cpFilter").innerHTML = cats.map(c => '<button type="button" class="'+(c===f?"on":"")+'">'+esc(c)+'</button>').join("");
+    const list = PACK_FIX.filter(p => match(p) && (!q || p.join(" ").toLowerCase().includes(q)));
+    $("#cpList").innerHTML = list.map(p => { const [path, content] = packFile(p, scope());
+      return '<details class="cp'+(sel.has(p[1])?" on":"")+'"><summary><label class="tick" onclick="event.stopPropagation()"><input type="checkbox" data-cp="'+esc(p[1])+'" '+(sel.has(p[1])?"checked":"")+'></label><span class="pill">'+({cmd:"/",agent:"🤖",skill:"🧩"}[p[0]])+'</span><b class="ltr">'+(p[0]==="cmd"?"/":"")+esc(p[1])+'</b><span class="hint">'+esc(p[3])+'</span></summary><div class="code" data-lang="markdown" data-file="'+esc(path)+'"><pre>'+esc(content)+'</pre></div></details>'; }).join("");
+    $$("#cpList .code").forEach(decorate);
+    script();
+  };
+  const script = () => {
+    const chosen = PACK_FIX.filter(p => sel.has(p[1])), sc = scope();
+    $("#cpCount").textContent = chosen.length + " נבחרו";
+    if(!chosen.length){ setCode("#cpScript", "# select items above"); return; }
+    let out = "#!/usr/bin/env bash\n# Claude Code expert pack: " + chosen.length + " files (" + (sc === "user" ? "personal" : "project") + ")\nset -euo pipefail\nput() { mkdir -p \"$(dirname \"$1\")\"; if [ -e \"$1\" ]; then echo \"skip  $1 (exists)\"; cat > /dev/null; else cat > \"$1\"; echo \"added $1\"; fi; }\n\n";
+    chosen.forEach(p => { const [path, content] = packFile(p, sc); out += "put " + path.replace(/^~/, "\"$HOME\"") + " <<'CLAUDE_PACK_EOF'\n" + content + "CLAUDE_PACK_EOF\n\n"; });
+    out += "echo \"done. In Claude Code: /help lists the commands, /agents the agents.\"\n";
+    setCode("#cpScript", out);
+    store.set("packSel", [...sel]);
+  };
+  $("#cpFilter").addEventListener("click", e => { const b = e.target.closest("button"); if(b){ f = b.textContent; draw(); } });
+  $("#cpSearch").addEventListener("input", draw);
+  $("#cpList").addEventListener("change", e => { const c = e.target.closest("[data-cp]"); if(!c) return; c.checked ? sel.add(c.dataset.cp) : sel.delete(c.dataset.cp); c.closest("details").classList.toggle("on", c.checked); script(); });
+  $("#cpAll").onclick = () => { PACK_FIX.filter(match).forEach(p => sel.add(p[1])); draw(); };
+  $("#cpNone").onclick = () => { sel.clear(); draw(); };
+  $$('input[name="cpScope"]').forEach(r => r.addEventListener("change", draw));
+  $("#cpScript").addEventListener("click", e => { if(e.target.closest(".cp")) award("pack", 20, "חבילת המומחה"); });
+  draw();
+})();
+
+// ================= special prompt patterns + builder =================
+const PATTERNS = [
+  ["פרה-מורטם","לפני שינוי גדול: לדמיין שהוא נכשל ולמצוא למה","Before we start: imagine it's 3 months from now and this change caused a serious incident. Write the 5 most likely reasons it failed, then adjust the plan to prevent each one."],
+  ["צוות אדום לתוכנית","כש-Claude הציע תוכנית ואתם רוצים לבדוק אותה","Now switch roles: you are a skeptical staff engineer reviewing this plan. Attack it: hidden assumptions, missing edge cases, scaling, security, rollback. Then give me the revised plan."],
+  ["חמישה למה","באג שחוזר, או בעיה ששורשה לא ברור","Find the root cause with the 5 Whys: start from the symptom, ask 'why' five times, each answer backed by evidence from code or logs (file:line). Fix the deepest cause, not the symptom."],
+  ["ראיין אותי","דרישות לא ברורות או פיצ'ר חדש","Before doing anything, interview me. Ask one question at a time, most important first, until you can write acceptance criteria I'd sign. Then summarize and wait."],
+  ["רק diff","שינוי קטן שבו לא רוצים הסברים ארוכים","Make the change and reply with only the unified diff and one line per file explaining why. No prose before or after."],
+  ["שלוש גישות","כשיש כמה דרכים לפתור ואתם רוצים לבחור","Propose 3 genuinely different approaches. For each: how it works, effort, risk, what it makes easier and harder later. Recommend one and say what would change your mind. Don't write code yet."],
+  ["מסביר לעצמי","כש-Claude נתקע או מנחש","Stop and explain, step by step, what the code actually does on this path, citing file:line for each step. Mark anything you're assuming rather than seeing. Then continue."],
+  ["הגדרת גמר","משימה ארוכה שקל \"לסיים\" מוקדם מדי","Definition of done: [tests X and Y pass], [lint clean], [no new TODOs], [docs updated], [demo command works]. Don't tell me you're done until you've checked every item and shown the evidence."],
+  ["סוקר קר","ביקורת אמיתית על קוד שכבר נכתב (אחרי /clear)","Review this branch as if you didn't write it and you'll be on call for it. Only problems that would cause bugs, outages or security issues; skip style. Rank by severity."],
+  ["קודם קריאה","קוד לא מוכר, לפני שמשנים","Read first, change later: list the files involved, summarize how they interact, and point out anything surprising. Don't edit anything in this step."],
+  ["תקציב צעדים","משימות שעלולות להתפזר","Constraint: at most 5 file edits and no new dependencies. If that's not enough, stop and tell me what you'd need and why."],
+  ["מורה סוקרטי","כשרוצים ללמוד ולא רק לקבל פתרון","Don't give me the answer. Ask me guiding questions, one at a time, that lead me to find the bug myself. Give a hint only if I'm stuck twice."],
+  ["מצב חוקר","מחקר טכני או השוואת ספריות","Research mode: compare [options] for [use case]. Use the docs (Context7 if available), check maintenance activity and known issues. Output a table and a recommendation with the risks."],
+  ["מכונת זמן","להבין למה קוד נראה כמו שהוא נראה","Use git log -p and git blame on [file/function] to explain how it evolved and why. Identify the commit that introduced the current behavior and its reasoning."],
+  ["מבחן הסבר","לוודא שאתם באמת מבינים את מה ש-Claude עשה","Now quiz me: ask 3 questions about the change you just made that I should be able to answer before I approve the PR. Tell me if my answers are right."],
+  ["מפרק הרים","משימה ענקית שלא ברור איך מתחילים","Break this into a sequence of PR-sized steps, each independently shippable and testable, in dependency order. For each: goal, files, tests, risk. Write it to PLAN.md."]
+];
+(function(){
+  $("#ppList").innerHTML = PATTERNS.map((x,i) => '<div class="trick"><span class="pill">דפוס '+(i+1)+'</span><h3>'+esc(x[0])+'</h3><p>'+esc(x[1])+'</p><div class="code" data-lang="prompt"><pre style="white-space:pre-wrap">'+esc(x[2])+'</pre></div></div>').join("");
+  $$("#ppList .code").forEach(decorate);
+  const TYPES = {"תיקון באג":"Fix this bug", "פיצ'ר חדש":"Build this feature", "Refactor":"Refactor this", "ביצועים":"Make this faster", "ריוויו":"Review this", "תיעוד":"Document this", "מחקר":"Research this"};
+  const OPTS = [["interview","לראיין אותי קודם","Before starting, ask me any clarifying questions, one at a time."],["plan","תוכנית לפני קוד","First propose a short plan and wait for my approval before editing files."],["tests","בדיקה שנכשלת קודם","Start with a failing test that captures the goal; don't modify tests to make them pass."],["think","חשיבה מעמיקה","Think hard about edge cases before you answer."],["agents","Subagents במקביל","Use parallel subagents to explore the relevant code before deciding."],["premortem","פרה-מורטם","Before implementing, list the 3 most likely ways this could go wrong and how you'll prevent them."],["commit","commit בסוף","When done, commit with a clear message explaining the why."],["report","דוח קצר","Finish with a 5-line summary: what changed, how it was verified, risks."]];
+  $("#pbType").innerHTML = Object.keys(TYPES).map(t => '<option>'+esc(t)+'</option>').join("");
+  $("#pbOpts").innerHTML = OPTS.map((o,i) => '<label><input type="checkbox" value="'+o[0]+'" '+([1,2,6].includes(i)?"checked":"")+'>'+esc(o[1])+'</label>').join("");
+  let ready = false;
+  const build = () => {
+    const files = $("#pbFiles").value.split(",").map(s => s.trim()).filter(Boolean);
+    const on = new Set($$("#pbOpts input:checked").map(x => x.value));
+    const lines = [TYPES[$("#pbType").value] + ": " + $("#pbGoal").value.trim()];
+    if(files.length) lines.push("Relevant code: " + files.map(f => "@" + f.replace(/^@/, "")).join(", "));
+    OPTS.forEach(o => { if(on.has(o[0]) && ["interview","plan","agents","premortem","think"].includes(o[0])) lines.push(o[2]); });
+    if(on.has("tests")) lines.push(OPTS[2][2]);
+    if($("#pbLimits").value.trim()) lines.push("Constraints: " + $("#pbLimits").value.trim() + ".");
+    if($("#pbDone").value.trim()) lines.push("Done when: " + $("#pbDone").value.trim() + ". Show the evidence.");
+    if(on.has("commit")) lines.push(OPTS[6][2]);
+    if(on.has("report")) lines.push(OPTS[7][2]);
+    const text = lines.join("\n");
+    setCode("#pbOut", text);
+    const ok = PL_RULES.filter(r => r[1](text)).length; $("#pbScore").textContent = "ציון במעבדה: " + Math.round(ok / PL_RULES.length * 100) + "/100";
+    if(ready) award("pb", 10, "בניתם פרומפט");
+  };
+  $$("#promptpro .form input, #promptpro .form textarea, #promptpro .form select").forEach(el => el.addEventListener(el.type === "checkbox" || el.tagName === "SELECT" ? "change" : "input", build));
+  build(); ready = true;
+  $("#pbToLab").onclick = () => { $("#plIn").value = $("#pbOut pre").textContent; show("promptlab"); $("#plRun").click(); };
+})();
+
+// ================= customization gallery =================
+const STATUSLINES = [
+  ["מינימליסטי","Opus · main · 23%", "#!/usr/bin/env bash\n# ~/.claude/statusline.sh  (chmod +x)\nin=$(cat)\nmodel=$(echo \"$in\" | jq -r '.model.display_name')\nbranch=$(git -C \"$(echo \"$in\" | jq -r '.workspace.current_dir')\" branch --show-current 2>/dev/null)\necho \"$model · ${branch:-no-git}\""],
+  ["עלות ותיקייה","📁 shop-api · 🌿 feat/cart · 💲0.42", "#!/usr/bin/env bash\nin=$(cat)\ndir=$(basename \"$(echo \"$in\" | jq -r '.workspace.current_dir')\")\ncost=$(echo \"$in\" | jq -r '.cost.total_cost_usd // 0' | xargs printf '%.2f')\nbranch=$(git branch --show-current 2>/dev/null)\necho \"📁 $dir · 🌿 ${branch:-–} · 💲$cost\""],
+  ["מצב git מלא","main ↑2 ●3 ✚1 · Sonnet", "#!/usr/bin/env bash\nin=$(cat); model=$(echo \"$in\" | jq -r '.model.display_name')\nb=$(git branch --show-current 2>/dev/null) || { echo \"$model\"; exit; }\nahead=$(git rev-list --count @{u}..HEAD 2>/dev/null || echo 0)\nmod=$(git diff --name-only | wc -l | tr -d ' ')\nnew=$(git ls-files --others --exclude-standard | wc -l | tr -d ' ')\necho \"$b ↑$ahead ●$mod ✚$new · $model\""],
+  ["צבעוני עם שעון","\u001b 14:32 │ Opus │ api/ │ main", "#!/usr/bin/env bash\nin=$(cat)\nC='\\033[36m'; G='\\033[32m'; Y='\\033[33m'; R='\\033[0m'\nmodel=$(echo \"$in\" | jq -r '.model.display_name')\ndir=$(basename \"$(echo \"$in\" | jq -r '.workspace.current_dir')\")\nprintf \"${C}%s${R} │ ${Y}%s${R} │ %s/ │ ${G}%s${R}\" \"$(date +%H:%M)\" \"$model\" \"$dir\" \"$(git branch --show-current 2>/dev/null)\""]
+];
+const OSTYLES = [
+  ["מנטור בעברית","---\nname: Mentor (Hebrew)\ndescription: Explains decisions in Hebrew while coding\n---\nYou are coding alongside a developer who wants to learn.\nAfter each meaningful change, add a short Hebrew explanation:\nwhy this approach, one alternative you rejected, and one thing to read next.\nKeep code, commands and identifiers in English."],
+  ["סוקר קפדן","---\nname: Strict Reviewer\ndescription: Terse, review-first answers\n---\nBe terse. Before writing code, list risks in one line each.\nAfter writing code, list what you did NOT test.\nNever say something works unless you ran it."],
+  ["מנהל מוצר","---\nname: PM Mode\ndescription: Business-facing summaries for non-engineers\n---\nExplain everything in plain Hebrew without jargon.\nLead with user impact, then effort and risk.\nPut technical details in a short section at the end titled \"לצוות הפיתוח\"."]
+];
+const HOOKX = [
+  ["קול כש-Claude מסיים","שמע קצר במחשב כשמשימה נגמרת. ב-macOS: afplay. ב-Linux: paplay.","{ \"hooks\": { \"Stop\": [ { \"hooks\": [ { \"type\": \"command\", \"command\": \"afplay /System/Library/Sounds/Glass.aiff 2>/dev/null || paplay /usr/share/sounds/freedesktop/stereo/complete.oga 2>/dev/null; exit 0\" } ] } ] } }"],
+  ["commit אוטומטי לנקודת ביטחון","אחרי כל סבב של Claude, commit זמני לענף wip. כך אפשר לחזור לכל נקודה גם בלי /rewind.","{ \"hooks\": { \"Stop\": [ { \"hooks\": [ { \"type\": \"command\", \"command\": \"git add -A && git commit -qm \\\"wip: claude checkpoint $(date +%H:%M)\\\" --no-verify 2>/dev/null; exit 0\" } ] } ] } }"],
+  ["חוסם TODO חדשים","‏PostToolUse שמזהה TODO או FIXME חדשים בקובץ שנערך ומבקש מ-Claude לטפל בהם במקום.","f=$(jq -r '.tool_input.file_path'); if git diff -U0 -- \"$f\" | grep -E '^\\+.*(TODO|FIXME)' >/dev/null; then echo \"New TODO/FIXME in $f: resolve it now or open an issue.\" >&2; exit 2; fi"],
+  ["תזכורת הקשר כל 30 הודעות","‏UserPromptSubmit שסופר הודעות בסשן, וכל 30 מזכיר לעשות /compact או /clear.","sid=$(jq -r .session_id); f=/tmp/cc-n-$sid; n=$(( $(cat $f 2>/dev/null || echo 0) + 1 )); echo $n > $f; [ $((n % 30)) -eq 0 ] && echo \"(reminder: long session — consider /compact)\"; exit 0"],
+  ["שמירת כל התוכניות","כשיוצאים ממצב תכנון, שומר את התוכנית לקובץ עם תאריך, וכך נבנה ארכיון החלטות.","{ \"hooks\": { \"PostToolUse\": [ { \"matcher\": \"ExitPlanMode\", \"hooks\": [ { \"type\": \"command\", \"command\": \"mkdir -p docs/plans && jq -r '.tool_input.plan' > docs/plans/$(date +%F-%H%M).md\" } ] } ] } }"],
+  ["אזהרת ענף main","‏SessionStart שמזהיר אם פתחתם סשן על main, כדי לא לעבוד בטעות על הענף הראשי.","b=$(git branch --show-current 2>/dev/null); [ \"$b\" = main ] || [ \"$b\" = master ] && echo \"⚠️ You are on $b. Create a feature branch before editing.\"; exit 0"]
+];
+(function(){
+  let s = 0, o = 0;
+  const drawS = () => { $("#slTabs").innerHTML = STATUSLINES.map((x,i) => '<button type="button" class="'+(i===s?"on":"")+'" data-i="'+i+'">'+esc(x[0])+'</button>').join(""); $("#slPrev").textContent = STATUSLINES[s][1].replace("\u001b ", ""); setCode("#slCode", STATUSLINES[s][2]); $("#slCode").dataset.file = "~/.claude/statusline.sh"; };
+  const drawO = () => { $("#osTabs").innerHTML = OSTYLES.map((x,i) => '<button type="button" class="'+(i===o?"on":"")+'" data-i="'+i+'">'+esc(x[0])+'</button>').join(""); $("#osCode").dataset.file = "~/.claude/output-styles/" + ["mentor-he","strict-reviewer","pm-mode"][o] + ".md"; setCode("#osCode", OSTYLES[o][1]); };
+  $("#slTabs").addEventListener("click", e => { const b = e.target.closest("button"); if(b){ s = +b.dataset.i; drawS(); } });
+  $("#osTabs").addEventListener("click", e => { const b = e.target.closest("button"); if(b){ o = +b.dataset.i; drawO(); } });
+  drawS(); drawO();
+  $("#hxList").innerHTML = HOOKX.map(x => '<div class="trick"><h3>'+esc(x[0])+'</h3><p>'+esc(x[1])+'</p><div class="code" data-lang="'+(x[2].startsWith("{")?"json":"bash")+'"><pre>'+esc(x[2])+'</pre></div></div>').join("");
+  $$("#hxList .code").forEach(decorate);
+})();
+
+// ================= more integrations =================
+RECIPES.push(
+  {n:"GitLab", what:"MRs, Issues ו-pipelines, ו-Claude ב-CI של GitLab", setup:"# the glab CLI\nglab auth login\n# Claude Code in GitLab CI: run claude -p in a job (see GitLab's Claude Code docs for the current template)", perms:"\"allow\": [\"Bash(glab mr view:*)\", \"Bash(glab ci view:*)\", \"Bash(glab issue view:*)\"],\n\"ask\":   [\"Bash(glab mr create:*)\"]", prompt:"Read MR !87 with glab, check out its branch, run the tests, and draft review notes: bugs first, then missing tests. Don't post them.", safe:"merge ופעולות על pipelines של production נשארים אצלכם."},
+  {n:"Discord / Telegram", what:"התראות לטלפון מ-Claude, בלי Slack", setup:"# Discord: channel → Integrations → Webhooks → copy URL\nexport DISCORD_WEBHOOK_URL=\"https://discord.com/api/webhooks/...\"\n# Telegram: create a bot with @BotFather, get your chat id\nexport TG_TOKEN=... TG_CHAT=...", perms:"{ \"hooks\": { \"Notification\": [ { \"hooks\": [ { \"type\": \"command\",\n  \"command\": \"jq -r .message | xargs -0 -I{} curl -s -d chat_id=$TG_CHAT --data-urlencode text='🤖 {}' https://api.telegram.org/bot$TG_TOKEN/sendMessage >/dev/null\" } ] } ] } }", prompt:"(no prompt needed: the hook pings your phone whenever Claude waits for you)", safe:"הטוקן וה-webhook במשתני סביבה בלבד."},
+  {n:"Supabase", what:"טבלאות, RLS, מיגרציות ולוגים של Supabase", setup:"claude mcp add --transport http supabase https://mcp.supabase.com/mcp\n# prefer a development project; check the docs for the read-only option", perms:"\"allow\": [\"mcp__supabase__list_tables\", \"mcp__supabase__get_logs\"],\n\"ask\":   [\"mcp__supabase__apply_migration\", \"mcp__supabase__execute_sql\"]", prompt:"Check the RLS policies on every table in the public schema. List tables where a logged-in user could read other users' rows, and write migrations to fix them (don't apply).", safe:"פרויקט פיתוח בלבד. הרצת SQL ומיגרציות ב-ask."},
+  {n:"Stripe", what:"לקוחות, מנויים ותיעוד API של Stripe", setup:"claude mcp add --transport http stripe https://mcp.stripe.com\n# use a TEST-mode key / restricted key", perms:"\"allow\": [\"mcp__stripe__search_documentation\", \"mcp__stripe__list_customers\"],\n\"deny\":  [\"mcp__stripe__create_refund\"]", prompt:"Our webhook handler misses subscription downgrades. Check Stripe's docs for the right events, compare with src/billing/webhook.ts, and add handling with tests using fixture payloads.", safe:"מצב test בלבד. פעולות כספיות (החזרים, חיובים) חסומות."},
+  {n:"Cloudflare", what:"Workers, תיעוד ו-observability", setup:"npm i -g wrangler && wrangler login\n# docs MCP:\nclaude mcp add --transport sse cloudflare-docs https://docs.mcp.cloudflare.com/sse", perms:"\"allow\": [\"Bash(wrangler dev:*)\", \"Bash(wrangler tail:*)\"],\n\"ask\":   [\"Bash(wrangler deploy:*)\"]", prompt:"Port src/api/rateLimit.ts to a Cloudflare Worker with Durable Objects. Test locally with wrangler dev and a script that sends 100 requests.", safe:"deploy ב-ask, ו-production דרך CI."},
+  {n:"Chrome DevTools", what:"דיבאג של אתר חי: console, רשת, ביצועים", setup:"claude mcp add chrome-devtools -- npx -y chrome-devtools-mcp@latest", perms:"\"allow\": [\"mcp__chrome-devtools\"]", prompt:"Open localhost:3000/checkout, record a performance trace while adding an item to the cart, and tell me what makes the interaction slow. Check the console and failed network requests too.", safe:"רק על סביבה מקומית או staging, לא על חשבונות אמיתיים."}
+);
+if(typeof IB !== "undefined"){
+  Object.assign(IB, {
+    gitlab:{n:"GitLab", cli:"glab auth login", allow:["Bash(glab mr view:*)","Bash(glab ci view:*)"], ask:["Bash(glab mr create:*)"]},
+    supabase:{n:"Supabase", mcp:["supabase",{type:"http",url:"https://mcp.supabase.com/mcp"}], allow:["mcp__supabase__list_tables"], ask:["mcp__supabase__execute_sql"]},
+    stripe:{n:"Stripe (test mode)", mcp:["stripe",{type:"http",url:"https://mcp.stripe.com"}], allow:["mcp__stripe__search_documentation"], deny:["mcp__stripe__create_refund"]},
+    chromedev:{n:"Chrome DevTools", mcp:["chrome-devtools",{command:"npx",args:["-y","chrome-devtools-mcp@latest"]}], allow:["mcp__chrome-devtools"]}
+  });
+  $("#ibTools").insertAdjacentHTML("beforeend", ["gitlab","supabase","stripe","chromedev"].map(k => '<label><input type="checkbox" value="'+k+'">'+esc(IB[k].n)+'</label>').join(""));
+}
+// recipe tabs re-render to include the new ones
+(function(){ const t = $("#irTabs"); if(t && t.firstElementChild) t.firstElementChild.click(); })();
+
+// ================= appearance (הופעות) =================
+const LOOKS = [
+  ["default","ברירת מחדל","#0d7568","#f2f5f4"],["midnight","חצות סגול","#b48cff","#120f1e"],["ocean","אוקיינוס","#3aa0ff","#0b1622"],["paper","נייר","#9c4a1a","#f6f0e4"],
+  ["solar","סולארי","#b58900","#fdf6e3"],["contrast","ניגודיות גבוהה","#ffd400","#000000"],["retro","רטרו (סודי)","#39ff6a","#020a04"]
+];
+function applyLook(){
+  const L = store.get("look", {theme:"default", scale:100, compact:false});
+  const r = document.documentElement;
+  LOOKS.forEach(l => r.classList.remove("theme-" + l[0])); r.classList.remove("retro");
+  if(L.theme === "retro") r.classList.add("retro"); else if(L.theme !== "default") r.classList.add("theme-" + L.theme);
+  r.style.setProperty("--fs", (L.scale || 100) / 100);
+  r.classList.toggle("compact", !!L.compact);
+}
+(function(){
+  $(".rail-tools").insertAdjacentHTML("afterbegin", '<button class="btn sm" id="lookBtn" type="button">🎨 מראה</button>');
+  document.body.insertAdjacentHTML("beforeend", '<div class="pal" id="look" hidden role="dialog" aria-label="מראה"><div class="pal-box"><div class="row" style="justify-content:space-between"><b>מראה והופעה</b><button class="btn sm" type="button" id="lookX">✕</button></div><div class="looks" id="lookList"></div><div class="form" style="margin-top:12px"><label>גודל טקסט <span id="lookScaleV"></span><input type="range" id="lookScale" min="85" max="130" step="5"></label><label class="tick"><input type="checkbox" id="lookCompact"> מצב קומפקטי (פחות רווחים)</label></div><p class="hint">הבחירה נשמרת ומסונכרנת בין המכשירים שלכם.</p></div></div>');
+  if(store.get("retro", false) && !store.get("look", null)) store.set("look", {theme:"retro", scale:100, compact:false});
+  const draw = () => { const L = store.get("look", {theme:"default", scale:100, compact:false}), unlocked = !!state.awarded["egg-konami"];
+    $("#lookList").innerHTML = LOOKS.map(l => { const locked = l[0] === "retro" && !unlocked; return '<button type="button" class="look'+(L.theme===l[0]?" on":"")+'" data-look="'+l[0]+'" '+(locked?"disabled title=\"נפתח עם קוד סודי\"":"")+' style="--a:'+l[2]+';--b:'+l[3]+'"><span></span>'+(locked?"🔒 ":"")+esc(l[1])+'</button>'; }).join("");
+    $("#lookScale").value = L.scale || 100; $("#lookScaleV").textContent = (L.scale || 100) + "%"; $("#lookCompact").checked = !!L.compact; };
+  const set = patch => { const L = Object.assign({theme:"default", scale:100, compact:false}, store.get("look", null), patch); store.set("look", L); store.set("retro", L.theme === "retro"); applyLook(); draw(); award("look", 5, "שיניתם מראה"); };
+  $("#lookBtn").onclick = () => { draw(); $("#look").hidden = false; };
+  $("#lookX").onclick = () => { $("#look").hidden = true; };
+  $("#look").addEventListener("click", e => { if(e.target.id === "look") $("#look").hidden = true; const b = e.target.closest("[data-look]"); if(b && !b.disabled) set({theme:b.dataset.look}); });
+  $("#lookScale").addEventListener("input", e => set({scale:+e.target.value}));
+  $("#lookCompact").addEventListener("change", e => set({compact:e.target.checked}));
+  document.addEventListener("keydown", e => { if(e.key === "Escape") $("#look").hidden = true; });
+  isSyncKey = (orig => k => orig(k) || ["look","packSel"].includes(k))(isSyncKey);
+  REFRESH.push(applyLook);
+  applyLook();
+})();
+BADGES.push(
+  ["pack","📦","ארגז כלים","יצרתם סקריפט התקנה לחבילת המומחה", () => !!state.awarded.pack],
+  ["pb","🛠","אדריכלי פרומפטים","בניתם פרומפט בבונה", () => !!state.awarded.pb],
+  ["look","🎨","מעצבים","שיניתם את המראה", () => !!state.awarded.look]
+);
+checkBadges(true);
+
+// ================= live prototype generator =================
+function protoHTML(o){
+  const he = o.lang === "he", dir = he ? "rtl" : "ltr", c = o.color, n = esc(o.name), pitch = esc(o.pitch);
+  const T = he ? {start:"התחילו בחינם", feat:"יכולות", f:[["⚡","מהיר","מתחילים לעבוד תוך דקה"],["🤝","שיתופי","כל הצוות באותו מקום"],["🔒","בטוח","הנתונים שלכם נשארים שלכם"]], price:"מחירים", users:"משתמשים", rev:"הכנסות", tasks:"משימות פתוחות", recent:"פעילות אחרונה", todo:"לביצוע", doing:"בתהליך", done:"הושלם", next:"הבא", back:"חזרה", s1:"פרטים", s2:"העדפות", s3:"אישור", nameL:"שם מלא", mailL:"אימייל", hi:"שלום, נועה", today:"המשימות להיום"}
+    : {start:"Start free", feat:"Features", f:[["⚡","Fast","Up and running in a minute"],["🤝","Shared","Your whole team in one place"],["🔒","Secure","Your data stays yours"]], price:"Pricing", users:"Users", rev:"Revenue", tasks:"Open tasks", recent:"Recent activity", todo:"To do", doing:"Doing", done:"Done", next:"Next", back:"Back", s1:"Details", s2:"Preferences", s3:"Confirm", nameL:"Full name", mailL:"Email", hi:"Hi, Noa", today:"Today's tasks"};
+  const people = he ? ["נועה כהן","איתי לוי","מאיה פרץ","יואב מזרחי","שירה אברהם"] : ["Noa Cohen","Itai Levi","Maya Peretz","Yoav Mizrahi","Shira Avraham"];
+  const items = he ? ["עיצוב מסך הבית","חיבור תשלומים","תיקון באג התחברות","כתיבת בדיקות","הכנת דמו"] : ["Home screen design","Payments integration","Fix login bug","Write tests","Prepare demo"];
+  const css = "*{box-sizing:border-box}body{margin:0;font-family:system-ui,'Segoe UI',Arial,sans-serif;background:#f6f7fb;color:#1b1f2a}a{color:"+c+"}.btn{background:"+c+";color:#fff;border:0;border-radius:10px;padding:12px 20px;font:inherit;font-weight:700;cursor:pointer}.card{background:#fff;border-radius:14px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,.06)}.muted{color:#667085}";
+  let body = "";
+  if(o.type === "landing") body = '<header style="display:flex;justify-content:space-between;align-items:center;padding:16px 24px"><b style="color:'+c+';font-size:20px">'+n+'</b><nav class="muted">'+T.feat+' · '+T.price+'</nav></header><section style="text-align:center;padding:56px 20px;background:linear-gradient(180deg,'+c+'18,transparent)"><h1 style="font-size:38px;margin:0 0 10px">'+n+'</h1><p class="muted" style="font-size:18px">'+pitch+'</p><button class="btn">'+T.start+'</button></section><section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;padding:24px">'+T.f.map(f => '<div class="card"><div style="font-size:28px">'+f[0]+'</div><b>'+f[1]+'</b><p class="muted">'+f[2]+'</p></div>').join("")+'</section>';
+  if(o.type === "dashboard") body = '<div style="display:grid;grid-template-columns:160px 1fr;min-height:100vh"><aside style="background:'+c+';color:#fff;padding:18px"><b>'+n+'</b><p style="opacity:.8;margin-top:24px">◉ Dashboard<br>○ '+T.users+'<br>○ '+T.tasks+'</p></aside><main style="padding:20px"><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">'+[[T.users,"1,284","+12%"],[T.rev,"₪48,920","+8%"],[T.tasks,"37","-5%"]].map(k => '<div class="card"><div class="muted">'+k[0]+'</div><div style="font-size:26px;font-weight:800">'+k[1]+'</div><small style="color:'+c+'">'+k[2]+'</small></div>').join("")+'</div><div class="card" style="margin-top:12px"><b>'+T.rev+'</b><svg viewBox="0 0 300 80" style="width:100%;height:120px"><polyline fill="none" stroke="'+c+'" stroke-width="3" points="0,70 40,60 80,62 120,45 160,48 200,30 240,34 300,12"/></svg></div><div class="card" style="margin-top:12px"><b>'+T.recent+'</b>'+people.map((p,i) => '<p style="display:flex;justify-content:space-between;border-bottom:1px solid #eee;padding-bottom:6px"><span>'+p+'</span><span class="muted">'+items[i]+'</span></p>').join("")+'</div></main></div>';
+  if(o.type === "mobile") body = '<div style="max-width:380px;margin:20px auto;background:#fff;border-radius:32px;min-height:640px;box-shadow:0 10px 40px rgba(0,0,0,.15);overflow:hidden"><div style="background:'+c+';color:#fff;padding:28px 20px 40px"><small style="opacity:.8">'+n+'</small><h2 style="margin:6px 0 0">'+T.hi+'</h2></div><div style="padding:16px;margin-top:-24px"><div class="card"><b>'+T.today+'</b>'+items.slice(0,4).map((t,i) => '<p style="display:flex;gap:10px;align-items:center"><span style="width:20px;height:20px;border-radius:6px;border:2px solid '+c+';background:'+(i===0?c:"transparent")+'"></span>'+t+'</p>').join("")+'</div><button class="btn" style="width:100%;margin-top:14px">+ '+(he?"משימה חדשה":"New task")+'</button></div><nav style="display:flex;justify-content:space-around;padding:14px;border-top:1px solid #eee;margin-top:120px" class="muted">🏠 📋 🔔 👤</nav></div>';
+  if(o.type === "wizard") body = '<div style="max-width:520px;margin:40px auto" class="card"><b style="color:'+c+'">'+n+'</b><div style="display:flex;gap:8px;margin:18px 0">'+[T.s1,T.s2,T.s3].map((s,i) => '<div style="flex:1;text-align:center"><div style="height:6px;border-radius:3px;background:'+(i===0?c:"#e5e7eb")+'"></div><small class="muted">'+s+'</small></div>').join("")+'</div><label>'+T.nameL+'<input style="display:block;width:100%;padding:10px;margin:6px 0 14px;border:1px solid #d0d5dd;border-radius:8px" value="'+people[0]+'"></label><label>'+T.mailL+'<input style="display:block;width:100%;padding:10px;margin:6px 0 14px;border:1px solid #d0d5dd;border-radius:8px" value="noa@example.com" dir="ltr"></label><div style="display:flex;justify-content:space-between"><button class="btn" style="background:#e5e7eb;color:#344054">'+T.back+'</button><button class="btn">'+T.next+'</button></div></div>';
+  if(o.type === "kanban") body = '<header style="padding:16px 20px;background:#fff;border-bottom:1px solid #eee"><b style="color:'+c+'">'+n+'</b> <span class="muted">· '+pitch+'</span></header><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:18px">'+[[T.todo,[0,1]],[T.doing,[2]],[T.done,[3,4]]].map(col => '<div style="background:#eef0f5;border-radius:12px;padding:10px"><b>'+col[0]+' <span class="muted">'+col[1].length+'</span></b>'+col[1].map(i => '<div class="card" style="margin-top:10px;border-inline-start:4px solid '+c+'">'+items[i]+'<br><small class="muted">'+people[i]+'</small></div>').join("")+'</div>').join("")+'</div>';
+  return '<!doctype html>\n<html lang="'+o.lang+'" dir="'+dir+'">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>'+n+' – prototype</title>\n<style>'+css+'</style>\n</head>\n<body>\n'+body+'\n</body>\n</html>\n';
+}
+(function(){
+  let ready = false;
+  const NEXT = {
+    landing:["Turn prototype.html into a real landing page: add a pricing section with 3 plans, an FAQ, and a signup form that validates email. Keep it a single file.","Create 3 different hero variations as proto-a/b/c.html and screenshot each with: npx playwright screenshot --viewport-size=1280,800 file://$PWD/proto-a.html a.png (then Read the images and compare)."],
+    dashboard:["Make the dashboard interactive: date range filter, KPI tiles that react, a sortable table of 30 realistic rows (fake data in Hebrew). Single file, no build step.","Replace the inline SVG with a real chart library from a CDN and add a dark mode toggle."],
+    mobile:["Add 3 more screens (task details, profile, notifications) with tap navigation between them, all in one HTML file. Mobile-first, 390px wide.","Add a ?demo=1 mode that auto-plays: open a task, mark it done, show a toast."],
+    wizard:["Make the wizard work: 3 steps with validation, a progress bar, back/next, and a summary step. Save drafts in localStorage.","Add error states and accessibility: labels, aria-live errors, keyboard-only navigation. Test by tabbing through it with Playwright."],
+    kanban:["Make the board interactive: drag and drop between columns, add/edit cards, persist to localStorage. Single file.","Add a fake API with a 300ms delay (in-file) so the UI shows loading and error states realistically."]
+  };
+  const gen = () => {
+    const o = {type:$("#ptType").value, name:$("#ptName").value.trim() || "Product", pitch:$("#ptPitch").value.trim(), color:$("#ptColor").value, lang:$("#ptLang").value};
+    const html = protoHTML(o);
+    $("#ptView").srcdoc = html;
+    setCode("#ptCode", html);
+    setCode("#ptNext", "# save as prototype.html, open it, then in Claude Code:\n\n" + NEXT[o.type].map((p,i) => "# step " + (i+1) + "\n" + p).join("\n\n") + "\n\n# when the idea is proven:\n/clear\nUse @prototype.html as the visual spec. Interview me, write docs/spec.md, and start the real project with tests (see the full-project method).");
+    if(ready) award("proto", 15, "יצרתם פרוטוטייפ");
+  };
+  ["#ptType","#ptLang","#ptColor"].forEach(s => $(s).addEventListener("change", gen));
+  ["#ptName","#ptPitch","#ptColor"].forEach(s => $(s).addEventListener("input", gen));
+  gen(); ready = true;
+})();
+
+// ================= more secrets =================
+SECRETS.push(
+  ["Claude רואה תמונות וקורא PDF","כלי ה-Read של Claude Code פותח תמונות ו-PDF, לא רק טקסט. אפשר להפנות לצילום מסך, לתרשים או למסמך, והוא קורא אותם.","read docs/architecture.png and docs/contract.pdf, then check the code matches both"],
+  ["צילום מסך בלי MCP","‏Playwright CLI מצלם דף בפקודה אחת. Claude שומר את התמונה ופותח אותה עם Read. לולאת \"תקן ותבדוק\" ויזואלית בלי להתקין שרת.","npx playwright screenshot --viewport-size=390,844 http://localhost:3000 shot.png\n# then: read shot.png and fix what looks wrong on mobile"],
+  ["מסקיצה על לוח לקוד","צלמו ציור בטלפון, העבירו למחשב והדביקו (Ctrl+V) בסשן. Claude מתרגם את הסקיצה למסך עובד.","[Ctrl+V whiteboard photo]\nbuild this as a single-file clickable HTML prototype, RTL, realistic Hebrew fake data"],
+  ["עריכת מחברות Jupyter","ל-Claude Code יש כלי ייעודי לעריכת תאים במחברות ‎.ipynb, כך שהוא יכול לנקות, לתעד ולתקן מחברת בלי לשבור את ה-JSON שלה.","clean up @analysis.ipynb: remove dead cells, add markdown explanations, make it run top to bottom"],
+  ["פתרון קונפליקטים עם הסבר","במקום לפתור קונפליקט לבד, Claude פותר כל קונפליקט ומסביר איזה צד נשמר ולמה. לפני merge גדול זה חוסך שעה.","git merge main\nresolve every conflict; for each file explain which side you kept and why, then run the tests"],
+  ["משתני סביבה מ-SessionStart","בגרסאות חדשות, Hook של SessionStart יכול לכתוב משתני סביבה לקובץ שמוגדר ב-$CLAUDE_ENV_FILE, והם זמינים לכל פקודה בסשן. למשל טעינת nvm או venv אוטומטית.","# .claude/hooks/env.sh (SessionStart)\n[ -n \"$CLAUDE_ENV_FILE\" ] && echo 'export PATH=\"$PWD/.venv/bin:$PATH\"' >> \"$CLAUDE_ENV_FILE\""],
+  ["דמו שמריץ את עצמו","בקשו מצב ?demo=1 שמפעיל את הזרימה הראשית לבד עם השהיות. בהצגה מול לקוח לא נוגעים בעכבר, ושום דבר לא נשבר.","add a ?demo=1 mode to the prototype that auto-plays the signup flow with 1.5s delays and visible cursor highlights"],
+  ["פרוטוטייפ כמפרט","אחרי שהרעיון אושר, הפרוטוטייפ הופך למפרט החזותי של המוצר האמיתי. Claude מחלץ ממנו מסכים, רכיבים וטוקנים.","from @prototype.html extract: screens, components, color/spacing tokens and user flows into docs/spec.md. Then plan the real build."],
+  ["Claude כותב Hooks בעצמו","לא צריך לזכור את המבנה. מתארים התנהגות, ו-Claude כותב את הסקריפט, רושם אותו ב-settings ובודק אותו עם קלט לדוגמה.","create a hook that blocks any edit to files under legacy/ and explains why to Claude; test it with sample JSON input"],
+  ["השוואת מודלים על אותה משימה","מריצים את אותה משימה עם haiku, sonnet ו-opus במצב print ומשווים איכות ועלות, כדי לבחור מודל ברירת מחדל לכל סוג עבודה.","for m in haiku sonnet opus; do claude -p --model $m --output-format json \"summarize src/billing in 5 bullets\" | jq '{m:\"'$m'\", cost:.total_cost_usd, text:.result}'; done"]
+);
+drawSecrets();
+BADGES.push(["proto","🧪","ממציאים","יצרתם פרוטוטייפ חי", () => !!state.awarded.proto]);
 checkBadges(true);
 
 renderStats();
