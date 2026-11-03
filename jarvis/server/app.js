@@ -1,0 +1,65 @@
+// Wires every service together. Used by the HTTP server and by tests.
+import { Store } from './lib/store.js';
+import { Audit } from './security/audit.js';
+import { Policy } from './security/policy.js';
+import { Memory } from './memory/memory.js';
+import { WealthService } from './wealth/service.js';
+import { createHomeAdapter } from './home/smarthome.js';
+import { Productivity } from './productivity/productivity.js';
+import { Notifications } from './notify/notifications.js';
+import { BridgeBroker } from './tools/bridge.js';
+import { buildTools } from './tools/index.js';
+import { ModelRouter } from './core/router.js';
+import { Core } from './core/orchestrator.js';
+import { Automations } from './automation/engine.js';
+import { seedDemo } from './lib/seed.js';
+import { Documents } from './documents/documents.js';
+
+export async function createApp({ file = null, router = null, home = null, seed = true } = {}) {
+  const store = new Store(file);
+  if (seed) seedDemo(store);
+  const householdId = 'hh_demo';
+  const audit = new Audit(store);
+  const s = {
+    store, audit, householdId,
+    policy: new Policy(store),
+    memory: new Memory(store, audit),
+    wealth: new WealthService(store, audit),
+    home: home ?? createHomeAdapter(),
+    productivity: new Productivity(store),
+    notifications: new Notifications(store),
+    bridge: new BridgeBroker(),
+    router: router ?? await ModelRouter.fromEnv(),
+  };
+  s.documents = new Documents(store, s.memory, audit);
+  s.tools = buildTools(s);
+  s.core = new Core(s);
+  s.automations = new Automations({ ...s, ctx: { householdId, actor: 'automation' } });
+  return s;
+}
+
+/** Background loop: reminders, deferred notifications, scheduled workflows, proactive scan. */
+export function startScheduler(s, { everyMs = 30_000 } = {}) {
+  let lastProactive = 0;
+  const tick = async () => {
+    try {
+      for (const r of s.productivity.dueReminders()) {
+        await s.notifications.send({ title: 'Reminder', body: r.text, priority: 'high', event: 'reminder' });
+        s.productivity.markFired(r.id);
+      }
+      s.notifications.flushDeferred();
+      s.memory.purgeExpired();
+      await s.automations.tick();
+      const prefs = s.store.getMeta('proactive', { enabled: true });
+      if (prefs.enabled && Date.now() - lastProactive > 60 * 60e3) {
+        lastProactive = Date.now();
+        const { scan } = await import('./proactive/engine.js');
+        const items = await scan({ ...s, ctx: { householdId: s.householdId, actor: 'proactive' }, prefs });
+        for (const it of items.slice(0, 3)) await s.notifications.send({ title: it.title, priority: it.score > 0.8 ? 'high' : 'normal', event: `proactive:${it.kind}`, group: `proactive:${it.kind}:${it.ref ?? it.title}` });
+      }
+    } catch (e) { console.error('[scheduler]', e.message); }
+  };
+  const h = setInterval(tick, everyMs);
+  h.unref?.();
+  return () => clearInterval(h);
+}

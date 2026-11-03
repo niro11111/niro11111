@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>J.A.R.V.I.S Command Center</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#060b18">
+</head>
+<body>
+<div id="login" class="login hidden">
+  <div class="login-card">
+    <div class="core mini" data-state="idle"><div class="ring r1"></div><div class="ring r2"></div><div class="nucleus"></div></div>
+    <h1>J.A.R.V.I.S</h1>
+    <p>Paste the access token printed in the server console.</p>
+    <form id="loginForm"><input id="tokenInput" type="password" autocomplete="off" placeholder="Access token" required><button class="btn primary">Connect</button></form>
+    <p id="loginErr" class="err"></p>
+  </div>
+</div>
+
+<div class="shell">
+  <aside class="nav">
+    <div class="brand"><span class="dot"></span>J.A.R.V.I.S</div>
+    <nav id="nav"></nav>
+    <div class="nav-foot"><button id="themeBtn" class="btn ghost small" title="Toggle theme">◐ Theme</button></div>
+  </aside>
+
+  <main>
+    <header class="top">
+      <button id="menuBtn" class="btn ghost small mobile-only" aria-label="Menu">☰</button>
+      <h2 id="viewTitle">Overview</h2>
+      <div class="top-right">
+        <span id="demoBadge" class="badge warn hidden" title="Showing demo household data until Family Wealth OS is connected">demo data</span>
+        <span id="providerBadge" class="badge"></span>
+        <span id="micIndicator" class="mic-ind hidden" role="status">● MIC ON</span>
+        <button id="bellBtn" class="btn ghost small">🔔 <span id="bellCount">0</span></button>
+      </div>
+    </header>
+
+    <section id="view"></section>
+  </main>
+</div>
+
+<div id="toasts" class="toasts" aria-live="polite"></div>
+
+<template id="tpl-core">
+  <div class="core" data-state="idle">
+    <div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div>
+    <div class="nucleus"></div>
+    <div class="core-label"></div>
+  </div>
+</template>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
