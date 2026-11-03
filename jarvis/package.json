@@ -15,5 +15,8 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.4.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.2"
   }
 }

@@ -111,9 +111,83 @@ export class WealthService {
 
   simulate(ctx, cuts) { return C.simulateCuts(this.read('transactions', ctx), this.currentMonth(ctx), cuts); }
 
+  // ---------- record keeping (never moves money: these are the household's own records) ----------
+  record(ctx, { amount, description, category, date, source = 'manual' }) {
+    if (!Number.isInteger(amount) || amount === 0) throw Object.assign(new Error('amount must be a non-zero integer in minor units'), { status: 400 });
+    if (!description) throw Object.assign(new Error('description required'), { status: 400 });
+    const t = this.store.insert('transactions', { householdId: ctx.householdId, date: date ?? new Date().toISOString().slice(0, 10), description: String(description).slice(0, 120),
+      category: category || guessCategory(description, amount), amount, source });
+    this.audit.log(ctx.actor, 'wealth.record', { id: t.id, amount, source });
+    return t;
+  }
+  removeTransaction(ctx, id) {
+    const t = this.store.get('transactions', id);
+    if (!t || t.householdId !== ctx.householdId) return false;
+    this.audit.log(ctx.actor, 'wealth.remove_transaction', { id });
+    return this.store.remove('transactions', id);
+  }
+  addBill(ctx, { name, amount, dueDate }) {
+    if (!name || !Number.isInteger(amount) || !/^\d{4}-\d{2}-\d{2}$/.test(dueDate ?? '')) throw Object.assign(new Error('name, integer amount (minor units) and dueDate YYYY-MM-DD required'), { status: 400 });
+    return this.store.insert('bills', { householdId: ctx.householdId, name, amount, dueDate, paid: false });
+  }
+  /** Marks a bill paid by id or by (partial) name. Records the fact; pays nothing. */
+  markBillPaid(ctx, ref) {
+    const HE = { חשמל: 'electric', מים: 'water', ארנונה: 'arnona', גז: 'gas', אינטרנט: 'internet', טלפון: 'phone', ביטוח: 'insurance', שכירות: 'rent', 'ועד בית': 'vaad' };
+    let q = String(ref ?? '').toLowerCase().replace(/^(?:ה|את ה)/, '');
+    for (const [he, en] of Object.entries(HE)) if (q.includes(he)) q = en;
+    const bill = this.scoped('bills', ctx.householdId).filter((b) => !b.paid)
+      .find((b) => b.id === ref || b.name.toLowerCase().includes(q) || q.includes(b.name.toLowerCase().split(' ')[0]));
+    if (!bill) throw Object.assign(new Error(`no unpaid bill matching "${ref}"`), { status: 404 });
+    this.audit.log(ctx.actor, 'wealth.bill_paid', { id: bill.id });
+    return this.store.update('bills', bill.id, { paid: true, paidAt: new Date().toISOString() });
+  }
+  addGoal(ctx, { name, target, saved = 0, monthlyContribution = null, deadline = null }) {
+    if (!name || !Number.isInteger(target) || target <= 0) throw Object.assign(new Error('name and positive integer target (minor units) required'), { status: 400 });
+    return this.store.insert('goals', { householdId: ctx.householdId, name, target, saved, monthlyContribution, deadline });
+  }
+  contribute(ctx, ref, amount) {
+    if (!Number.isInteger(amount) || amount <= 0) throw Object.assign(new Error('positive integer amount required'), { status: 400 });
+    const q = String(ref ?? '').toLowerCase();
+    const goal = this.scoped('goals', ctx.householdId).find((g) => g.id === ref || g.name.toLowerCase().includes(q) || q.includes(g.name.toLowerCase().split(' ')[0]))
+      ?? (this.scoped('goals', ctx.householdId).length === 1 ? this.scoped('goals', ctx.householdId)[0] : null);
+    if (!goal) throw Object.assign(new Error(`no savings goal matching "${ref}"`), { status: 404 });
+    this.audit.log(ctx.actor, 'wealth.goal_contribution', { id: goal.id, amount });
+    return this.store.update('goals', goal.id, { saved: goal.saved + amount });
+  }
+  /** Removes the sample household so the user can start with their own numbers. */
+  clearDemo(ctx) {
+    let n = 0;
+    for (const col of ['accounts', 'transactions', 'budgets', 'goals', 'assets', 'liabilities', 'bills']) {
+      for (const r of this.store.all(col, (x) => x.demo && x.householdId === ctx.householdId)) { this.store.remove(col, r.id); n++; }
+    }
+    this.audit.log(ctx.actor, 'wealth.clear_demo', { removed: n });
+    return n;
+  }
+  setBudget(ctx, { category, limit }) {
+    if (!category || !Number.isInteger(limit) || limit < 0) throw Object.assign(new Error('category and integer limit required'), { status: 400 });
+    const b = this.scoped('budgets', ctx.householdId).find((x) => x.category === category);
+    return b ? this.store.update('budgets', b.id, { limit }) : this.store.insert('budgets', { householdId: ctx.householdId, category, limit });
+  }
+  addAsset(ctx, { name, type = 'other', value }) {
+    if (!name || !Number.isInteger(value)) throw Object.assign(new Error('name and integer value required'), { status: 400 });
+    return this.store.insert('assets', { householdId: ctx.householdId, name, type, value });
+  }
+
   /** Any money-moving request ends here: never executed, only documented as a proposal. */
   guardAction(ctx, action) {
     this.audit.log(ctx.actor, 'wealth.blocked_action', { action, householdId: ctx.householdId }, 'blocked');
     return { executed: false, action, reason: 'JARVIS does not execute financial transactions. Review the proposal and perform it with your bank or provider after your own confirmation.' };
   }
+}
+
+const CATS = [
+  [/סופר|מכולת|שופרסל|רמי לוי|grocer|supermarket/i, 'groceries'], [/מסעדה|קפה|אוכל בחוץ|וולט|restaurant|cafe|coffee|dinner|lunch/i, 'dining'],
+  [/דלק|רכבת|אוטובוס|מונית|חניה|fuel|gas|taxi|parking|bus|train/i, 'transport'], [/חשמל|מים|ארנונה|גז|electric|water|utility/i, 'utilities'],
+  [/שכירות|משכנתא|rent|mortgage/i, 'housing'], [/מנוי|נטפליקס|ספוטיפיי|subscription|netflix|spotify/i, 'subscriptions'],
+  [/בגדים|קניות|אמזון|shopping|clothes|amazon/i, 'shopping'], [/רופא|תרופות|בית מרקחת|doctor|pharmacy|medicine/i, 'health'],
+  [/משכורת|שכר|salary|paycheck/i, 'income'],
+];
+export function guessCategory(description, amount) {
+  if (amount > 0) return 'income';
+  return CATS.find(([re]) => re.test(description))?.[1] ?? 'other';
 }

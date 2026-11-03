@@ -2,6 +2,7 @@
 // It turns one utterance into one or more steps {agent, tool, args}. Anything it does not
 // recognise becomes an `llm.answer` step routed to a language model.
 import { parseWhen, stripWhen } from '../productivity/timeparse.js';
+import { unitOf } from '../tools/utility.js';
 
 const has = (t, ...res) => res.some((r) => r.test(t));
 
@@ -40,6 +41,38 @@ export function parseClause(raw, convo = {}) {
   if ((m = text.match(/(?:search (?:my )?documents for|in my documents|חפש במסמכים|במסמכים שלי)\s*(.+)/i))) {
     return [{ agent: 'knowledge', tool: 'documents.search', args: { query: m[1] } }];
   }
+  // --- timers ---
+  if ((m = t.match(/timer (?:for )?(\d+)\s*(?:min|minutes?)?|טיימר (?:ל-?|של )?(\d+)\s*(?:דקות|דקה|דק׳)?/))) {
+    return [{ agent: 'assistant', tool: 'timer.start', args: { minutes: Number(m[1] ?? m[2]) } }];
+  }
+  // --- money records (the household's own books; never a payment) ---
+  const AMT = String.raw`(\d+(?:[.,]\d+)?)\s*(?:₪|ש"ח|שח|שקלים|שקל|nis|ils|shekels?)?`;
+  if ((m = text.match(new RegExp(String.raw`(?:i\s+)?(?:spent|paid)\s+` + AMT + String.raw`\s+(?:on|for)\s+(.+)`, 'i'))) || (m = text.match(new RegExp(String.raw`(?:הוצאתי|שילמתי)\s+` + AMT + String.raw`\s*(?:על|ב-?|עבור|ל)\s*(.+)`)))) {
+    return [{ agent: 'finance', tool: 'wealth.record', args: { kind: 'expense', amount: Number(m[1].replace(',', '.')), description: m[2].trim() } }];
+  }
+  if ((m = text.match(new RegExp(String.raw`(?:i\s+)?(?:received|earned|got paid)\s+` + AMT + String.raw`\s*(?:from|for)?\s*(.*)`, 'i'))) || (m = text.match(new RegExp(String.raw`(?:קיבלתי|הרווחתי|נכנסו לי|נכנסו)\s+` + AMT + String.raw`\s*(?:מ-?|עבור|על)?\s*(.*)`)))) {
+    return [{ agent: 'finance', tool: 'wealth.record', args: { kind: 'income', amount: Number(m[1].replace(',', '.')), description: (m[2] || (/[֐-׿]/.test(text) ? 'הכנסה' : 'income')).trim() } }];
+  }
+  if ((m = text.match(new RegExp(String.raw`(?:הפקדתי|הוספתי|חסכתי)\s+` + AMT + String.raw`\s+(?:ל|לקרן|ליעד|עבור)\s*(.+)`))) || (m = text.match(new RegExp(String.raw`(?:deposited|saved|put)\s+` + AMT + String.raw`\s+(?:to|into|toward|towards|for)\s+(.+)`, 'i')))) {
+    return [{ agent: 'finance', tool: 'wealth.goal_contribute', args: { amount: Number(m[1].replace(',', '.')), goal: m[2].replace(/^(?:the|my)\s+/i, '').replace(/^ה/, '').trim() } }];
+  }
+  if ((m = text.match(/^(?:שילמתי את|שולם|paid the|i paid the)\s+(?:חשבון\s+)?(?:ה)?(.+?)(?:\s+bill)?\s*$/i))) {
+    return [{ agent: 'household', tool: 'wealth.bill_paid', args: { name: m[1].trim() } }];
+  }
+  // --- notes & habits ---
+  if ((m = text.match(/^(?:take a note|note|write down|רשום פתק|פתק|תרשום|רשום)[:\s]+(.+)/i))) return [{ agent: 'knowledge', tool: 'notes.add', args: { text: m[1] } }];
+  if (has(t, /my notes|show (my )?notes|הפתקים שלי|הצג פתקים/)) return [{ agent: 'knowledge', tool: 'notes.list', args: {} }];
+  if ((m = text.match(/^(?:i did|log habit|done:|סימנתי|עשיתי היום|עשיתי|סמן שעשיתי)\s+(.+?)(?:\s+(?:today|היום))?\s*$/i))) return [{ agent: 'health', tool: 'habit.log', args: { name: m[1].replace(/^(?:את\s+)?ה?/, '') } }];
+  if (has(t, /\bhabits?\b|\bstreaks?\b|הרגלים|ההרגלים|רצף/)) return [{ agent: 'health', tool: 'habit.status', args: {} }];
+  // --- calculator, dates, units ---
+  if ((m = text.match(/(?:how many days (?:until|till|to)|days until|כמה ימים (?:עד|נשארו עד|נשארו ל)|כמה זמן עד)\s+(.+?)\??$/i))) return [{ agent: 'assistant', tool: 'date.until', args: { date: m[1] } }];
+  if ((m = text.match(/^(?:convert\s+|המר\s+|כמה זה\s+)?(\d+(?:\.\d+)?)\s*([^\s\d?]+)\s+(?:to|in|into|ל-?|ב-?)\s*([^\s?]+)\s*\??$/i)) && unitOf(m[2]) && unitOf(m[3])) {
+    return [{ agent: 'assistant', tool: 'convert.units', args: { value: Number(m[1]), from: m[2], to: m[3] } }];
+  }
+  if ((m = text.match(/^(?:calculate|compute|what is|what's|כמה זה|כמה יוצא|חשב|תחשב)\s+(.+?)\??$/i)) && /\d/.test(m[1]) && /[+\-*/^%×÷x]|of|מ-?\d|מתוך/.test(m[1]) && !/[a-z֐-׿]{3,}/i.test(m[1].replace(/of|מתוך/g, ''))) {
+    return [{ agent: 'assistant', tool: 'calc.evaluate', args: { expression: m[1] } }];
+  }
+  if (/^[\d\s.+\-*/^()%×÷,]+=?\s*\??$/.test(text) && /\d\s*[+\-*/^×÷%]/.test(text)) return [{ agent: 'assistant', tool: 'calc.evaluate', args: { expression: text.replace(/[=?]/g, '') } }];
   // --- briefings ---
   if (has(t, /organi[sz]e my day|daily brief|my day|what'?s (on )?today|תארגן לי את היום|תדריך|מה יש לי היום|סדר יום/)) {
     return [{ agent: 'assistant', tool: 'briefing.daily', args: {} }];

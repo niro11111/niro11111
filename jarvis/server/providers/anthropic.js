@@ -4,9 +4,10 @@ import Anthropic from '@anthropic-ai/sdk';
 const FALLBACK_MODELS = new Set(['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-fable-5-1', 'claude-opus-5']);
 
 export class AnthropicProvider {
-  constructor({ apiKey } = {}) {
+  /** @param {{apiKey?:string, browser?:boolean}} o  browser: the user's own key, used from their own browser */
+  constructor({ apiKey, browser = false } = {}) {
     this.name = 'anthropic';
-    this.client = new Anthropic(apiKey ? { apiKey } : {});
+    this.client = new Anthropic(apiKey ? { apiKey, ...(browser ? { dangerouslyAllowBrowser: true } : {}) } : {});
   }
   capabilities() { return { text: true, vision: true, webSearch: true, local: false }; }
 

@@ -13,6 +13,8 @@ export const auth = { get: () => TOKEN, set(tok) { TOKEN = tok; local.set('token
 
 export async function api(path, opts = {}) {
   // Prototype/demo build: a recorded in-browser backend answers instead of the server.
+  // In-browser runtime: the full JARVIS runs in this page.
+  if (window.JARVIS_LOCAL) return window.JARVIS_LOCAL.api(path, { method: opts.method ?? 'GET', body: opts.body });
   if (window.JARVIS_MOCK) return window.JARVIS_MOCK(path, { ...opts, body: opts.body && typeof opts.body !== 'string' ? JSON.stringify(opts.body) : opts.body });
   const r = await fetch(path, { ...opts, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${TOKEN}`, ...(opts.headers ?? {}) },
     body: opts.body && typeof opts.body !== 'string' ? JSON.stringify(opts.body) : opts.body });

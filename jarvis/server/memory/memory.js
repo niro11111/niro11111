@@ -18,6 +18,11 @@ export const domainOf = (m) => m.domain ?? WORKSPACE_DOMAIN[m.workspace] ?? (m.t
 
 const DEFAULT_TTL_DAYS = { conversation_summary: 30, device_context: 7 };
 
+// Vectors and term frequencies are derived data: browser persistence drops them to save
+// space, and they are rebuilt on first use.
+const vecOf = (m) => (m.vector ??= embed(m.content));
+const tfOf = (m) => (m.tf ??= termFreq(m.content));
+
 export class Memory {
   constructor(store, audit) { this.store = store; this.audit = audit; }
 
@@ -34,7 +39,7 @@ export class Memory {
     const text = String(content).trim();
     const vector = embed(text);
     // Duplicate detection: same type and near-identical meaning -> reinforce, don't duplicate.
-    const dup = this.store.all('memories', (m) => m.type === type && this.active(m) && cosine(vector, m.vector) > 0.93)[0];
+    const dup = this.store.all('memories', (m) => m.type === type && this.active(m) && cosine(vector, vecOf(m)) > 0.93)[0];
     if (dup) {
       this.store.update('memories', dup.id, { lastConfirmedAt: now(), confirmations: (dup.confirmations ?? 1) + 1 });
       return { ...strip(dup), duplicate: true };
@@ -69,10 +74,10 @@ export class Memory {
       && domains.includes(domainOf(m))
       && (includeOutdated || m.provenance !== 'outdated'));
     const N = pool.length || 1;
-    const avgLen = pool.reduce((a, m) => a + (m.tf?.__len ?? 1), 0) / N;
-    const df = Object.fromEntries(qt.map((t) => [t, pool.filter((m) => m.tf?.[t]).length]));
+    const avgLen = pool.reduce((a, m) => a + tfOf(m).__len, 0) / N;
+    const df = Object.fromEntries(qt.map((t) => [t, pool.filter((m) => tfOf(m)[t]).length]));
     const scored = pool.map((m) => {
-      const tf = m.tf ?? termFreq(m.content);
+      const tf = tfOf(m);
       let bm = 0;
       for (const t of qt) {
         const f = tf[t] ?? 0; if (!f) continue;
@@ -80,7 +85,7 @@ export class Memory {
         bm += idf * ((f * 2.2) / (f + 1.2 * (0.25 + 0.75 * (tf.__len / avgLen))));
       }
       const kw = bm / (bm + 2); // squash to 0..1
-      const sem = cosine(q, m.vector);
+      const sem = cosine(q, vecOf(m));
       const score = (0.65 * sem + 0.35 * kw) * (0.75 + 0.25 * (m.confidence ?? 0.8));
       return { ...strip(m), score: +score.toFixed(4), semantic: +sem.toFixed(3), keyword: +kw.toFixed(3) };
     });

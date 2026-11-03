@@ -14,15 +14,23 @@ const MAX_CHANGES = 5000;
 
 export class Store {
   /** @param {string|null} file path to persist to, or null for in-memory only */
-  constructor(file = null) {
+  /**
+   * @param {string|null} file JSON file (Node). null = in memory.
+   * @param {{data?:object, onSave?:(dirty:Set<string>)=>void}} opts browser persistence hooks
+   */
+  constructor(file = null, opts = {}) {
     this.file = file;
-    this.data = {};
+    this.data = opts.data ?? {};
+    this.onSave = opts.onSave ?? null;
+    this.dirty = new Set();
     if (file && fs.existsSync(file)) {
       this.data = JSON.parse(fs.readFileSync(file, 'utf8'));
     }
   }
   track(col, op, rec) {
+    this.dirty.add(col);
     if (!SYNCED.has(col)) return;
+    this.dirty.add('_changes');
     const meta = (this.data._meta ??= {});
     meta.seq = (meta.seq ?? 0) + 1;
     const ch = (this.data._changes ??= []);
@@ -60,8 +68,9 @@ export class Store {
     return true;
   }
   getMeta(key, dflt = null) { return this.data._meta?.[key] ?? dflt; }
-  setMeta(key, value) { (this.data._meta ??= {})[key] = value; this.save(); }
+  setMeta(key, value) { (this.data._meta ??= {})[key] = value; this.dirty.add('_meta'); this.save(); }
   save() {
+    if (this.onSave) { this.onSave(this.dirty); return; }
     if (!this.file) return;
     fs.mkdirSync(path.dirname(this.file), { recursive: true });
     const tmp = `${this.file}.tmp`;

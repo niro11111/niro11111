@@ -24,7 +24,7 @@ import { expoPushSender } from './notify/expo-push.js';
 
 export async function createApp(opts = {}) {
   const { file = null, router = null, home = null, seed = true } = opts;
-  const store = new Store(file);
+  const store = opts.store ?? new Store(file);
   if (seed) seedDemo(store);
   const householdId = 'hh_demo';
   const audit = new Audit(store);

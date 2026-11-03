@@ -42,21 +42,23 @@ async function refreshBadges() {
 }
 
 let es;
+function onLiveEvent(e) {
+  if (e.type === 'notification') {
+    toast(`${e.data.title}${e.data.body ? ` — ${e.data.body}` : ''}`, e.data.priority);
+    if ('Notification' in window && Notification.permission === 'granted' && document.hidden) { try { new Notification(e.data.title, { body: e.data.body }); } catch { /* blocked in this frame */ } }
+    refreshBadges();
+  } else if (e.type === 'task' && getCoreState() !== 'speaking' && getCoreState() !== 'listening') {
+    const map = { PLANNING: 'thinking', EXECUTING: 'executing', VERIFYING: 'executing', AWAITING_APPROVAL: 'approval', FAILED: 'error' };
+    if (map[e.data.state]) setCoreState(map[e.data.state]);
+  }
+}
+
 function connectStream() {
+  if (window.JARVIS_LOCAL) { window.JARVIS_LOCAL.onEvent(onLiveEvent); return; }
   if (window.JARVIS_MOCK) return; // no live stream in the recorded demo
   es?.close();
   es = new EventSource(`/api/stream?token=${encodeURIComponent(auth.get())}`);
-  es.onmessage = (m) => {
-    const e = JSON.parse(m.data);
-    if (e.type === 'notification') {
-      toast(`${e.data.title}${e.data.body ? ` — ${e.data.body}` : ''}`, e.data.priority);
-      if ('Notification' in window && Notification.permission === 'granted' && document.hidden) new Notification(e.data.title, { body: e.data.body });
-      refreshBadges();
-    } else if (e.type === 'task' && getCoreState() !== 'speaking' && getCoreState() !== 'listening') {
-      const map = { PLANNING: 'thinking', EXECUTING: 'executing', VERIFYING: 'executing', AWAITING_APPROVAL: 'approval', FAILED: 'error' };
-      if (map[e.data.state]) setCoreState(map[e.data.state]);
-    }
-  };
+  es.onmessage = (m) => onLiveEvent(JSON.parse(m.data));
   es.onerror = () => { if (es.readyState === EventSource.CLOSED) setCoreState('error'); };
 }
 
@@ -81,7 +83,8 @@ buildNav();
 tickClock(); setInterval(tickClock, 1000);
 
 async function boot() {
-  if (!auth.get() && !window.JARVIS_MOCK) return showLogin();
+  if (!auth.get() && !window.JARVIS_MOCK && !window.JARVIS_LOCAL) return showLogin();
+  document.getElementById('bootMsg')?.remove();
   connectStream(); refreshBadges(); setInterval(refreshBadges, 30000);
   await render();
 }

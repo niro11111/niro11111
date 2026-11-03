@@ -8,6 +8,8 @@ import { fmt } from '../wealth/calc.js';
 import { fetchPage } from './research.js';
 import { t } from '../lib/i18n.js';
 import { TOOL_SCHEMAS } from './schemas.js';
+import { evaluate, parseDate, daysUntil, convert } from './utility.js';
+import { toMinor } from '../wealth/calc.js';
 
 const dt = (iso, lang) => new Date(iso).toLocaleString(lang === 'he' ? 'he-IL' : 'en-GB', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 
@@ -148,13 +150,23 @@ export function buildTools(s) {
       messages: [{ role: 'user', content: a.query }],
     });
     if (out.offline) throw new Error(t(ctx.lang, 'no_llm'));
-    return { data: { citations: out.citations, model: out.route.model }, summary: out.text };
+    const live = router.providers[out.route.provider]?.capabilities().webSearch;
+    const note = live ? '' : (ctx.lang === 'he' ? '\n\n(התשובה מבוססת על הידע של המודל, ללא חיפוש חי ברשת.)' : '\n\n(Answered from the model\'s knowledge, without a live web search.)');
+    return { data: { citations: out.citations, model: out.route.model, liveSearch: !!live }, summary: out.text + note };
   } });
 
   // ---------- language, vision, audio ----------
   def('llm.answer', { risk: RISK.READ, desc: 'Answer with the routed model', run: async (a, ctx) => {
-    const out = await router.complete({ complexity: a.complexity ?? 'medium', latency: ctx.channel === 'voice' || ctx.channel === 'watch' ? 'realtime' : 'normal', privacy: a.privacy }, {
-      system: `${personality.systemPrompt(ctx)}
+    const need = { complexity: a.complexity ?? 'medium', latency: ctx.channel === 'voice' || ctx.channel === 'watch' ? 'realtime' : 'normal', privacy: a.privacy };
+    const route = router.route(need);
+    // Providers that support page tools get JARVIS's tools; every call still passes the policy.
+    const tools = router.providers[route.provider]?.capabilities().tools ? s.core.modelTools(ctx) : undefined;
+    const out = await router.complete(need, {
+      tools,
+      system: `${personality.systemPrompt(ctx)}${tools ? `
+You can act through JARVIS tools (tasks, reminders, calendar, notes, habits, shopping, memory, family finances, smart home, calculator, dates, units).
+Use tools for anything about the user's own data instead of guessing. A tool result with executed:false or awaitingApproval means it has NOT happened: say so.
+Money is never moved: wealth tools only read or keep the household's records. Today is ${new Date().toISOString().slice(0, 10)}.` : ''}
 Known context about the user (provenance in brackets; treat inferred/ai_suggestion as uncertain):
 ${(a.memories ?? []).map((m) => `- ${m.content} [${m.provenance}]`).join('\n') || '- none'}`,
       messages: [...(a.history ?? []), { role: 'user', content: a.prompt }],
@@ -207,6 +219,62 @@ ${(a.memories ?? []).map((m) => `- ${m.content} [${m.provenance}]`).join('\n') |
   def('automation.run', { risk: RISK.WRITE, desc: 'Run a workflow', run: async (a) => {
     const r = await s.automations.run(a.workflowId, a.payload ?? {}); return { data: r, summary: `Workflow run ${r.status}` };
   } });
+
+  // ---------- utilities (deterministic) ----------
+  const num = (v) => new Intl.NumberFormat('en', { maximumFractionDigits: 6 }).format(v);
+  def('calc.evaluate', { risk: RISK.READ, desc: 'Calculate an arithmetic expression (supports %, ^, parentheses)', run: async (a, ctx) => {
+    const v = evaluate(a.expression);
+    return { data: { value: v }, summary: `${a.expression.trim()} = ${num(v)}` };
+  } });
+  def('date.until', { risk: RISK.READ, desc: 'Days until (or since) a date', run: async (a, ctx) => {
+    const d = parseDate(a.date); if (!d) throw new Error(ctx.lang === 'he' ? 'לא זיהיתי תאריך' : 'could not read the date');
+    const n = daysUntil(d);
+    const label = d.toLocaleDateString(ctx.lang === 'he' ? 'he-IL' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    const he = ctx.lang === 'he';
+    return { data: { days: n, date: d.toISOString().slice(0, 10) }, summary: n === 0 ? (he ? `${label} זה היום.` : `${label} is today.`) : n > 0 ? (he ? `עוד ${n} ימים עד ${label}.` : `${n} days until ${label}.`) : (he ? `עברו ${-n} ימים מאז ${label}.` : `${-n} days since ${label}.`) };
+  } });
+  def('convert.units', { risk: RISK.READ, desc: 'Convert length, mass, volume or temperature units', run: async (a) => {
+    const v = convert(a.value, a.from, a.to);
+    return { data: { value: v }, summary: `${num(a.value)} ${a.from} = ${num(v)} ${a.to}` };
+  } });
+  def('timer.start', { risk: RISK.WRITE, desc: 'Start a countdown timer that notifies when done', run: async (a, ctx) => {
+    const m = Number(a.minutes); if (!(m > 0 && m <= 1440)) throw new Error('minutes must be 1-1440');
+    const r = productivity.createReminder({ text: a.label || (ctx.lang === 'he' ? `טיימר ${m} דקות הסתיים` : `${m}-minute timer done`), at: new Date(Date.now() + m * 6e4).toISOString() });
+    return { data: r, summary: ctx.lang === 'he' ? `טיימר ל-${m} דקות הופעל.` : `Timer set for ${m} minutes.` };
+  }, verify: (r) => !!store.get('reminders', r.data.id) });
+
+  // ---------- notes & habits ----------
+  def('notes.add', { risk: RISK.WRITE, desc: 'Save a note', run: async (a, ctx) => {
+    const n = productivity.addNote(a); return { data: n, summary: ctx.lang === 'he' ? `הפתק נשמר: ${n.text}` : `Note saved: ${n.text}` };
+  }, verify: (r) => !!store.get('notes', r.data.id) });
+  def('notes.list', { risk: RISK.READ, desc: 'List or search notes', run: async (a, ctx) => {
+    const l = a.query ? productivity.searchNotes(a.query) : productivity.listNotes();
+    return { data: l.slice(0, 20), summary: l.length ? l.slice(0, 10).map((n) => `- ${n.text}`).join('\n') : (ctx.lang === 'he' ? 'אין פתקים.' : 'No notes.') };
+  } });
+  def('habit.log', { risk: RISK.WRITE, desc: 'Mark a habit as done today (tracks streaks)', run: async (a, ctx) => {
+    const h = productivity.logHabit(a.name);
+    return { data: h, summary: ctx.lang === 'he' ? `סומן "${h.name}" להיום. רצף: ${h.streak} ימים, ${h.last30} פעמים ב-30 יום.` : `Logged "${h.name}" for today. Streak: ${h.streak} days, ${h.last30} times in 30 days.` };
+  } });
+  def('habit.status', { risk: RISK.READ, desc: 'Habit streaks', run: async (a, ctx) => {
+    const l = productivity.habits();
+    return { data: l, summary: l.length ? l.map((h) => `- ${h.name}: ${h.streak} ${ctx.lang === 'he' ? 'ימים ברצף' : 'day streak'}${h.doneToday ? ' ✓' : ''}`).join('\n') : (ctx.lang === 'he' ? 'עוד לא הוגדרו הרגלים.' : 'No habits yet.') };
+  } });
+
+  // ---------- Family Wealth OS record keeping (records only; never moves money) ----------
+  def('wealth.record', { risk: RISK.WRITE, desc: 'Record an expense or income in the household books (does not move money)', run: W(async (a, ctx) => {
+    const minor = Number.isInteger(a.amountMinor) ? a.amountMinor : toMinor(a.amount);
+    const t = wealth.record(ctx, { amount: a.kind === 'income' ? Math.abs(minor) : -Math.abs(minor), description: a.description, category: a.category });
+    const he = ctx.lang === 'he';
+    return { data: t, summary: he ? `נרשם${t.amount > 0 ? 'ה הכנסה' : 'ה הוצאה'}: ${fmt(Math.abs(t.amount))} · ${t.description} (${t.category})` : `Recorded ${t.amount > 0 ? 'income' : 'expense'}: ${fmt(Math.abs(t.amount))} · ${t.description} (${t.category})` };
+  }), verify: (r) => !!store.get('transactions', r.data.id) });
+  def('wealth.bill_paid', { risk: RISK.WRITE, desc: 'Mark a bill as paid in the records', run: W(async (a, ctx) => {
+    const b = wealth.markBillPaid(ctx, a.name);
+    return { data: b, summary: ctx.lang === 'he' ? `החשבון "${b.name}" סומן כשולם.` : `Bill "${b.name}" marked as paid.` };
+  }), verify: (r) => store.get('bills', r.data.id)?.paid === true });
+  def('wealth.goal_contribute', { risk: RISK.WRITE, desc: 'Record a deposit toward a savings goal', run: W(async (a, ctx) => {
+    const g = wealth.contribute(ctx, a.goal, Number.isInteger(a.amountMinor) ? a.amountMinor : toMinor(a.amount));
+    return { data: g, summary: ctx.lang === 'he' ? `נרשמה הפקדה ל"${g.name}": עכשיו ${fmt(g.saved)} מתוך ${fmt(g.target)}.` : `Deposit recorded for "${g.name}": now ${fmt(g.saved)} of ${fmt(g.target)}.` };
+  }) });
 
   return T;
 }

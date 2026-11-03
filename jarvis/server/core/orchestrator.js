@@ -236,6 +236,54 @@ export class Core {
     return n;
   }
 
+  // ---------- model-driven tool use ----------
+  /** JARVIS tools offered to a language model. Each call goes through validate + policy. */
+  modelTools(ctx) {
+    const SKIP = new Set(['llm.answer', 'research.web', 'research.fetch', 'vision.describe', 'automation.run', 'voice.note']);
+    return Object.values(this.tools).filter((t) => !SKIP.has(t.name) && !t.name.startsWith('computer.')).map((t) => ({
+      name: t.name.replace(/\./g, '_'),
+      description: `${t.desc}. Risk: ${typeof t.risk === 'function' ? 'depends on the device (locks/alarms are sensitive)' : t.risk}. Returns a short summary.`.slice(0, 1000),
+      inputSchema: toJsonSchema(t.input, t.name),
+      execute: (input) => this.runFromModel(t.name, input ?? {}, ctx),
+    }));
+  }
+
+  async runFromModel(name, input, ctx) {
+    const tool = this.tools[name];
+    const args = { ...input };
+    const lang = ctx.lang ?? 'en';
+    if (name === 'home.control' && !args.entityId) throw new Error('call home_devices first and pass entityId');
+    const errors = validate(tool.input, args);
+    if (errors.length) throw new Error(errors.join(', '));
+    const risk = riskOf(tool, args);
+    const decision = this.policy.effective({ name, risk, alwaysConfirm: tool.alwaysConfirm }, null);
+    this.audit.log(`model:${ctx.actor}`, 'model.tool_call', { tool: name, risk, decision });
+    if (decision === 'deny') throw new Error("not permitted by the user's permission policy");
+    if (decision === 'advise') return { executed: false, note: 'Advisory mode is on: describe what you would do, do not claim it was done.' };
+    if (decision === 'approve') {
+      const t = await this.proposeStep(name, args, ctx);
+      return { executed: false, awaitingApproval: true, approvalId: t.approvalId, note: 'Not done yet. The user must approve it in JARVIS (Approvals). Tell them that.' };
+    }
+    const out = await tool.run(args, ctx);
+    const ok = tool.verify ? await tool.verify({ data: out.data }, args) : true;
+    if (!ok) throw new Error('the action ran but verification failed');
+    return { executed: true, verified: !!tool.verify, summary: String(out.summary ?? '').slice(0, 3000) };
+  }
+
+  /** Creates a one-step task for a model-proposed sensitive action and parks it for approval. */
+  async proposeStep(name, args, ctx) {
+    const tool = this.tools[name];
+    const step = { n: 1, agent: 'executive', tool: name, args, risk: riskOf(tool, args), permission: 'approve', status: 'pending' };
+    step.hash = actionHash(step);
+    const task = this.store.insert('tasks_exec', {
+      objective: `(${ctx.lang === 'he' ? 'הוצע על ידי ה-AI' : 'proposed by the AI'}) ${describe(step, ctx.lang)}`, state: S.PENDING, history: [], channel: ctx.channel ?? 'text',
+      conversationId: 'model', actor: ctx.actor ?? 'user', householdId: ctx.householdId, lang: ctx.lang ?? 'en', results: [], approvalId: null, response: null, startedAt: now(),
+      plan: { objective: name, autonomy: this.policy.autonomy(), coordinator: 'executive', delegation: [], context: { memories: [] }, agents: ['executive'], tools: [name], steps: [step], dependencies: [], permissions: [{ step: 1, risk: step.risk, decision: 'approve' }], successCriteria: '', verification: '', recovery: '' },
+    });
+    transition(task, S.PLANNING);
+    return this.run(task);
+  }
+
   cancel(taskId, actor = 'user') {
     const task = this.store.get('tasks_exec', taskId);
     if (!task) return null;
@@ -288,4 +336,17 @@ function consequences(step, lang = 'en') {
 export function publicTask(t0) {
   const { plan, ...rest } = t0;
   return { ...rest, plan: plan && { ...plan, steps: plan.steps.map(({ data, args, ...s }) => ({ ...s, args: redact(stripCtx(args)) })) } };
+}
+
+/** Our tiny schema -> JSON Schema for model tool definitions. */
+function toJsonSchema(schema = {}, name = '') {
+  const properties = {}; const required = [];
+  for (const [k, r] of Object.entries(schema)) {
+    properties[k] = { type: r.type === 'any' ? 'string' : r.type, ...(r.enum ? { enum: r.enum } : {}) };
+    if (r.required) required.push(k);
+  }
+  if (name === 'home.control') { properties.data = { type: 'object', description: 'e.g. {"temperature": 22} for set_temperature' }; }
+  if (name === 'wealth.record') { properties.amount.description = 'amount in shekels (ILS), positive number'; properties.category = { type: 'string' }; }
+  if (name === 'reminders.create') properties.at.description = 'ISO 8601 date-time';
+  return { type: 'object', properties, required };
 }

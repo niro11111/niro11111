@@ -23,4 +23,13 @@ export const TOOL_SCHEMAS = {
   'voice.note': S({ text: str(true) }),
   'automation.run': S({ workflowId: str(true) }),
   'notify.send': S({ title: str(true) }),
+  'calc.evaluate': S({ expression: str(true, { max: 300 }) }),
+  'date.until': S({ date: str(true) }),
+  'convert.units': S({ value: { type: 'number', required: true }, from: str(true), to: str(true) }),
+  'timer.start': S({ minutes: { type: 'number', required: true } }),
+  'notes.add': S({ text: str(true, { max: 4000 }) }),
+  'habit.log': S({ name: str(true, { max: 80 }) }),
+  'wealth.record': S({ amount: { type: 'number', required: true }, description: str(true, { max: 120 }), kind: str(false, { enum: ['expense', 'income'] }) }),
+  'wealth.bill_paid': S({ name: str(true) }),
+  'wealth.goal_contribute': S({ goal: str(true), amount: { type: 'number', required: true } }),
 };

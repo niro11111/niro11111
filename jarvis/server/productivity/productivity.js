@@ -39,6 +39,34 @@ export class Productivity {
     return this.store.all('events', (e) => (!from || e.start >= from) && (!to || e.start <= to)).sort((a, b) => a.start.localeCompare(b.start));
   }
 
+  // ---------- notes ----------
+  addNote({ text, tags = [] }) {
+    if (!String(text ?? '').trim()) throw new Error('note text required');
+    return this.store.insert('notes', { text: String(text).trim().slice(0, 4000), tags, pinned: false });
+  }
+  listNotes() { return this.store.all('notes').slice().reverse(); }
+  searchNotes(q) { const k = String(q).toLowerCase(); return this.listNotes().filter((n) => n.text.toLowerCase().includes(k)); }
+
+  // ---------- habits (streaks) ----------
+  logHabit(name, day = new Date().toISOString().slice(0, 10)) {
+    const key = String(name).trim().toLowerCase();
+    if (!key) throw new Error('habit name required');
+    let h = this.store.all('habits', (x) => x.key === key)[0];
+    if (!h) h = this.store.insert('habits', { key, name: String(name).trim(), days: [] });
+    if (!h.days.includes(day)) this.store.update('habits', h.id, { days: [...h.days, day].sort().slice(-400) });
+    return this.habitStatus(h.id, day);
+  }
+  habitStatus(id, today = new Date().toISOString().slice(0, 10)) {
+    const h = this.store.get('habits', id);
+    const set = new Set(h.days);
+    let streak = 0; let d = new Date(`${today}T00:00:00Z`);
+    if (!set.has(today)) d = new Date(d.getTime() - 864e5); // a streak survives until the end of today
+    while (set.has(d.toISOString().slice(0, 10))) { streak++; d = new Date(d.getTime() - 864e5); }
+    const last30 = h.days.filter((x) => (Date.parse(today) - Date.parse(x)) / 864e5 < 30).length;
+    return { id: h.id, name: h.name, streak, doneToday: set.has(today), last30, total: h.days.length };
+  }
+  habits() { return this.store.all('habits').map((h) => this.habitStatus(h.id)); }
+
   createReminder({ text, at }) {
     if (!text || !at) throw new Error('text and time required');
     return this.store.insert('reminders', { text, at, fired: false });
