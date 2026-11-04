@@ -326,6 +326,48 @@ main{overflow-wrap:break-word}
   .chat li{grid-template-columns:minmax(0,1fr);gap:2px}
   h1{font-size:1.65rem}
 }
+
+/* complete guide */
+.agTop{align-items:start}
+.agSum{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:12px 14px;min-width:0}
+.agBar{height:12px;border-radius:999px;background:var(--line);overflow:hidden}
+.agBar i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+.agStages{display:grid;gap:8px;margin:14px 0}
+.agStage{border:1px solid var(--line);border-radius:12px;background:var(--surface);min-width:0}
+.agStage summary{display:flex;gap:10px;align-items:center;padding:10px 14px;cursor:pointer;list-style:none}
+.agStage summary::-webkit-details-marker{display:none}
+.agStage summary b{flex:1;min-width:0}
+.agN{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:.85rem;background:var(--accent);color:var(--accent-ink);flex:none}
+.agStage.done{border-color:var(--ok)}
+.agStage.done .agN{background:var(--ok)}
+.agStage.done .agN::after{content:"✓"}
+.agStage.done .agN{font-size:0}
+.agStage.done .agN::after{font-size:.9rem}
+.agMini{color:var(--muted);font-size:.85rem}
+.agBody{padding:0 14px 12px;min-width:0}
+.agBody h4{margin:12px 0 6px}
+.agChecks,.agTraps{margin:4px 0;padding-inline-start:18px}
+.agChecks{list-style:none;padding-inline-start:0;display:grid;gap:4px}
+.agChecks .tick{font-weight:400}
+.agTraps li{color:var(--ink)}
+.agTraps li::marker{content:"⚠ "}
+/* prompt generator */
+.pgBar{align-items:end;gap:10px;flex-wrap:wrap}
+.pgBar label{display:grid;gap:4px;font-weight:700;font-size:.88rem;min-width:0}
+.pgBar select{max-width:100%}
+.pgOutCol{min-width:0}
+.pgScore{display:flex;align-items:baseline;gap:4px;margin:6px 0 10px}
+.pgScore b{font-size:2.4rem;line-height:1}
+.pgScore[data-lvl="hi"] b{color:var(--ok)}
+.pgScore[data-lvl="lo"] b{color:var(--red)}
+.pgCrit{list-style:none;padding:0;margin:0;display:grid;gap:6px}
+.pgCrit li{border:1px solid var(--line);border-radius:10px;padding:6px 10px;background:var(--surface);display:grid;gap:2px}
+.pgCrit li.ok b{color:var(--ok)}
+.pgCrit li.no b{color:var(--red)}
+.pgCrit li span{font-size:.9rem}
+.pgLib{list-style:none;padding:0;margin:6px 0;display:grid;gap:6px}
+.pgLib li{display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap;border:1px solid var(--line);border-radius:10px;padding:6px 10px;background:var(--surface)}
+#pgForm [hidden]{display:none}
 </style>
 </head>
 <body>
@@ -1183,6 +1225,40 @@ git worktree remove ../app-feature-a  # when done</pre></div>
   <div id="prList"></div>
 </section>
 
+<!-- ================= THE COMPLETE GUIDE ================= -->
+<section class="mod" id="appguide" data-level="המדריך המלא" data-title="מרעיון לאפליקציה חיה: המדריך המלא">
+  <div class="eyebrow"></div>
+  <h1>המדריך המלא: מרעיון לאפליקציה חיה עם Claude Code</h1>
+  <p class="lead">16 שלבים, מהתקנה ועד אפליקציה בפרודקשן עם משתמשים, תשלומים, ניטור ותחזוקה אוטומטית. בוחרים סטאק ומקבלים בכל שלב את הפרומפטים המדויקים, הפקודות, הקבצים המוכנים, רשימת בדיקה ומלכודות שכדאי להכיר. ההתקדמות נשמרת ומסתנכרנת בין המכשירים.</p>
+  <div class="grid2 agTop">
+    <div class="form">
+      <label>שם הפרויקט<input type="text" id="agName" class="ltr" value="taskflow"></label>
+      <label>סטאק<select id="agStack"></select></label>
+      <label>מה האפליקציה עושה? (משפט אחד, באנגלית עדיף)<textarea id="agDesc" rows="2" class="ltr">A task manager for small teams: projects, tasks with due dates, comments, email reminders and a paid Pro plan.</textarea></label>
+    </div>
+    <div class="agSum">
+      <div class="agBar" role="progressbar" aria-label="התקדמות במדריך" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="agBarFill"></i></div>
+      <p id="agStat" class="hint" aria-live="polite"></p>
+      <div class="row">
+        <button class="btn pri" type="button" id="agNext">לשלב הבא שלי</button>
+        <button class="btn" type="button" id="agExport">הורדת GUIDE.md מותאם</button>
+        <button class="btn" type="button" id="agOpenAll">פתיחת כל השלבים</button>
+      </div>
+      <p class="hint">טיפ: שמרו את GUIDE.md בשורש הריפו ותגידו ל-Claude ‏<code class="ltr">Follow @GUIDE.md stage by stage. Stop after each stage for my review.</code></p>
+    </div>
+  </div>
+  <div id="agStages" class="agStages"></div>
+  <h2>חמשת חוקי הזהב לאורך כל הדרך</h2>
+  <ol>
+    <li><b>פרוסה אנכית בכל פעם</b>: יכולת אחת מקצה לקצה (מסד נתונים, API, UI ובדיקה), commit, ורק אז הבאה.</li>
+    <li><b>הכול נשמר בקבצים</b>: spec, ארכיטקטורה, החלטות ו-PLAN.md. כך <code>/clear</code> לא מוחק כלום חשוב.</li>
+    <li><b>Claude לא מסיים עם בדיקות אדומות</b>: Stop hook שמריץ את הבדיקות (שלב 10) הופך את זה לחוק.</li>
+    <li><b>אתם מאשרים, Claude מבצע</b>: תוכניות, diffs, אבטחה ופעולות production תמיד עוברים דרככם.</li>
+    <li><b>סשן נקי לכל שלב</b>: <code>/clear</code> ואז "Continue with the next unchecked item in @PLAN.md".</li>
+  </ol>
+  <div class="quiz" data-q="appguide"></div>
+</section>
+
 <!-- ================= SECRETS (advanced lab) ================= -->
 <section class="mod" id="mcpbuild" data-level="סודות מתקדמים" data-title="בונים שרת MCP משלכם">
   <div class="eyebrow"></div>
@@ -2008,6 +2084,60 @@ fly deploy</pre></div></li>
   <div class="quiz" data-q="promptpro"></div>
 </section>
 
+<section class="mod" id="promptgen" data-level="ארגז הכלים של המומחה" data-title="מחולל פרומפטים מקצועי לקלוד">
+  <div class="eyebrow"></div>
+  <h1>מחולל פרומפטים מקצועי ל-Claude</h1>
+  <p class="lead">מחולל שבונה פרומפטים לפי העקרונות של Anthropic, ומתאים את הפלט ליעד: פרומפט למשימה, מפרט לתכנון, Subagent, Skill, פקודת Slash, סקריפט headless עם סכמת JSON, System prompt ל-API או CLAUDE.md. מקבלים קובץ מוכן עם המיקום הנכון, ציון איכות עם תיקונים מדויקים, ספרייה אישית שמסתנכרנת, והורדה של הקובץ.</p>
+  <h2>12 העקרונות שהמחולל מיישם</h2>
+  <div class="tricks" id="pgPrinciples"></div>
+  <h2>המחולל</h2>
+  <div class="row pgBar">
+    <label>יעד<select id="pgTarget"></select></label>
+    <label>להתחיל מתבנית<select id="pgPreset"><option value="">בחרו תבנית…</option></select></label>
+    <button class="btn sm" type="button" id="pgClear">ניקוי</button>
+  </div>
+  <div class="grid2">
+    <div class="form" id="pgForm">
+      <label data-pg="name">שם (באנגלית, kebab-case)<input type="text" id="pgName" class="ltr" placeholder="security-reviewer"></label>
+      <label data-pg="trigger">מתי להפעיל? (Claude מחליט לפי זה)<input type="text" id="pgTrigger" class="ltr" placeholder="after any change to auth, payments or user data"></label>
+      <label data-pg="role">תפקיד ומומחיות<input type="text" id="pgRole" class="ltr" placeholder="a senior backend engineer who specializes in PostgreSQL performance"></label>
+      <label data-pg="task">המשימה (מה בדיוק צריך לקרות)<textarea id="pgTask" rows="3" class="ltr" placeholder="Users get logged out about an hour after signing in. Find the root cause and fix it."></textarea></label>
+      <label data-pg="why">הקשר ולמה זה חשוב<textarea id="pgWhy" rows="2" class="ltr" placeholder="This is our B2B dashboard; customers keep long sessions open during the workday."></textarea></label>
+      <label data-pg="refs">קבצים ומסמכים (מופרדים בפסיק)<input type="text" id="pgRefs" class="ltr" placeholder="src/auth/session.ts, docs/spec.md"></label>
+      <label data-pg="input">קלט / משתנים<input type="text" id="pgInput" class="ltr" placeholder="$ARGUMENTS · {{DOCUMENT}} · the git diff"></label>
+      <label data-pg="rules">כללים ומגבלות (שורה לכל כלל)<textarea id="pgRules" rows="3" class="ltr" placeholder="Don't change the public API&#10;No new dependencies"></textarea></label>
+      <label data-pg="examples">דוגמאות (שורה לכל דוגמה: קלט =&gt; פלט)<textarea id="pgExamples" rows="2" class="ltr" placeholder="&quot;refund my order&quot; =&gt; {&quot;intent&quot;:&quot;refund&quot;}"></textarea></label>
+      <label data-pg="format">פורמט הפלט<select id="pgFormat">
+        <option value="free">חופשי</option><option value="sections">סעיפים עם כותרות</option><option value="json">JSON לפי שדות</option><option value="diff">רק diff וסיכום קצר</option><option value="table">טבלה</option><option value="checklist">צ'קליסט עם חומרה</option><option value="report">דוח: ממצאים, ראיות, המלצה</option>
+      </select></label>
+      <label data-pg="fields">שדות JSON (שם:סוג, מופרדים בפסיק)<input type="text" id="pgFields" class="ltr" placeholder="summary:string, risk:low|medium|high, files:string[]"></label>
+      <label data-pg="success">קריטריוני הצלחה (שורה לכל קריטריון)<textarea id="pgSuccess" rows="2" class="ltr" placeholder="Session survives 8 hours of activity&#10;All auth tests pass"></textarea></label>
+      <label data-pg="verify">פקודת אימות<input type="text" id="pgVerify" class="ltr" placeholder="npm test && npm run lint"></label>
+      <label data-pg="tools">כלים מותרים<input type="text" id="pgTools" class="ltr" placeholder="Read, Grep, Glob, Bash(npm test *)"></label>
+      <label data-pg="model">מודל<select id="pgModel"><option value="">ברירת מחדל</option><option>inherit</option><option>opus</option><option>sonnet</option><option>haiku</option></select></label>
+      <b>טכניקות</b>
+      <div class="chk" id="pgTech"></div>
+    </div>
+    <div class="pgOutCol">
+      <div class="tabs" data-tabs="pg"><button class="on" type="button">הקובץ</button><button type="button">ציון איכות</button><button type="button">איך משתמשים</button></div>
+      <div class="pane on" data-pane="pg"><div class="code" data-lang="markdown" id="pgOut"><pre style="white-space:pre-wrap"></pre></div><div id="pgExtra"></div></div>
+      <div class="pane" data-pane="pg"><div class="pgScore"><b id="pgScoreNum">0</b><span>/100</span></div><ul class="pgCrit" id="pgCrit"></ul></div>
+      <div class="pane" data-pane="pg"><div id="pgUse"></div></div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn pri" type="button" id="pgSave">שמירה לספרייה</button>
+        <button class="btn" type="button" id="pgDl">הורדת הקובץ</button>
+        <button class="btn" type="button" id="pgToLab">למעבדת הפרומפטים</button>
+        <button class="btn" type="button" id="pgAi" hidden>שיפור עם המורה</button>
+      </div>
+      <div id="pgAiOut" class="box tutor-answer" hidden></div>
+      <h3>הספרייה שלי</h3>
+      <p class="hint" id="pgLibEmpty">עוד לא שמרתם פרומפטים. הספרייה מסתנכרנת בין המכשירים.</p>
+      <ul class="pgLib" id="pgLib"></ul>
+    </div>
+  </div>
+  <div class="quiz" data-q="promptgen"></div>
+</section>
+
 <section class="mod" id="gallery" data-level="ארגז הכלים של המומחה" data-title="גלריית התאמה אישית">
   <div class="eyebrow"></div>
   <h1>גלריית התאמה אישית: שורות סטטוס, סגנונות פלט ו-Hooks מיוחדים</h1>
@@ -2330,7 +2460,7 @@ const store = {
   get(k, d){ try{ const v = localStorage.getItem("cca-"+k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
   set(k, v){ try{ localStorage.setItem("cca-"+k, JSON.stringify(v)); }catch(e){} if(typeof onStoreChange === "function") onStoreChange(k); }
 };
-const LEVEL_COLOR = {"פתיחה":"var(--lv5)","מתחילים":"var(--lv1)","בינוני":"var(--lv2)","מתקדמים":"var(--lv3)","מומחים":"var(--lv4)","מאסטר":"var(--lv7)","סודות מתקדמים":"var(--lv9)","אינטגרציות ופרויקטים":"var(--lv10)","ארגז הכלים של המומחה":"var(--lv11)","מצגות":"var(--lv8)","סדנת תרגול":"var(--lv5)","מבחן גמר":"var(--lv6)"};
+const LEVEL_COLOR = {"פתיחה":"var(--lv5)","מתחילים":"var(--lv1)","בינוני":"var(--lv2)","מתקדמים":"var(--lv3)","מומחים":"var(--lv4)","מאסטר":"var(--lv7)","המדריך המלא":"var(--lv1)","סודות מתקדמים":"var(--lv9)","אינטגרציות ופרויקטים":"var(--lv10)","ארגז הכלים של המומחה":"var(--lv11)","מצגות":"var(--lv8)","סדנת תרגול":"var(--lv5)","מבחן גמר":"var(--lv6)"};
 const mods = $$(".mod");
 const ids = mods.map(m => m.id);
 let state = store.get("state", {done:{}, xp:0, awarded:{}, days:[]});
@@ -2407,7 +2537,7 @@ $("#resetBtn").onclick = function(){
 // code blocks: tint + copy
 function tint(text, lang){
   const re = lang === "json" ? /("(?:[^"\\\n]|\\.)*")(\s*:)?/g
-    : /("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|\/\/[^\n]*|(?:^|[ \t])#[^\n]*|^---$)/gm;
+    : /("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|(?:^|[ \t])\/\/[^\n]*|(?:^|[ \t])#[^\n]*|^---$)/gm;
   let out = "", last = 0, m;
   while((m = re.exec(text))){
     out += esc(text.slice(last, m.index));
@@ -2635,6 +2765,18 @@ const Q = {
     ["מה עושה הסקריפט כשקובץ פקודה כבר קיים?", ["דורס אותו","מדלג ומדווח","מוחק את התיקייה","נכשל"], 1, "הוא לא דורס עבודה קיימת שלכם."],
     ["מה ההבדל בין התקנה לפרויקט להתקנה אישית?", ["אין","‏.claude/ משותף לצוות דרך git, ו-~/.claude/ אישי לכל הפרויקטים","אישי מהיר יותר","פרויקט עובד רק ב-CI"], 1, "בוחרים לפי מי צריך את הפקודה."],
     ["למה לסוכן explorer נותנים model: haiku?", ["כדי שיטעה","חיפוש וקריאה הם משימה פשוטה, ו-haiku מהיר וזול","זה חובה","כדי שיכתוב קוד"], 1, "מודל זול למשימות קלות."]
+  ],
+  appguide: [
+    ["מה הסדר הנכון לבניית פיצ'ר?", ["כל ה-backend, ואחר כך ה-UI","פרוסה אנכית: מסד נתונים, API, UI ובדיקה, ורק אז הבאה","UI קודם, בדיקות בסוף","לבנות הכול ולבדוק בפרודקשן"], 1, "פרוסה שעובדת מקצה לקצה מגלה בעיות מוקדם."],
+    ["מי מריץ פקודות production?", ["Claude, כדי לחסוך זמן","אתם, אחרי review, ו-Claude חסום בכלל deny","כל מי שיש לו גישה","אף אחד, הכול אוטומטי בלי בקרה"], 1, "Claude מכין, אתם מאשרים ומריצים."],
+    ["מה קובע שתשלום הצליח?", ["ה-redirect מהדפדפן","webhook שהחתימה שלו אומתה","הודעה מהמשתמש","ערך ב-localStorage"], 1, "רק השרת, דרך webhook מאומת ואידמפוטנטי."],
+    ["למה עושים /clear בין שלבים?", ["כדי למחוק את הקוד","כדי לקבל הקשר נקי; ההחלטות שמורות בקבצים","כדי לחסוך מקום בדיסק","אין סיבה"], 1, "השיחה זמנית, PLAN.md ו-docs/ נשארים."]
+  ],
+  promptgen: [
+    ["איפה שמים מסמך ארוך בפרומפט?", ["בסוף, אחרי השאלה","בראש הפרומפט, והשאלה בסוף","באמצע ההוראות","בקובץ שלא נשלח"], 1, "לפי Anthropic, שאלה בסוף שיפרה איכות בעד 30% בקלט ארוך."],
+    ["מה עושה ‎--json-schema ב-claude -p?", ["מתרגם טקסט ל-JSON","מאמת שהפלט עומד בסכמה ומחזיר אותו בשדה structured_output","יוצר סכמה למסד הנתונים","מכבה את הכלים"], 1, "פלט מאומת, בלי לפרסר טקסט."],
+    ["לפי מה Claude מחליט להפעיל Skill או Subagent?", ["אקראית","לפי ה-description: מה הוא עושה ומתי להשתמש בו","לפי שם הקובץ בלבד","לפי אורך הקובץ"], 1, "תיאור מדויק = הפעלה בזמן הנכון."],
+    ["כמה דוגמאות כדאי לתת בפרומפט?", ["אחת בלבד","3 עד 5 מגוונות, כולל מקרה קצה","אף אחת","כמה שיותר, גם אם הן זהות"], 1, "דוגמה אחת מועתקת עיוורת; כמה מגוונות מלמדות את הדפוס."]
   ],
   promptpro: [
     ["מתי משתמשים בפרה-מורטם?", ["אחרי שהכול נשבר","לפני שינוי גדול, כדי לצפות כשלים מראש","אף פעם","רק בבדיקות"], 1, "מדמיינים כישלון ומונעים אותו מראש."],
@@ -3528,7 +3670,7 @@ function mergeBundles(local, remote){
       const msg = {not_granted:"המורה לא אושר בחלון האישור, ולכן הוא מוסתר בביקור הזה.", sampling_disabled:"המורה לא זמין בחשבון הזה.", rate_limited:"יותר מדי שאלות בזמן קצר, או שהמכסה נגמרה. נסו שוב בעוד כמה דקות.", session_expired:"צריך להתחבר מחדש ל-Claude.", refused:"לא אוכל לענות על זה. נסו לנסח אחרת.", prompt_too_large:"השאלה ארוכה מדי. התחילו שיחה חדשה."}[e && e.code];
       if(e && e.code === "cancelled"){ out.innerHTML = e.text ? md(e.text) + '<div class="hint">נעצר</div>' : '<span class="hint">נעצר</span>'; }
       else { out.innerHTML = (e && e.text ? md(e.text) + "<br>" : "") + '<span class="hint">' + esc(msg || "משהו השתבש. נסו שוב.") + '</span>'; }
-      if(e && ["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed"].includes(e.code)){ sample = null; window.tutorSample = null; setTimeout(() => { const pa = document.getElementById("plAi"); if(pa) pa.hidden = true; $("#tutor").hidden = true; $("#tutorFab").hidden = true; document.body.classList.remove("has-tutor"); $("#chkAi").hidden = true; }, 3500); }
+      if(e && ["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed"].includes(e.code)){ sample = null; window.tutorSample = null; setTimeout(() => { const pa = document.getElementById("plAi"); if(pa) pa.hidden = true; const pga = document.getElementById("pgAi"); if(pga) pga.hidden = true; $("#tutor").hidden = true; $("#tutorFab").hidden = true; document.body.classList.remove("has-tutor"); $("#chkAi").hidden = true; }, 3500); }
     }finally{ $("#tutorSend").disabled = false; $("#tutorStop").hidden = true; }
   }
   window.askTutor = (q) => { if(!sample) return; open(); ask(q); };
@@ -3556,7 +3698,7 @@ function mergeBundles(local, remote){
     try{ sample = await window.claude.use("sample"); }catch(e){ sample = null; }
     if(!sample) return;
     $("#tutorFab").hidden = false; $("#chkAi").hidden = false; document.body.classList.add("has-tutor");
-    window.tutorSample = sample; window.tutorMd = md; const pa = document.getElementById("plAi"); if(pa) pa.hidden = false;
+    window.tutorSample = sample; window.tutorMd = md; const pa = document.getElementById("plAi"); if(pa) pa.hidden = false; const pga = document.getElementById("pgAi"); if(pga) pga.hidden = false;
   })();
 })();
 
@@ -4779,7 +4921,7 @@ checkBadges(true);
 // ================= sync v3: every key, per-key timestamps, resets and deletions sync =================
 // Progress that only grows (XP, badges, flashcard boxes, records) is merged as a union / max.
 // Everything a person edits or can undo (notes, checklists, settings, look) follows the newest write.
-const SYNC_KEYS = ["state","cards","sim","best","badges","daily","srbest","surprises","tricks","proj","ba","notes","track","mistakes","place","look","packSel","theme","lastReal","name","retro","mtime"];
+const SYNC_KEYS = ["state","cards","sim","best","badges","daily","srbest","surprises","tricks","proj","ba","notes","track","mistakes","place","look","packSel","theme","lastReal","name","retro","ag","pglib","pgDraft","mtime"];
 isSyncKey = k => SYNC_KEYS.includes(k) || /^ch\d+$/.test(k);
 const GROW_UNION = ["cards","badges","daily"], GROW_MAX = ["sim","best","srbest","surprises"];
 function readMtime(){ try{ return JSON.parse(localStorage.getItem("cca-mtime") || "{}"); }catch(e){ return {}; } }
@@ -4944,6 +5086,481 @@ $("#themeBtn").addEventListener("click", () => { const L = store.get("look", nul
   RESP["/help"] = 'Commands: <span class="g">' + all.filter(c => c !== "/secret").slice(0, 40).join(" ") + ' …</span>\nShortcuts: <span class="a">@</span> file  <span class="a">!</span> bash  <span class="a">shift+tab</span> modes  <span class="a">esc</span> interrupt  <span class="a">tab</span> complete  <span class="a">↑↓</span> history';
   window.__simCommands = all;
 })();
+
+// ================= the complete guide: idea to live app =================
+const saveFile = (() => {
+  let dl;
+  const ok = ["txt","json","md","csv","html","svg","zip","pdf"];
+  return async (name, text) => {
+    if(dl === undefined){ try{ dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null; }catch(e){ dl = null; } }
+    if(dl){
+      const ext = (name.split(".").pop() || "").toLowerCase();
+      const fname = ok.includes(ext) ? name : name + ".txt";
+      try{ await dl.save({filename: fname.replace(/^.*\//, ""), data: text}); toast("הקובץ נשמר ✓"); }
+      catch(e){ toast(e && e.code === "declined" ? "ההורדה בוטלה" : e && e.code === "rate_limited" ? "רגע, נסו שוב בעוד כמה שניות" : "ההורדה לא זמינה כאן. העתיקו את התוכן"); }
+      return;
+    }
+    try{
+      const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], {type: "text/plain;charset=utf-8"}));
+      a.download = name.replace(/^.*\//, ""); document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000); toast("הקובץ ירד ✓");
+    }catch(e){ toast("ההורדה לא זמינה כאן. העתיקו את התוכן"); }
+  };
+})();
+window.saveFile = saveFile;
+
+const AG_STACKS = {
+  next: {n:"Next.js + PostgreSQL (Prisma)", lang:"ts", scaffold:"npx create-next-app@latest {name} --ts --app --tailwind --eslint", dev:"npm run dev", url:"http://localhost:3000", test:"npm test", e2e:"npx playwright test", lint:"npm run lint", types:"npx tsc --noEmit", audit:"npm audit --omit=dev", migrate:"npx prisma migrate dev --name init", schema:"prisma/schema.prisma", auth:"Auth.js", validate:"zod", unit:"Vitest", fmt:"npx prettier --write", deploy:"Vercel", deployCmd:"vercel deploy --prod", db:"PostgreSQL (Neon או Supabase)", setup:"      - uses: actions/setup-node@v4\n        with: { node-version: 22, cache: npm }\n      - run: npm ci"},
+  fastapi: {n:"FastAPI + React (Vite) + PostgreSQL", lang:"python", scaffold:"mkdir {name} && cd {name} && uv init api && npm create vite@latest web -- --template react-ts", dev:"uv run fastapi dev api/main.py", url:"http://localhost:5173", test:"uv run pytest", e2e:"npx playwright test", lint:"uv run ruff check .", types:"uv run mypy api", audit:"uvx pip-audit", migrate:"uv run alembic revision --autogenerate -m init && uv run alembic upgrade head", schema:"api/models.py", auth:"OAuth2 + JWT (fastapi-users)", validate:"pydantic", unit:"pytest", fmt:"uv run ruff format", deploy:"Docker + Fly.io", deployCmd:"fly deploy", db:"PostgreSQL", setup:"      - uses: astral-sh/setup-uv@v6\n      - run: uv sync"},
+  expo: {n:"מובייל: Expo (React Native) + Supabase", lang:"ts", scaffold:"npx create-expo-app@latest {name}", dev:"npx expo start", url:"http://localhost:8081", test:"npm test", e2e:"maestro test .maestro/", lint:"npx expo lint", types:"npx tsc --noEmit", audit:"npm audit --omit=dev", migrate:"npx supabase migration new init && npx supabase db push", schema:"supabase/migrations/", auth:"Supabase Auth", validate:"zod", unit:"Jest", fmt:"npx prettier --write", deploy:"EAS (App Store ו-Google Play)", deployCmd:"eas build --platform all && eas submit", db:"Supabase (PostgreSQL)", setup:"      - uses: actions/setup-node@v4\n        with: { node-version: 22, cache: npm }\n      - run: npm ci"},
+  node: {n:"Node (Fastify) + SQLite: שירות קטן ומהיר", lang:"ts", scaffold:"mkdir {name} && cd {name} && npm init -y && npm i fastify better-sqlite3 zod && npm i -D vitest typescript tsx", dev:"npx tsx watch src/server.ts", url:"http://localhost:3000", test:"npx vitest run", e2e:"npx vitest run tests/e2e", lint:"npx eslint .", types:"npx tsc --noEmit", audit:"npm audit --omit=dev", migrate:"node scripts/migrate.js", schema:"src/db/schema.sql", auth:"sessions + API keys (@fastify/session)", validate:"zod", unit:"Vitest", fmt:"npx prettier --write", deploy:"Docker + Fly.io", deployCmd:"fly deploy", db:"SQLite (עם Litestream לגיבוי רציף)", setup:"      - uses: actions/setup-node@v4\n        with: { node-version: 22, cache: npm }\n      - run: npm ci"}
+};
+
+const AG = [
+  {t:"הכנת סביבת העבודה", goal:"Claude Code מותקן ומחובר, git ו-GitHub מוכנים, ויש חשבונות לשירותים שהאפליקציה תצטרך.",
+   why:"כל תקלה בסביבה תעלה לכם זמן באמצע הפיתוח. עשר דקות עכשיו חוסכות שעות.",
+   cmds:["curl -fsSL https://claude.ai/install.sh | bash","claude doctor","mkdir {name} && cd {name} && git init","claude","/terminal-setup"],
+   prompts:[], files:[],
+   checks:["claude doctor עובר בלי אזהרות","Shift+Enter יורד שורה בטרמינל (/terminal-setup)","חשבון GitHub וריפו ריק בשם {name}","חשבונות ל-{deploy} ול-{db}","מנהל סיסמאות או vault לסודות, לא קובץ טקסט"],
+   traps:["לעבוד בתיקיית הבית: Claude יראה הכול. תמיד פותחים מתוך תיקיית הפרויקט.","להתקין גרסאות ישנות מ-npm במקביל להתקנה המקורית. בודקים עם claude doctor."]},
+  {t:"מרעיון למפרט: Claude מראיין אתכם", goal:"docs/spec.md עם משתמשים, זרימות, סיפורי משתמש עם קריטריוני קבלה, היקף MVP ומה לא בונים.",
+   why:"רוב הפרויקטים נכשלים כי לא הוגדר מה בונים. ראיון מכריח אתכם להחליט לפני שנכתבת שורת קוד.",
+   prompts:["I want to build {name}: {desc}\n\nInterview me in detail using the AskUserQuestion tool. Ask about users and their goals, the core flows, data we store, edge cases, permissions, integrations, non-goals and tradeoffs. Ask non-obvious questions, one topic at a time.\n\nWhen we're done, write docs/spec.md with: problem, target users, user stories with acceptance criteria (Given/When/Then), MVP scope (max 6 stories), explicitly out of scope, open questions."],
+   cmds:[], files:[],
+   checks:["כל סיפור משתמש כולל קריטריוני קבלה שאפשר לבדוק","MVP של 6 סיפורים לכל היותר","רשימת \"לא בונים עכשיו\" כתובה","קראתם ואישרתם את המפרט, לא רק Claude"],
+   traps:["\"תבנה לי אפליקציה כמו X\" בלי מפרט: תקבלו ניחוש.","להכניס ל-MVP תשלומים, צ'אט ו-AI ביחד. מתחילים מהזרימה שנותנת ערך."]},
+  {t:"ארכיטקטורה ותוכנית עבודה", goal:"docs/architecture.md, החלטות ב-docs/decisions/ ו-PLAN.md מחולק לפרוסות אנכיות.",
+   why:"תוכנית בקובץ היא הזיכרון של הפרויקט. כל סשן חדש מתחיל ממנה במקום מאפס.",
+   prompts:["/plan Read @docs/spec.md. Propose an architecture for {stack}: folder structure, data model, API surface, auth approach ({auth}), third-party services and the 3 biggest risks. Then split the MVP into vertical slices, each shippable end to end with tests.\n\nWrite docs/architecture.md, one short ADR per major decision in docs/decisions/, and PLAN.md as a checklist of slices with acceptance criteria.",
+            "Act as a skeptical staff engineer. Red-team @docs/architecture.md: what breaks at 10x users, what is over-engineered for an MVP, what is missing for security and operations? List concrete changes, then update the docs with the ones I approve."],
+   cmds:[], files:[],
+   checks:["PLAN.md מחולק לפרוסות שכל אחת עובדת מקצה לקצה","כל החלטה גדולה מתועדת ב-ADR קצר","עברתם על ביקורת \"הצוות האדום\" והחלטתם","הסטאק: {stack}"],
+   traps:["להתחיל קודם \"את כל ה-backend\" ורק אחר כך UI. כך מגלים בעיות מאוחר מדי.","מיקרו-שירותים ל-MVP. מונולית מסודר מספיק כמעט תמיד."]},
+  {t:"הקמת הריפו והגדרת Claude Code", goal:"שלד שרץ, בדיקה ראשונה ירוקה, CLAUDE.md מדויק, הרשאות ו-Hook לפורמט.",
+   why:"ההגדרות האלה הן מה שהופך את Claude מעוזר כללי למפתח שמכיר את הפרויקט ופועל לפי הכללים שלכם.",
+   cmds:["{scaffold}","cd {name} && claude","/init"],
+   prompts:["Set up the repo per @docs/architecture.md: lint ({lint}), formatter, typecheck ({types}), {unit} with one passing sample test, .env.example with every variable documented, and .gitignore. Then rewrite CLAUDE.md: exact commands, folder map, coding conventions and a short list of things you must never do. Keep it under 80 lines and verify every command in it actually runs."],
+   files:[[".claude/settings.json","json","settings"]],
+   checks:["כל פקודה ב-CLAUDE.md הורצה ועובדת","‎.claude/settings.json עם allow לבדיקות ו-deny ל-.env","Hook הפורמט רץ אחרי כל עריכה","‎.env.example קיים, ‎.env ב-.gitignore","commit ראשון נדחף ל-GitHub"],
+   traps:["CLAUDE.md של 500 שורות: Claude מתחיל להתעלם. קצר, מדויק ומעודכן.","לאשר הכול ב-bypassPermissions כבר ביום הראשון. מתחילים מ-allow ממוקד."]},
+  {t:"מודל נתונים ומסד נתונים", goal:"סכמה עם אילוצים ואינדקסים, migration ראשון, seed עם נתונים מציאותיים.",
+   why:"שינוי סכמה אחרי שיש משתמשים הוא היקר ביותר. כאן משקיעים מחשבה.",
+   prompts:["Design the database schema in {schema} for the entities in @docs/spec.md. Include foreign keys, unique and check constraints, indexes for the queries the slices in @PLAN.md need, and created_at/updated_at. Show me the schema and explain each index before creating the migration. Then add a seed script with realistic sample data and tests for the constraints."],
+   cmds:["{migrate}"], files:[],
+   checks:["migration רץ על מסד נקי מאפס","seed יוצר נתונים לכל המסכים","אינדקסים לשאילתות העיקריות","פרטי החיבור רק ב-.env","אין ל-Claude גישה למסד של production"],
+   traps:["לתת ל-Claude להריץ migration על production. ב-production אתם מריצים, אחרי review.","לשמור סכומי כסף כ-float. משתמשים ב-integer של אגורות או decimal."]},
+  {t:"Backend ו-API: פרוסה אחר פרוסה", goal:"הפרוסה הראשונה מ-PLAN.md עובדת מקצה לקצה עם בדיקות ירוקות.",
+   why:"TDD עם Claude הוא הדרך הבטוחה ביותר: הבדיקה מגדירה \"נכון\", ו-Claude לא יכול להכריז על הצלחה בלי שהיא עוברת.",
+   prompts:["Implement the first unchecked slice in @PLAN.md end to end. Write failing tests first and run them to confirm they fail. Then implement. Validate every input with {validate}, return one consistent error shape, keep business logic out of route handlers. Run {test} and {types} until both are green, tick the slice in PLAN.md and commit with a descriptive message.",
+            "/clear\nContinue with the next unchecked slice in @PLAN.md. Same rules as before."],
+   cmds:["{test}","{types}"], files:[],
+   checks:["בדיקות נכתבו לפני המימוש ונכשלו קודם","כל קלט עובר ולידציה עם {validate}","מבנה שגיאה אחיד בכל ה-API","PLAN.md מעודכן ו-commit לכל פרוסה"],
+   traps:["לבקש \"תבנה את כל ה-API\". פרוסה אחת בכל פעם, עם /clear ביניהן.","לתת ל-Claude לשנות בדיקות כדי שיעברו. כתבו את זה ב-CLAUDE.md במפורש."]},
+  {t:"משתמשים, התחברות והרשאות", goal:"הרשמה, התחברות, איפוס סיסמה, והוכחה בבדיקות שמשתמש אחד לא רואה נתונים של אחר.",
+   why:"דליפת נתונים בין משתמשים (IDOR) היא החולשה הנפוצה ביותר באפליקציות חדשות. בדיקה אוטומטית סוגרת אותה.",
+   prompts:["Add authentication with {auth}: sign up, sign in, sign out, password reset or magic link, and session handling with secure, httpOnly cookies. Scope every query to the current user or organization. Write tests that prove user A cannot read, update or delete user B's data through any endpoint. Use the library's primitives; don't write your own crypto.",
+            "/security-review"],
+   cmds:[], files:[],
+   checks:["בדיקות IDOR לכל endpoint שמחזיר נתונים","rate limit על התחברות ואיפוס סיסמה","עוגיות Secure ו-HttpOnly","‏/security-review בלי ממצאים פתוחים"],
+   traps:["לבדוק הרשאות רק ב-UI. כל בדיקה צריכה להיות בשרת.","להחזיר הודעות שונות ל\"אין משתמש\" ול\"סיסמה שגויה\". זה חושף אילו משתמשים קיימים."]},
+  {t:"ממשק משתמש מקצועי", goal:"מערכת עיצוב קטנה, מסכים לפרוסות, תמיכה ב-RTL ובמצב כהה, ולולאת צילום מסך.",
+   why:"Claude רואה תמונות. כשהוא מצלם את המסך ומשווה לעיצוב, התוצאה קרובה הרבה יותר למה שרציתם.",
+   prompts:["Build the UI for the finished slices. Start with a small design system: tokens (color, spacing, type scale), Button, Input, Card, Dialog, Toast, and empty, loading and error states. Support Hebrew RTL (dir=\"rtl\", logical CSS properties) and dark mode. Every interactive element must be keyboard accessible with a visible focus ring.",
+            "Start the dev server ({dev}), take a screenshot with `npx playwright screenshot {url} shot.png`, read it, compare with @design/mock.png and fix the differences. Repeat up to 3 times, then show me the final screenshot."],
+   cmds:["{dev}","npx playwright screenshot {url} shot.png"], files:[],
+   checks:["נראה טוב ב-375px וב-1440px","לכל מסך יש מצב טעינה, ריק ושגיאה","ניווט מלא במקלדת","RTL תקין: אייקונים, חצים ושדות"],
+   traps:["להתחיל מעיצוב מלא לפני שהזרימה עובדת. קודם עובד, אחר כך יפה.","margin-left ו-right במקום margin-inline. ב-RTL זה נשבר."]},
+  {t:"תשלומים, מיילים, קבצים ואינטגרציות", goal:"היכולות שהופכות MVP למוצר: תשלומים, מיילים, העלאת קבצים ועבודות רקע.",
+   why:"כאן נמצאים רוב הבאגים היקרים: webhook שרץ פעמיים, מייל שלא נשלח, קובץ שנחשף. כל אחד מהם מקבל בדיקה.",
+   cmds:["claude mcp add --transport http stripe https://mcp.stripe.com","claude mcp add --transport http sentry https://mcp.sentry.dev/mcp"],
+   prompts:["Add Stripe subscriptions in test mode: a checkout session, the customer portal, and a webhook endpoint that verifies the signature and is idempotent (store processed event ids). Gate Pro features on the subscription status in the database, not on the client. Add tests with recorded webhook payloads. Keys come only from .env.",
+            "Add transactional email (welcome, password reset, due-date reminder) behind one sendEmail() interface, with a fake implementation for tests. Add file uploads through presigned URLs with a size and type allowlist; files are private by default.",
+            "Move slow work (emails, reminders, exports) to a background job with retries and a dead-letter log. Add a test that a failing job is retried and then recorded."],
+   files:[], checks:["webhook מאמת חתימה ולא מעבד אירוע פעמיים","הרשאות Pro נבדקות בשרת","מיילים דרך ממשק אחד עם fake לבדיקות","קבצים פרטיים כברירת מחדל, עם הגבלת גודל וסוג","עבודות רקע עם retry"],
+   traps:["לסמוך על redirect של \"תשלום הצליח\" מהדפדפן. רק ה-webhook קובע.","מפתחות live בסביבת פיתוח. רק test mode עד ההשקה."]},
+  {t:"בדיקות מלאות ושער איכות", goal:"בדיקות יחידה, אינטגרציה ו-E2E לזרימות הקריטיות, ו-Hook שלא נותן ל-Claude לסיים עם בדיקות אדומות.",
+   why:"מעכשיו כל שינוי מוגן. Claude יכול לעבוד מהר כי רשת הביטחון תופסת אותו.",
+   prompts:["Write end-to-end tests ({e2e}) for the 3 critical flows: sign up to first core action, upgrade to Pro, and password reset. Use stable selectors (roles and labels), no sleeps. Then find untested branches in the business logic and add unit tests until they're covered.",
+            "Run the full suite 5 times in a row. If any test is flaky, find the real cause (timing, shared state, order) and fix it. Don't add retries."],
+   cmds:["{e2e}"], files:[[".claude/hooks/require-green.sh","bash","stophook"],[".claude/settings.json (Stop hook)","json","stopset"]],
+   checks:["E2E לשלוש הזרימות הקריטיות","אין בדיקות לא יציבות (5 ריצות ירוקות)","Stop hook חוסם סיום עם בדיקות אדומות","הלוגיקה העסקית מכוסה"],
+   traps:["sleep(2000) בבדיקות E2E. מחכים לאלמנט, לא לזמן.","Stop hook בלי בדיקת stop_hook_active: לולאה אינסופית."]},
+  {t:"אבטחה לפני שמישהו אחר מוצא", goal:"סריקת אבטחה מלאה, סודות, תלויות, headers ו-rate limiting.",
+   why:"ביקורת שיטתית עם Subagent ממוקד מוצאת מה שעין עייפה מפספסת. אתם מחליטים מה מתקנים.",
+   prompts:["Use a subagent to audit the codebase against the OWASP Top 10. For each finding give file:line, a realistic attack, severity, and the fix. Also check: security headers (CSP, HSTS, frame-ancestors), rate limits on auth and expensive endpoints, input validation coverage, and that no secret is logged or committed. Don't fix anything yet; give me the report first.",
+            "/security-review"],
+   cmds:["{audit}","npx gitleaks detect --source . -v"], files:[],
+   checks:["אין סודות בהיסטוריית git","{audit} בלי ממצאים קריטיים","headers של CSP ו-HSTS","rate limiting על endpoints רגישים","ממצאי הדוח טופלו או תועדו"],
+   traps:["לתקן בלי לקרוא את הדוח. חלק מהממצאים לא רלוונטיים, ואתם מחליטים.","לשמור טוקנים ב-localStorage. עוגיות httpOnly בטוחות יותר."]},
+  {t:"ביצועים, נגישות ו-SEO", goal:"ציון Lighthouse גבוה, שאילתות בלי N+1 ונגישות לפי WCAG.",
+   why:"Claude קורא את הדוח של Lighthouse ומתקן לפי סדר ההשפעה. אתם רק מודדים לפני ואחרי.",
+   cmds:["npx lighthouse {url} --output=json --output-path=lh.json --chrome-flags=\"--headless\""],
+   prompts:["Read lh.json and fix the top 5 issues by impact on performance and accessibility. Then find N+1 queries and missing indexes: log the queries for the main pages, explain the slow ones, and fix them. Measure before and after and show me a table."],
+   files:[], checks:["Lighthouse: ביצועים ונגישות 90 ומעלה","אין שאילתות N+1 בעמודים העיקריים","תמונות בגודל נכון ו-lazy","meta, Open Graph ו-sitemap"],
+   traps:["לבצע אופטימיזציה בלי מדידה. קודם מספרים, אחר כך שינוי."]},
+  {t:"CI/CD ו-Claude ב-GitHub", goal:"כל PR עובר lint, טיפוסים, בדיקות ו-build, ו-Claude עונה ל-@claude ועושה ריוויו.",
+   why:"CI ירוק הוא התנאי ל-merge. Claude ב-GitHub הופך כל Issue למשימה שאפשר להעביר אליו.",
+   cmds:["/install-github-app"],
+   prompts:["Create .github/workflows/ci.yml that runs lint, typecheck, tests and build on every pull request and on main, with dependency caching. Then add branch protection instructions to docs/contributing.md: CI must pass and one review is required."],
+   files:[[".github/workflows/ci.yml","yaml","ci"]],
+   checks:["CI רץ על כל PR","branch protection: אי אפשר merge עם CI אדום","‏@claude עונה ב-Issues וב-PRs","preview deploy לכל PR"],
+   traps:["סודות production ב-CI של PRs מ-forks. סודות רק בסביבות מוגנות."]},
+  {t:"פריסה לפרודקשן", goal:"האפליקציה באוויר עם דומיין, HTTPS, migrations בפריסה, גיבויים ו-runbook.",
+   why:"פריסה היא הרגע הכי מסוכן. Claude מכין הכול, ואתם לוחצים על הכפתור.",
+   prompts:["Prepare production deployment to {deploy}. Write docs/deploy.md with: the production env var list (names only, no values), how migrations run on deploy, a /healthz endpoint, graceful shutdown, structured JSON logs, and a runbook for deploy, rollback and restoring the database from backup. Do not run any production command yourself; print the commands for me."],
+   cmds:["{deployCmd}"], files:[[".claude/settings.json (deny)","json","deny"]],
+   checks:["דומיין ו-HTTPS","גיבוי אוטומטי ושחזור שנבדק בפועל","rollback מתועד ונבדק","‏Claude חסום מפקודות הפריסה (deny)","‏/healthz מחזיר 200"],
+   traps:["גיבוי שמעולם לא שוחזר הוא לא גיבוי.","לתת ל-Claude מפתחות production \"רק לרגע\"."]},
+  {t:"ניטור, תקלות ותפעול", goal:"שגיאות ב-Sentry, uptime, אנליטיקה, ו-Claude שמתקן באגים ישירות מהדיווח.",
+   why:"עם MCP ל-Sentry, Claude קורא את השגיאה האמיתית, מוצא את הסיבה בקוד וכותב בדיקה שמשחזרת אותה.",
+   cmds:["claude mcp add --transport http sentry https://mcp.sentry.dev/mcp","tail -n 500 app.log | claude -p \"group these errors by root cause and propose fixes\""],
+   prompts:["Look at the top unresolved Sentry issue for {name}. Find the root cause in the code, write a failing test that reproduces it, fix it, and draft a short incident note: impact, cause, fix, and how we prevent it."],
+   files:[], checks:["Sentry מחובר עם source maps","התראת uptime לטלפון","אנליטיקה לזרימות העיקריות","תהליך קבוע: דיווח, בדיקה משחזרת, תיקון"],
+   traps:["להעביר ל-Claude לוגים עם מידע אישי של משתמשים. מסננים קודם."]},
+  {t:"השקה, תיעוד ותחזוקה אוטומטית", goal:"רשימת השקה, README ותיעוד, וסוכנים שמעדכנים תלויות ומטפלים ב-Issues לבד.",
+   why:"אחרי ההשקה מתחילה העבודה האמיתית. סוכנים מתוזמנים שומרים על הפרויקט בריא בלי שתזכרו.",
+   cmds:["/schedule","claude -p \"triage new GitHub issues: label, find duplicates, and suggest an owner\" --allowedTools \"Read,Grep,Bash(gh issue *)\" --max-turns 15"],
+   prompts:["Write a launch checklist for {name} covering legal pages (privacy, terms), backups, monitoring, support email, analytics, rate limits and a rollback plan. Mark each item done or missing by checking the code and docs.",
+            "Update README.md for a new developer: what the app does, setup in 5 commands, architecture in one diagram, how to run tests, how to deploy. Then audit CLAUDE.md against the code and remove anything stale.",
+            "/schedule every Monday at 9:00: update dependencies, run the full test suite, and open a PR with a summary of what changed. If tests fail, open an issue instead."],
+   files:[], checks:["דפי פרטיות ותנאי שימוש","README שמאפשר להתחיל בחמש פקודות","סוכן שבועי לעדכון תלויות","CLAUDE.md נבדק מול הקוד","האפליקציה באוויר 🎉"],
+   traps:["להוסיף פיצ'רים לפני שמקשיבים למשתמשים הראשונים."]}
+];
+
+function agFile(kind, s){
+  const t = s.test;
+  if(kind === "settings") return JSON.stringify({permissions:{allow:["Bash(" + t + ")","Bash(" + t + " *)","Bash(" + s.lint + ")","Bash(" + s.types + ")","Bash(git status)","Bash(git diff *)","Bash(git add *)","Bash(git commit *)"], deny:["Read(./.env)","Read(./.env.*)","Bash(git push --force *)"]},
+    hooks:{PostToolUse:[{matcher:"Edit|Write", hooks:[{type:"command", command:"jq -r '.tool_input.file_path' | xargs " + s.fmt}]}]}}, null, 2);
+  if(kind === "stophook") return "#!/usr/bin/env bash\n# Stop hook: Claude can't finish while the tests are red\ninput=$(cat)\n[ \"$(echo \"$input\" | jq -r '.stop_hook_active')\" = \"true\" ] && exit 0\nif ! out=$(" + t + " 2>&1); then\n  echo \"Tests are failing. Fix them before you finish:\" >&2\n  echo \"$out\" | tail -n 30 >&2\n  exit 2\nfi\nexit 0";
+  if(kind === "stopset") return JSON.stringify({hooks:{Stop:[{hooks:[{type:"command", command:"\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/require-green.sh"}]}]}}, null, 2);
+  if(kind === "deny") return JSON.stringify({permissions:{deny:["Bash(" + s.deployCmd.split(" ")[0] + " *)","Bash(*--prod*)","Read(./.env.production)"]}}, null, 2);
+  if(kind === "ci") return "name: CI\non:\n  pull_request:\n  push:\n    branches: [main]\njobs:\n  check:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n" + s.setup + "\n      - run: " + s.lint + "\n      - run: " + s.types + "\n      - run: " + s.test;
+  return "";
+}
+
+(function(){
+  const st = () => store.get("ag", {stack:"next", name:"taskflow", desc:"", checks:{}});
+  const put = v => store.set("ag", v);
+  const sel = $("#agStack");
+  sel.innerHTML = Object.entries(AG_STACKS).map(([k, v]) => '<option value="' + k + '">' + esc(v.n) + '</option>').join("");
+  const fill = (txt, s, a) => txt.replace(/\{(\w+)\}/g, (m, k) => k === "name" ? (a.name || "my-app") : k === "desc" ? (a.desc || "[describe the app]") : k === "stack" ? s.n : s[k] != null ? s[k].replace(/\{name\}/g, a.name || "my-app") : m);
+  const codeBox = (lang, file, txt) => '<div class="code" data-lang="' + lang + '"' + (file ? ' data-file="' + esc(file) + '"' : '') + '><pre>' + esc(txt) + '</pre></div>';
+  const stageDone = (a, i) => AG[i].checks.every((c, j) => a.checks[i + "-" + j]);
+  function stats(){
+    const a = st(); let total = 0, got = 0, stages = 0;
+    AG.forEach((g, i) => { g.checks.forEach((c, j) => { total++; if(a.checks[i + "-" + j]) got++; }); if(stageDone(a, i)) stages++; });
+    const pct = Math.round(100 * got / total);
+    $("#agBarFill").style.width = pct + "%"; $(".agBar").setAttribute("aria-valuenow", pct);
+    $("#agStat").textContent = stages + "/" + AG.length + " שלבים הושלמו · " + got + "/" + total + " בדיקות · " + pct + "%";
+    $$("#agStages details").forEach((d, i) => d.classList.toggle("done", stageDone(a, i)));
+    return {stages, pct};
+  }
+  function render(){
+    const a = st(), s = AG_STACKS[a.stack] || AG_STACKS.next;
+    const open = $$("#agStages details").map(d => d.open);
+    $("#agStages").innerHTML = AG.map((g, i) => '<details class="agStage" data-i="' + i + '"' + (open[i] ? " open" : "") + '><summary><span class="agN">' + (i + 1) + '</span><b>' + esc(g.t) + '</b><span class="agMini" data-mini="' + i + '"></span></summary><div class="agBody">' +
+      '<p><b>המטרה:</b> ' + esc(fill(g.goal, s, a)) + '</p><p class="hint">' + esc(fill(g.why, s, a)) + '</p>' +
+      (g.cmds.length ? '<h4>פקודות</h4>' + codeBox("bash", "", g.cmds.map(c => fill(c, s, a)).join("\n")) : "") +
+      (g.prompts.length ? '<h4>פרומפטים להדבקה ב-Claude Code</h4>' + g.prompts.map(p => codeBox("text", "prompt", fill(p, s, a))).join("") : "") +
+      (g.files.length ? '<h4>קבצים מוכנים</h4>' + g.files.map(f => codeBox(f[1], f[0], agFile(f[2], s))).join("") : "") +
+      '<h4>בדיקה לפני שממשיכים</h4><ul class="agChecks">' + g.checks.map((c, j) => '<li><label class="tick"><input type="checkbox" data-agc="' + i + '-' + j + '"' + (a.checks[i + "-" + j] ? " checked" : "") + '> ' + esc(fill(c, s, a)) + '</label></li>').join("") + '</ul>' +
+      (g.traps.length ? '<h4>מלכודות</h4><ul class="agTraps">' + g.traps.map(t => '<li>' + esc(fill(t, s, a)) + '</li>').join("") + '</ul>' : "") +
+      '</div></details>').join("");
+    $$("#agStages .code").forEach(decorate);
+    AG.forEach((g, i) => { const n = g.checks.filter((c, j) => a.checks[i + "-" + j]).length; const el = $('[data-mini="' + i + '"]'); if(el) el.textContent = n + "/" + g.checks.length; });
+    stats();
+  }
+  function syncForm(){ const a = st(); sel.value = AG_STACKS[a.stack] ? a.stack : "next"; $("#agName").value = a.name || ""; if(a.desc) $("#agDesc").value = a.desc; }
+  syncForm(); render();
+  const field = (id, key) => $(id).addEventListener("input", () => { const a = st(); a[key] = $(id).value.trim(); put(a); clearTimeout(field.t); field.t = setTimeout(render, 250); });
+  field("#agName", "name"); field("#agDesc", "desc");
+  sel.addEventListener("change", () => { const a = st(); a.stack = sel.value; put(a); render(); });
+  $("#agStages").addEventListener("change", e => {
+    const k = e.target.dataset.agc; if(!k) return;
+    const a = st(); if(e.target.checked) a.checks[k] = 1; else delete a.checks[k]; put(a);
+    const i = +k.split("-")[0], g = AG[i];
+    $('[data-mini="' + i + '"]').textContent = g.checks.filter((c, j) => a.checks[i + "-" + j]).length + "/" + g.checks.length;
+    const r = stats();
+    if(stageDone(a, i)){ award("ag-" + i, 15, "שלב " + (i + 1) + " הושלם"); const nx = $$("#agStages details")[i + 1]; if(nx && !stageDone(a, i + 1)){ e.target.closest("details").open = false; nx.open = true; } }
+    if(r.stages === AG.length){ award("ag-all", 100, "סיימתם את המדריך המלא 🚀"); if(typeof checkBadges === "function") checkBadges(); }
+  });
+  $("#agNext").onclick = () => {
+    const a = st(); const i = AG.findIndex((g, n) => !stageDone(a, n)); const ds = $$("#agStages details");
+    if(i < 0){ toast("כל השלבים הושלמו 🎉"); return; }
+    ds.forEach((d, n) => d.open = n === i); ds[i].scrollIntoView({behavior:"smooth", block:"start"});
+  };
+  $("#agOpenAll").onclick = () => { const ds = $$("#agStages details"); const all = ds.every(d => d.open); ds.forEach(d => d.open = !all); $("#agOpenAll").textContent = all ? "פתיחת כל השלבים" : "סגירת כל השלבים"; };
+  $("#agExport").onclick = () => {
+    const a = st(), s = AG_STACKS[a.stack] || AG_STACKS.next;
+    const md = "# GUIDE.md: building " + (a.name || "my-app") + " with Claude Code\n\n" + (a.desc ? "> " + a.desc + "\n\n" : "") + "Stack: " + s.n + "\n\nHow to use: tell Claude `Follow @GUIDE.md stage by stage. Stop after each stage for my review.`\n\n" +
+      AG.map((g, i) => "## Stage " + (i + 1) + ": " + g.t + "\n\n**Goal:** " + fill(g.goal, s, a) + "\n\n" +
+        (g.cmds.length ? "### Commands\n```bash\n" + g.cmds.map(c => fill(c, s, a)).join("\n") + "\n```\n\n" : "") +
+        (g.prompts.length ? "### Prompts\n" + g.prompts.map(p => "```text\n" + fill(p, s, a) + "\n```").join("\n") + "\n\n" : "") +
+        g.files.map(f => "### " + f[0] + "\n```" + f[1] + "\n" + agFile(f[2], s) + "\n```\n\n").join("") +
+        "### Done when\n" + g.checks.map((c, j) => "- [" + (a.checks[i + "-" + j] ? "x" : " ") + "] " + fill(c, s, a)).join("\n") + "\n\n" +
+        (g.traps.length ? "### Traps\n" + g.traps.map(t => "- " + fill(t, s, a)).join("\n") + "\n\n" : "")).join("");
+    saveFile("GUIDE.md", md); award("ag-export", 10, "GUIDE.md מוכן");
+  };
+  REFRESH.push(() => { syncForm(); render(); });
+  window.__AG = AG;
+})();
+
+// ================= professional prompt generator for Claude =================
+const PG_PRINCIPLES = [
+  ["ברור וישיר","כתבו כמו לעמית מבריק שלא מכיר את הפרויקט: מה בדיוק צריך, למי ובאיזה מצב זה נגמר. \"תשפר\" זה לא משימה."],
+  ["תנו את ה\"למה\"","Claude מכליל מהסיבה. \"בלי אליפסות, כי זה מוקרא בקול\" עובד טוב יותר מ\"אף פעם לא אליפסות\"."],
+  ["מבנה בתגיות XML","‏<context>, <task>, <rules> מפרידים בין חלקים כך ש-Claude לא מתבלבל בין הוראות לנתונים."],
+  ["תפקיד מדויק","\"מהנדס backend בכיר שמתמחה ב-PostgreSQL\" ממקד את הידע ואת הטון. תפקיד כללי לא מוסיף כלום."],
+  ["דוגמאות מגוונות","3 עד 5 דוגמאות בתגיות <example> שמכסות מקרי קצה. דוגמה אחת בלבד גורמת להעתקה עיוורת."],
+  ["מסמכים ארוכים למעלה","בקלט ארוך: המסמכים בראש הפרומפט והשאלה בסוף. במבחנים של Anthropic זה שיפר איכות בעד 30%."],
+  ["ציטוטים לפני תשובה","במסמכים ארוכים מבקשים קודם לחלץ את הציטוטים הרלוונטיים, ורק אחר כך לענות. פחות המצאות."],
+  ["אמרו מה כן, לא מה לא","\"כתוב בפסקאות רציפות\" עובד טוב יותר מ\"אל תשתמש ברשימות\"."],
+  ["חקירה לפני קוד","\"קרא את הקבצים והסבר איך זה עובד לפני שאתה משנה\" מונע ניחושים על קוד שלא נפתח."],
+  ["הגדרת הצלחה שאפשר לבדוק","פקודה שחייבת לעבור או קריטריון מדיד. כך Claude יודע מתי לעצור ולא מכריז על הצלחה מוקדם מדי."],
+  ["היקף מוגדר","\"השינוי הקטן ביותר שפותר\" ו\"לא לגעת בקוד לא קשור\" מונעים הנדסת-יתר ושינויים מיותרים."],
+  ["פורמט פלט מפורש","JSON עם שדות, diff בלבד או טבלה. ב-headless משתמשים ב---json-schema ומקבלים פלט שמאומת מול הסכמה."]
+];
+
+const PG_TARGETS = {
+  session:{n:"פרומפט למשימה ב-Claude Code", file:"prompt.md", lang:"markdown", show:["role","task","why","refs","rules","examples","format","fields","success","verify"]},
+  plan:{n:"מפרט למצב תכנון (/plan)", file:"plan-prompt.md", lang:"markdown", show:["task","why","refs","rules","success","verify"]},
+  agent:{n:"Subagent", file:".claude/agents/{slug}.md", lang:"markdown", show:["name","trigger","role","task","rules","examples","format","fields","verify","tools","model"]},
+  skill:{n:"Skill (SKILL.md)", file:".claude/skills/{slug}/SKILL.md", lang:"markdown", show:["name","trigger","task","why","input","rules","examples","format","fields","success","verify","tools","model"]},
+  command:{n:"פקודת Slash", file:".claude/commands/{slug}.md", lang:"markdown", show:["name","trigger","task","input","refs","rules","format","fields","success","verify","tools","model"]},
+  headless:{n:"Headless: claude -p עם סכמת JSON", file:"run-{slug}.sh", lang:"bash", show:["name","role","task","why","refs","input","rules","format","fields","success","tools","model"]},
+  system:{n:"System prompt ל-API ול-Agent SDK", file:"system-prompt.md", lang:"markdown", show:["role","task","why","input","rules","examples","format","fields","success"]},
+  memory:{n:"CLAUDE.md לפרויקט", file:"CLAUDE.md", lang:"markdown", show:["name","why","refs","rules","verify"]}
+};
+
+const PG_TECH = [
+  ["interview","שאלות הבהרה קודם","Before starting, ask me up to 5 clarifying questions about anything ambiguous (use the AskUserQuestion tool). Don't guess requirements.",["session","plan","skill","command"]],
+  ["explore","חקירה לפני שינוי","Before changing anything, read the relevant files and explain how the current code works. Never speculate about code you haven't opened.",["session","plan","agent","skill","command","headless","memory"]],
+  ["plan","תוכנית ואישור","Propose a short plan (files to change, steps, risks) and wait for my approval before editing.",["session","command","skill"]],
+  ["think","חשיבה מעמיקה","Think carefully before acting. Consider at least two approaches and choose the simplest one that meets the success criteria.",["session","plan","agent","skill","command","headless","system"]],
+  ["tdd","בדיקה קודם (TDD)","Write a failing test that captures the requirement first and run it to confirm it fails. Then implement until it passes. Never edit the tests to make them pass.",["session","agent","skill","command","memory"]],
+  ["minimal","שינוי מינימלי","Make the smallest change that solves the problem. Don't refactor unrelated code, add features, or create abstractions nobody asked for.",["session","agent","skill","command","headless","memory"]],
+  ["verify","אימות לפני סיום","Before you say you're done, run the verification command and show the result. If it fails, fix and re-run.",["session","agent","skill","command","headless","memory"]],
+  ["persist","לא לעצור באמצע","Keep going until every success criterion is met. Don't stop at a partial solution or ask permission for routine steps.",["session","skill","command","headless"]],
+  ["subagents","Subagents במקביל","Use subagents to investigate independent questions in parallel, and keep the main context for decisions.",["session","plan","skill","command"]],
+  ["parallel","קריאות כלים במקביל","When steps are independent, make the tool calls in parallel (for example, read several files at once).",["session","agent","skill","headless","system"]],
+  ["cite","ציון path:line","Cite file paths with line numbers (path:line) for every claim about the code.",["session","plan","agent","skill","command","headless"]],
+  ["quotes","ציטוטים לפני תשובה","First extract the quotes relevant to the task into <quotes> tags. Then answer using only those quotes, and say so if they don't contain the answer.",["system","headless","agent"]],
+  ["honest","\"לא יודע\" מותר","If information is missing or you're unsure, say so explicitly instead of guessing.",["session","plan","agent","skill","command","headless","system","memory"]],
+  ["summary","סיכום בסוף","End with a short summary: what changed, why, and what I should check manually.",["session","skill","command"]],
+  ["hebrew","תשובה בעברית","Write explanations in Hebrew. Keep code, identifiers, file names and commands in English.",["session","plan","agent","skill","command","headless","system","memory"]],
+  ["xml","מבנה XML","",["session","plan","system","headless","agent","skill","command"]]
+];
+const PG_DEFAULT_TECH = ["explore","think","minimal","verify","honest","xml"];
+
+const PG_PRESETS = [
+  {n:"תיקון באג עם שחזור", target:"session", f:{task:"Users get logged out about an hour after signing in. Find the root cause and fix it.", why:"This is our B2B dashboard; customers keep sessions open all day and lose unsaved work.", refs:"src/auth/session.ts, src/middleware/refresh.ts", rules:"Don't change the public API\nNo new dependencies", success:"A test reproduces the bug and now passes\nSession survives 8 hours of activity", verify:"npm test && npm run lint", format:"sections"}, tech:["explore","tdd","minimal","verify","cite","honest","summary","xml"]},
+  {n:"פיצ'ר חדש מקצה לקצה", target:"session", f:{task:"Add CSV export to the reports page: the user picks a date range and downloads all rows.", why:"Finance exports data weekly and currently copies it by hand.", refs:"src/pages/reports.tsx, src/api/reports.ts", rules:"Stream rows; don't load everything into memory\nRespect the current user's permissions", success:"Export of 100k rows works\nE2E test covers the flow", verify:"npm test && npx playwright test", format:"sections"}, tech:["interview","explore","plan","tdd","verify","honest","summary","xml"]},
+  {n:"refactor בטוח", target:"plan", f:{task:"Split src/services/billing.ts (1,400 lines) into cohesive modules without changing behavior.", why:"Every billing change takes days because nobody understands the file.", refs:"src/services/billing.ts, tests/billing", rules:"Behavior must not change\nNo public API changes", success:"All existing tests pass unchanged\nNo file over 300 lines", verify:"npm test"}, tech:["explore","think","subagents","cite","honest","xml"]},
+  {n:"Subagent: סוקר אבטחה", target:"agent", f:{name:"security-reviewer", trigger:"after any change to auth, payments, file uploads or user data", role:"a senior application security engineer", task:"Review the current diff for vulnerabilities: injection, broken access control (IDOR), secrets, unsafe deserialization, SSRF, XSS and missing rate limits.", rules:"Report only real, exploitable issues\nNever modify files", examples:"SQL built by string concatenation in src/db/users.ts => critical · src/db/users.ts:42 · injection via ?sort= · use a parameterized query\nreq.headers written to the log => medium · src/log.ts:12 · leaks auth tokens · log an allowlist of headers", format:"checklist", tools:"Read, Grep, Glob, Bash(git diff *)", model:"opus"}, tech:["explore","cite","honest","think"]},
+  {n:"Subagent: חוקר קוד זול ומהיר", target:"agent", f:{name:"code-scout", trigger:"when you need to find where something is implemented before changing it", role:"a fast codebase navigator", task:"Find every file and function involved in the requested behavior and return a map with one line per location.", rules:"Read-only\nNo opinions, only locations and facts", examples:"where are emails sent? => | src/mail/send.ts:14 | sendEmail() | all transactional mail |\nwho can delete a project? => | src/api/projects.ts:88 | DELETE /projects/:id | owner only, checked in requireOwner() |", format:"table", tools:"Read, Grep, Glob", model:"haiku"}, tech:["explore","cite","parallel","honest"]},
+  {n:"Skill: כתיבת בדיקות", target:"skill", f:{name:"write-tests", trigger:"when the user asks for tests or when new logic has no tests", task:"Write focused tests for the target code that cover the happy path, edge cases and failure modes, following the project's existing test style.", why:"Tests are our safety net; they must catch real regressions, not mirror the implementation.", input:"$ARGUMENTS (a file, function or behavior)", rules:"Match the existing framework and file layout\nNo snapshot tests for logic", success:"New tests fail if the logic is broken (try one mutation)", verify:"npm test", format:"sections", tools:"Read, Grep, Glob, Edit, Write, Bash(npm test *)"}, tech:["explore","verify","minimal","honest","summary"]},
+  {n:"Skill: מסמך API מהקוד", target:"skill", f:{name:"api-docs", trigger:"when the user asks to document endpoints or after API changes", task:"Generate or update docs/api.md from the route definitions: method, path, auth, request schema, response schema, errors and one curl example per endpoint.", why:"The mobile team and partners integrate from these docs; an outdated doc means broken integrations.", success:"Every route in the code appears in docs/api.md\nNo documented route is missing from the code", input:"$ARGUMENTS (optional: a route prefix)", rules:"Docs come only from the code, never from memory", format:"sections", tools:"Read, Grep, Glob, Edit, Write"}, tech:["explore","cite","honest"]},
+  {n:"פקודה: הערות גרסה", target:"command", f:{name:"release-notes", trigger:"before tagging a release", task:"Write release notes for the changes since the last git tag, grouped into Features, Fixes and Breaking changes, written for end users.", refs:"CHANGELOG.md", success:"Every user-facing PR since the last tag is listed once\nBreaking changes include a migration step", input:"$ARGUMENTS (optional: the version number)", rules:"Skip internal refactors and chores\nLink each item to its PR number", format:"sections", tools:"Read, Bash(git log *), Bash(git tag *), Bash(git describe *)"}, tech:["explore","honest","summary"]},
+  {n:"Headless: מיון PR ב-CI", target:"headless", f:{name:"pr-triage", role:"a pragmatic tech lead who has seen many production incidents", task:"Review the diff of this pull request and classify its risk.", why:"This runs on every PR in CI. Reviewers use the risk level to decide who must review before merge.", refs:"CLAUDE.md, docs/architecture.md", success:"risk is high for any change to auth, payments or migrations", input:"the output of git diff origin/main...HEAD", rules:"Be specific; cite files\nIf the diff is trivial, say so", format:"json", fields:"summary:string, risk:low|medium|high, risky_files:string[], needs_human_review:boolean", tools:"Read, Grep, Glob, Bash(git diff *)", model:"sonnet"}, tech:["explore","cite","honest","xml"]},
+  {n:"System prompt: בוט תמיכה", target:"system", f:{role:"the support assistant for Acme's invoicing app", task:"Answer customer questions using only the help-center articles provided, and hand off to a human when needed.", why:"Customers are small-business owners, often stressed about payments. Wrong answers cost money and trust.", input:"{{ARTICLES}} and {{QUESTION}}", rules:"Never invent features, prices or policies\nIf the articles don't cover it, offer a human handoff\nNever ask for full card numbers or passwords", examples:"\"how do I refund?\" => short steps from the refund article + link\n\"can you change my bank account?\" => explain it requires verification and offer a human", format:"free", success:"Every answer is grounded in a quoted article"}, tech:["quotes","honest","xml","think"]},
+  {n:"System prompt: חילוץ נתונים ל-JSON", target:"system", f:{role:"a precise data extraction engine", task:"Extract invoice fields from the document text.", input:"{{DOCUMENT}}", rules:"Use null for missing fields; never guess\nDates in ISO 8601\nAmounts as numbers in the document's currency", why:"Extracted fields go straight into our accounting system. A wrong amount is far worse than a missing one.", success:"Output matches the schema\nEvery non-null value appears in the document", examples:"\"Total due: $1,240.00 by March 3, 2026\" => {\"total\":1240,\"currency\":\"USD\",\"due_date\":\"2026-03-03\"}\n\"Invoice INV-88 from Globex, no due date\" => {\"vendor\":\"Globex\",\"invoice_number\":\"INV-88\",\"due_date\":null}", format:"json", fields:"vendor:string, invoice_number:string, total:number, currency:string, due_date:string"}, tech:["honest","xml"]},
+  {n:"CLAUDE.md לפרויקט חדש", target:"memory", f:{name:"taskflow", why:"Task manager for small teams. Next.js app router, PostgreSQL via Prisma, Vitest and Playwright.", refs:"docs/spec.md, docs/architecture.md, PLAN.md", rules:"Server components by default; client components only for interactivity\nAll DB access through src/server/db\nMoney is stored as integer cents\nNever edit migrations that were already merged", verify:"npm run lint && npx tsc --noEmit && npm test"}, tech:["explore","tdd","minimal","verify","honest"]}
+];
+
+function pgSlug(s){ return (s || "").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "my-prompt"; }
+function pgSchema(fields){
+  const props = {}, req = [];
+  (fields || "").split(",").map(x => x.trim()).filter(Boolean).forEach(x => {
+    let [k, t] = x.split(":").map(y => (y || "").trim()); if(!k) return; t = t || "string"; req.push(k);
+    if(t.endsWith("[]")) props[k] = {type:"array", items:{type: t.slice(0, -2) || "string"}};
+    else if(t.includes("|")) props[k] = {type:"string", enum: t.split("|").map(y => y.trim())};
+    else props[k] = {type: ["string","number","integer","boolean","object","array"].includes(t) ? t : "string"};
+  });
+  return req.length ? {type:"object", properties:props, required:req, additionalProperties:false} : null;
+}
+const PG_FMT = {
+  free:"",
+  sections:"Structure the answer with short headings: Findings, Changes, Verification, Next steps.",
+  json:"Return only valid JSON that matches the schema below. No prose before or after it.",
+  diff:"Show only the diff and a summary of at most 3 lines. No full-file listings.",
+  table:"Return a Markdown table with one row per item.",
+  checklist:"Return a checklist sorted by severity (critical, high, medium, low). Each item: severity, file:line, problem, fix.",
+  report:"Return a report: Findings (each with evidence), Root cause, Recommendation, Risks."
+};
+
+function pgBuild(t, f, tech){
+  const T = PG_TARGETS[t], on = k => tech.includes(k), x = on("xml");
+  const lines = s => (s || "").split("\n").map(y => y.trim()).filter(Boolean);
+  const refs = (f.refs || "").split(",").map(y => y.trim()).filter(Boolean);
+  const techLines = PG_TECH.filter(p => p[0] !== "xml" && on(p[0]) && p[3].includes(t)).map(p => p[2].replace("the verification command", f.verify ? "`" + f.verify + "`" : "the tests"));
+  const schema = f.format === "json" ? pgSchema(f.fields) : null;
+  const fmt = (PG_FMT[f.format] || "") + (schema && t !== "headless" ? "\n" + JSON.stringify(schema, null, 2) : "");
+  const exs = lines(f.examples).map(e => { const [i, o] = e.split("=>").map(y => (y || "").trim()); return {i, o}; }).filter(e => e.i);
+  const sec = (tag, title, body) => !body ? "" : x ? "<" + tag + ">\n" + body + "\n</" + tag + ">\n\n" : "## " + title + "\n" + body + "\n\n";
+  const bl = arr => arr.map(y => "- " + y).join("\n");
+  const exBlock = exs.length ? (x ? exs.map(e => "<example>\n<input>" + e.i + "</input>\n<output>" + (e.o || "") + "</output>\n</example>").join("\n") : exs.map(e => "- Input: " + e.i + "\n  Output: " + (e.o || "")).join("\n")) : "";
+  const slug = pgSlug(f.name || (t === "memory" ? "project" : ""));
+  const core = () =>
+    (f.role ? (x ? "<role>\nYou are " + f.role + ".\n</role>\n\n" : "You are " + f.role + ".\n\n") : "") +
+    sec("context", "Context", [f.why, refs.length ? "Relevant files: " + refs.map(r => "@" + r).join(" ") : ""].filter(Boolean).join("\n")) +
+    sec("input", "Input", f.input) +
+    sec("task", "Task", f.task) +
+    sec("rules", "Rules", bl(lines(f.rules))) +
+    sec("examples", "Examples", exBlock) +
+    sec("approach", "How to work", bl(techLines)) +
+    sec("output_format", "Output format", fmt) +
+    sec("success_criteria", "Done when", bl(lines(f.success).concat(f.verify && t !== "headless" ? ["`" + f.verify + "` passes"] : [])));
+  let out = "", extra = "";
+  if(t === "session") out = core().trim();
+  else if(t === "plan") out = ("/plan " + (f.task || "[the task]") + "\n\n" + core().replace(sec("task", "Task", f.task), "") + sec("deliverable", "Deliverable", "Don't write code yet. Produce a plan with: files to change and why, ordered steps, risks and how to mitigate them, and the test plan. Then wait for my approval.")).trim();
+  else if(t === "agent"){
+    out = "---\nname: " + slug + "\ndescription: " + (f.task ? f.task.split(/[.:]/)[0] : "[what it does]") + ". Use proactively " + (f.trigger || "[when]") + ".\n" + (f.tools ? "tools: " + f.tools + "\n" : "") + (f.model ? "model: " + f.model + "\n" : "") + "---\n\n" +
+      "You are " + (f.role || "[role]") + ".\n\n## When invoked\n1. " + (f.task || "[task]") + "\n2. Work only from what you read in the repository.\n3. Return the result in the format below and stop.\n\n" +
+      (lines(f.rules).length ? "## Rules\n" + bl(lines(f.rules)) + "\n\n" : "") + (techLines.length ? "## How to work\n" + bl(techLines) + "\n\n" : "") +
+      (exBlock ? "## Examples\n" + exBlock + "\n\n" : "") + (fmt ? "## Output\n" + fmt + "\n" : "## Output\nA concise report the main agent can act on: findings first, then evidence (path:line).\n");
+  }
+  else if(t === "skill"){
+    out = "---\nname: " + slug + "\ndescription: " + (f.task ? f.task.split(/[.:]/)[0] : "[what it does]") + ". Use " + (f.trigger || "when [situation]") + ".\n" + (f.input && /\$ARGUMENTS/.test(f.input) ? "argument-hint: [" + (f.input.replace(/\$ARGUMENTS\s*/, "").replace(/[()]/g, "").trim() || "args") + "]\n" : "") + (f.tools ? "allowed-tools: " + f.tools + "\n" : "") + (f.model ? "model: " + f.model + "\n" : "") + "---\n\n" +
+      "# " + slug.replace(/-/g, " ").replace(/^./, c => c.toUpperCase()) + "\n\n" + (f.why ? f.why + "\n\n" : "") + (f.input ? "Input: " + f.input + "\n\n" : "") +
+      "## Instructions\n1. " + (f.task || "[task]") + "\n" + techLines.map((y, i) => (i + 2) + ". " + y).join("\n") + "\n\n" +
+      (lines(f.rules).length ? "## Rules\n" + bl(lines(f.rules)) + "\n\n" : "") + (exBlock ? "## Examples\n" + exBlock + "\n\n" : "") + (fmt ? "## Output\n" + fmt + "\n\n" : "") +
+      ((lines(f.success).length || f.verify) ? "## Checklist before finishing\n" + bl(lines(f.success).concat(f.verify ? ["`" + f.verify + "` passes"] : [])) + "\n" : "");
+    extra = ".claude/skills/" + slug + "/\n├── SKILL.md          ← הקובץ הזה (קצר: מתי ואיך)\n├── reference.md      ← פירוט ארוך, נטען רק כשצריך\n└── scripts/\n    └── check.sh      ← סקריפט ש-Skill מריץ במקום להסביר";
+  }
+  else if(t === "command"){
+    out = "---\ndescription: " + (f.task ? f.task.split(/[.:]/)[0] : "[what it does]") + "\n" + (f.input ? "argument-hint: [" + (f.input.replace(/\$ARGUMENTS\s*/, "").replace(/[()]/g, "").trim() || "args") + "]\n" : "") + (f.tools ? "allowed-tools: " + f.tools + "\n" : "") + (f.model ? "model: " + f.model + "\n" : "") + "---\n\n" +
+      core().replace(sec("input", "Input", f.input), sec("input", "Input", (f.input || "").includes("$ARGUMENTS") ? f.input : "$ARGUMENTS" + (f.input ? " (" + f.input + ")" : ""))).trim() + "\n";
+    if(!/\$ARGUMENTS/.test(out)) out = out.trim() + "\n\nArguments: $ARGUMENTS\n";
+  }
+  else if(t === "headless"){
+    const sch = schema || {type:"object", properties:{result:{type:"string"}}, required:["result"]};
+    out = "#!/usr/bin/env bash\n# " + (f.task || "headless run") + "\nset -euo pipefail\n\nprompt=$(cat <<'EOF'\n" + core().trim() + "\nEOF\n)\n\nclaude -p \"$prompt\" \\\n  --output-format json \\\n  --json-schema '" + JSON.stringify(sch) + "' \\\n" + (f.tools ? "  --allowedTools \"" + f.tools.replace(/,\s*/g, ",") + "\" \\\n" : "  --allowedTools \"Read,Grep,Glob\" \\\n") + (f.model ? "  --model " + f.model + " \\\n" : "") + "  --max-turns 15 \\\n  --max-budget-usd 2 \\\n  | jq '.structured_output'\n";
+  }
+  else if(t === "system"){
+    out = core().replace(sec("input", "Input", f.input), "").trim();
+    if(f.input) extra = "תבנית להודעת המשתמש (המסמכים למעלה, השאלה בסוף):\n\n" + (f.input.match(/\{\{\w+\}\}/g) || ["{{INPUT}}"]).map(v => "<" + v.replace(/[{}]/g, "").toLowerCase() + ">\n" + v + "\n</" + v.replace(/[{}]/g, "").toLowerCase() + ">").join("\n\n") + "\n\n" + (f.task || "[the request]");
+  }
+  else if(t === "memory"){
+    out = "# " + (f.name || "Project") + "\n\n" + (f.why ? f.why + "\n\n" : "") + (f.verify ? "## Commands\n- Verify everything: `" + f.verify + "`\n\n" : "") +
+      (refs.length ? "## Key docs\n" + refs.map(r => "- @" + r).join("\n") + "\n\n" : "") + (lines(f.rules).length ? "## Rules\n" + bl(lines(f.rules)) + "\n\n" : "") +
+      (techLines.length ? "## How to work in this repo\n" + bl(techLines) + "\n\n" : "") + "## Compact instructions\nWhen compacting, keep: decisions made, files changed, failing tests and the current step in PLAN.md.\n";
+  }
+  return {text: out.replace(/\n{3,}/g, "\n\n"), file: T.file.replace("{slug}", slug), lang: T.lang, extra};
+}
+
+function pgScore(t, f, tech){
+  const T = PG_TARGETS[t], has = k => T.show.includes(k), on = k => tech.includes(k);
+  const vague = /\b(make it better|nicer|etc\.?|something|stuff|and so on)\b|וכו|משהו|יותר טוב/i;
+  const C = [];
+  const add = (cond, applies, ok, fix) => { if(applies) C.push([cond, ok, fix]); };
+  add(!!f.task && f.task.length >= 30 && !vague.test(f.task), has("task"), "משימה ספציפית וברורה", "תארו מה בדיוק צריך לקרות ובאיזה מצב זה נגמר. בלי \"תשפר\" או \"וכו'\".");
+  add(!!f.why, has("why"), "יש הקשר ו\"למה\"", "הוסיפו משפט על מי משתמש בזה ולמה זה חשוב. Claude מכליל מהסיבה.");
+  add(!!f.refs, has("refs"), "קבצים או מסמכים עם @", "ציינו קבצים, כדי ש-Claude יתחיל מהמקום הנכון ולא יחפש.");
+  add(!!f.rules, has("rules"), "גבולות וכללים", "מה אסור לשנות? תלויות, API ציבורי, קבצים רגישים.");
+  add(!!(f.success || f.verify), (has("success") || has("verify")) && t !== "agent", "הגדרת הצלחה שאפשר לבדוק", "הוסיפו קריטריון מדיד או פקודה שחייבת לעבור.");
+  add(!!f.verify, ["session","memory"].includes(t), "פקודת אימות", "פקודה כמו npm test שמוכיחה שזה עובד.");
+  add(f.format && f.format !== "free", has("format") && !["session","system"].includes(t), "פורמט פלט מוגדר", "בחרו פורמט: JSON, צ'קליסט, diff או דוח.");
+  add(f.format !== "json" || !!pgSchema(f.fields), has("fields") && f.format === "json", "סכמת JSON עם שדות", "הגדירו שדות כמו summary:string, risk:low|high.");
+  add(!!f.examples && f.examples.split("\n").filter(Boolean).length >= 2, has("examples") && ["system","agent"].includes(t), "לפחות 2 דוגמאות", "דוגמאות מגוונות (כולל מקרה קצה) משפרות עקביות יותר מכל הסבר.");
+  add(!!f.role && f.role.length > 12, has("role") && ["system","agent","headless"].includes(t), "תפקיד מדויק", "\"מהנדס X שמתמחה ב-Y\". תפקיד כללי לא עוזר.");
+  add(!!f.trigger, has("trigger"), "מתי להפעיל (description)", "Claude בוחר Skills ו-Subagents לפי התיאור. כתבו מתי בדיוק להשתמש.");
+  add(/^[a-z0-9-]+$/.test(f.name || ""), has("name") && t !== "memory", "שם תקין ב-kebab-case", "אותיות קטנות, ספרות ומקפים בלבד.");
+  add(!!f.tools, has("tools"), "כלים מוגבלים", "הגבילו לכלים שבאמת צריך. סוקר לא צריך Edit.");
+  add(on("explore") || on("quotes"), ["session","plan","agent","skill","command","headless"].includes(t), "חקירה לפני פעולה", "הפעילו \"חקירה לפני שינוי\" כדי למנוע ניחושים על קוד שלא נפתח.");
+  add(on("honest"), true, "רשות לומר \"לא יודע\"", "הפעילו את הטכניקה כדי להפחית המצאות.");
+  add(!(t === "system" && f.format === "free" && !f.examples), t === "system", "התנהגות צפויה", "ב-System prompt בלי פורמט, הוסיפו דוגמאות כדי לקבע טון ומבנה.");
+  const okN = C.filter(c => c[0]).length;
+  return {score: C.length ? Math.round(100 * okN / C.length) : 0, items: C};
+}
+
+const PG_USE = {
+  session:"מדביקים ב-Claude Code. לפרומפט ארוך: <kbd>Ctrl+G</kbd> פותח אותו בעורך. כדאי להתחיל ב-<code>/clear</code> כדי שההקשר יהיה נקי.",
+  plan:"מדביקים כמו שהוא: <code>/plan</code> נכנס למצב תכנון, Claude קורא ומציע תוכנית בלי לשנות קבצים. מאשרים, ורק אז הוא מתחיל לעבוד.",
+  agent:"שומרים בנתיב שמופיע בכותרת. Claude יפעיל את הסוכן לבד לפי ה-description, או במפורש: <code>@agent-NAME</code>. בודקים ב-<code>/agents</code>.",
+  skill:"שומרים בתיקייה <code>.claude/skills/NAME/</code>. Claude טוען את ה-Skill כשהוא רלוונטי, או ידנית עם <code>/NAME</code>. כדי שרק אתם תפעילו אותו, מוסיפים <code>disable-model-invocation: true</code>.",
+  command:"שומרים ב-<code>.claude/commands/NAME.md</code> ומפעילים עם <code>/NAME ארגומנטים</code>. ‏<code>$ARGUMENTS</code> מקבל את כל מה שנכתב אחרי הפקודה.",
+  headless:"שומרים, מריצים <code>chmod +x</code>, ומפעילים ב-CI או ב-cron. ‏<code>--json-schema</code> מאמת את הפלט, והתוצאה נמצאת בשדה <code>structured_output</code>. ‏<code>--max-budget-usd</code> מגביל את העלות.",
+  system:"שמים בפרמטר <code>system</code> של ה-API או ב-<code>systemPrompt</code> של Agent SDK. מסמכים ארוכים נכנסים להודעת המשתמש, למעלה, והשאלה בסוף.",
+  memory:"שומרים בשורש הריפו ועושים commit. כדאי לשמור עד 80 שורות בערך, ולבקש מ-Claude מדי פעם לבדוק את הקובץ מול הקוד."
+};
+
+(function(){
+  const F = ["name","trigger","role","task","why","refs","input","rules","examples","format","fields","success","verify","tools","model"];
+  const el = k => $("#pg" + k[0].toUpperCase() + k.slice(1));
+  $("#pgPrinciples").innerHTML = PG_PRINCIPLES.map((p, i) => '<div class="trick"><span class="pill">' + (i + 1) + '</span><h3>' + esc(p[0]) + '</h3><p>' + esc(p[1]) + '</p></div>').join("");
+  $("#pgTarget").innerHTML = Object.entries(PG_TARGETS).map(([k, v]) => '<option value="' + k + '">' + esc(v.n) + '</option>').join("");
+  $("#pgPreset").innerHTML += PG_PRESETS.map((p, i) => '<option value="' + i + '">' + esc(p.n) + '</option>').join("");
+  $("#pgTech").innerHTML = PG_TECH.map(p => '<label data-tech="' + p[0] + '"><input type="checkbox" value="' + p[0] + '"' + (PG_DEFAULT_TECH.includes(p[0]) ? " checked" : "") + '>' + esc(p[1]) + '</label>').join("");
+  const read = () => { const f = {}; F.forEach(k => f[k] = el(k).value.trim()); return {t: $("#pgTarget").value, f, tech: $$("#pgTech input:checked").map(i => i.value)}; };
+  const write = (t, f, tech) => { $("#pgTarget").value = t; F.forEach(k => { el(k).value = (f && f[k]) || (k === "format" ? "free" : ""); }); $$("#pgTech input").forEach(i => i.checked = tech.includes(i.value)); };
+  let last = null;
+  function run(typed){
+    const {t, f, tech} = read(), T = PG_TARGETS[t];
+    $$("#pgForm [data-pg]").forEach(l => l.hidden = !T.show.includes(l.dataset.pg) || (l.dataset.pg === "fields" && f.format !== "json" && t !== "headless"));
+    $$("#pgTech [data-tech]").forEach(l => { const p = PG_TECH.find(x => x[0] === l.dataset.tech); l.hidden = !p[3].includes(t); });
+    const r = pgBuild(t, f, tech); last = r;
+    const box = $("#pgOut"); box.dataset.lang = r.lang; box.dataset.file = r.file; setCode("#pgOut", r.text);
+    $("#pgExtra").innerHTML = r.extra ? '<div class="code" data-lang="text" data-file="' + (t === "skill" ? "מבנה התיקייה" : "user message") + '"><pre>' + esc(r.extra) + '</pre></div>' : "";
+    $$("#pgExtra .code").forEach(decorate);
+    const s = pgScore(t, f, tech);
+    $("#pgScoreNum").textContent = s.score; $(".pgScore").dataset.lvl = s.score >= 85 ? "hi" : s.score >= 60 ? "mid" : "lo";
+    $("#pgCrit").innerHTML = s.items.map(c => '<li class="' + (c[0] ? "ok" : "no") + '"><b>' + (c[0] ? "✓ " : "✗ ") + esc(c[1]) + '</b>' + (c[0] ? "" : '<span>' + esc(c[2]) + '</span>') + '</li>').join("");
+    $("#pgUse").innerHTML = '<p>' + PG_USE[t] + '</p><p class="hint">הקובץ: <code class="ltr">' + esc(r.file) + '</code></p>';
+    store.set("pgDraft", {t, f, tech});
+    if(typed === true && s.score >= 90) award("pg-90", 20, "פרומפט ברמת מומחה");
+  }
+  const d = store.get("pgDraft", null);
+  if(d && PG_TARGETS[d.t]) write(d.t, d.f, d.tech); else { const p = PG_PRESETS[0]; write(p.target, p.f, p.tech); }
+  $("#pgForm").addEventListener("input", () => run(true)); $("#pgForm").addEventListener("change", () => run(true));
+  $("#pgTarget").addEventListener("change", run);
+  $("#pgPreset").addEventListener("change", () => { const p = PG_PRESETS[+$("#pgPreset").value]; if(!p) return; write(p.target, p.f, p.tech); run(); award("pg-preset", 5, "תבנית נטענה"); $("#pgPreset").value = ""; });
+  $("#pgClear").onclick = () => { write($("#pgTarget").value, {}, PG_DEFAULT_TECH); run(); };
+  $("#pgDl").onclick = () => { if(last) saveFile(last.file, last.text); };
+  $("#pgToLab").onclick = () => { if(!last) return; $("#plIn").value = last.text; location.hash = "promptlab"; setTimeout(() => $("#plRun") && $("#plRun").click(), 200); };
+  $("#pgAi").onclick = () => { if(!last || !window.tutorSample) return; tutorOnce("אתה מהנדס פרומפטים בכיר שמכיר לעומק את Claude ואת Claude Code. שפר את ה" + PG_TARGETS[$("#pgTarget").value].n + " הבא לפי העקרונות של Anthropic: ברור וישיר, הקשר ו'למה', תגיות XML, דוגמאות מגוונות, הגדרת הצלחה שאפשר לבדוק, היקף מוגדר ופורמט פלט מפורש. שמור על המבנה והתחביר הנכונים ליעד (frontmatter, $ARGUMENTS, דגלי CLI). החזר את הגרסה המשופרת בבלוק קוד אחד, ואחריו עד 5 שורות בעברית שמסבירות מה שיפרת ולמה.\n\n```\n" + last.text + "\n```", $("#pgAiOut")); };
+  if(window.tutorSample) $("#pgAi").hidden = false;
+  const lib = () => store.get("pglib", []);
+  function drawLib(){
+    const L = lib();
+    $("#pgLibEmpty").hidden = L.length > 0;
+    $("#pgLib").innerHTML = L.map((x, i) => '<li><span><b>' + esc(x.n) + '</b> <span class="hint">' + esc(PG_TARGETS[x.t] ? PG_TARGETS[x.t].n : x.t) + '</span></span><span class="row"><button class="btn sm" type="button" data-pgl="' + i + '">טעינה</button><button class="btn sm" type="button" data-pgd="' + i + '" aria-label="מחיקת ' + esc(x.n) + '">מחיקה</button></span></li>').join("");
+  }
+  $("#pgSave").onclick = () => {
+    const {t, f, tech} = read(); const L = lib();
+    const n = f.name || (f.task || f.role || "prompt").slice(0, 48);
+    const k = L.findIndex(x => x.n === n && x.t === t); const item = {n, t, f, tech, ts: Date.now()};
+    if(k >= 0) L[k] = item; else L.unshift(item);
+    store.set("pglib", L.slice(0, 60)); drawLib(); toast(k >= 0 ? "עודכן בספרייה ✓" : "נשמר בספרייה ✓"); award("pg-save", 10, "פרומפט ראשון בספרייה");
+  };
+  $("#pgLib").addEventListener("click", e => {
+    const l = e.target.dataset.pgl, dd = e.target.dataset.pgd, L = lib();
+    if(l != null && L[+l]){ write(L[+l].t, L[+l].f, L[+l].tech); run(); toast("נטען ✓"); }
+    if(dd != null && L[+dd]){ L.splice(+dd, 1); store.set("pglib", L); drawLib(); toast("נמחק"); }
+  });
+  run(); drawLib();
+  REFRESH.push(drawLib);
+  window.__pg = {build: pgBuild, score: pgScore, presets: PG_PRESETS};
+})();
+
+SECRETS.push(
+  ["כללים שנטענים רק לתיקייה מסוימת", "קבצים ב-.claude/rules/ עם paths בכותרת נטענים רק כש-Claude עובד על קבצים מתאימים. CLAUDE.md נשאר קצר, וכללי ה-API מגיעים רק כשנוגעים ב-API.", "---\npaths:\n  - \"src/api/**/*.ts\"\n---\n# API rules\n- Validate every input with zod\n- One error shape: { error: { code, message } }"],
+  ["Hook שמתקן פקודה במקום לחסום", "ב-PreToolUse אפשר להחזיר updatedInput ולשנות את הקלט לפני שהכלי רץ. כאן: vitest תמיד מקבל ‎--run ולא נתקע במצב watch. updatedInput מחליף את כל הקלט, ולכן ממזגים עם הקלט המקורי.", "#!/usr/bin/env bash\ninput=$(cat)\ncmd=$(echo \"$input\" | jq -r '.tool_input.command')\ncase \"$cmd\" in\n  \"npx vitest\"*--run*) exit 0 ;;\n  \"npx vitest\"*) echo \"$input\" | jq '{hookSpecificOutput:{hookEventName:\"PreToolUse\",permissionDecision:\"allow\",updatedInput:(.tool_input + {command:(.tool_input.command + \" --run\")})}}' ;;\nesac"],
+  ["Hook שחושב: type prompt", "במקום סקריפט, Hook יכול לשאול מודל. ב-Stop הוא בודק אם כל המשימות באמת הושלמו, ואם לא, Claude ממשיך לעבוד.", "{ \"hooks\": { \"Stop\": [ { \"hooks\": [ {\n  \"type\": \"prompt\",\n  \"prompt\": \"Evaluate if Claude should stop: $ARGUMENTS. Check that every task is complete and the tests were run.\"\n} ] } ] } }"],
+  ["Skill שרק אתם מפעילים", "‏disable-model-invocation: true מונע מ-Claude לטעון את ה-Skill לבד. מושלם ל-deploy או לשליחת הודעות: רק ‎/deploy מפורש מפעיל אותו.", "---\nname: deploy\ndescription: Deploy the app to production\ndisable-model-invocation: true\n---\nRun the deploy checklist in @docs/deploy.md step by step."],
+  ["Skill שרץ בהקשר נפרד", "‏context: fork מריץ את ה-Skill ב-Subagent משלו. חקירה ארוכה לא ממלאת את השיחה, ומקבלים רק את התוצאה.", "---\nname: deep-audit\ndescription: Full dependency and license audit\ncontext: fork\n---"],
+  ["פקודות ו-Skills הם אותו דבר", "‏.claude/commands/deploy.md ו-.claude/skills/deploy/SKILL.md יוצרים את אותה ‎/deploy. כשהפקודה גדלה, הופכים אותה ל-Skill עם reference.md ותיקיית scripts, ומפעילים בדיוק כמו קודם.", ".claude/skills/deploy/\n├── SKILL.md\n├── reference.md\n└── scripts/smoke-test.sh"],
+  ["ארגומנטים לפי מיקום", "‏$ARGUMENTS הוא כל הטקסט. ‏$0 הוא הארגומנט הראשון ו-$1 השני (ספירה מאפס). ארגומנט עם רווחים כותבים במירכאות.", "---\nargument-hint: [issue] [priority]\n---\nFix issue #$0 with priority $1.\n\n# usage: /fix-issue 123 high"],
+  ["Subagent ב-worktree משלו", "‏isolation: worktree מריץ את הסוכן בעותק git זמני. כמה סוכנים משנים קוד במקביל בלי לדרוס זה את זה.", "---\nname: experimenter\ndescription: Tries a risky refactor in isolation\nisolation: worktree\n---"],
+  ["Subagent עם זיכרון קבוע", "‏memory: project נותן לסוכן זיכרון שנשמר בין הפעלות: סוקר שזוכר ממצאים חוזרים ולא מתחיל מאפס בכל פעם.", "---\nname: reviewer\ndescription: Reviews PRs and remembers recurring issues\nmemory: project\n---"],
+  ["מסמכים למעלה, שאלה בסוף", "בקלט ארוך (לוגים, חוזים, דוחות) שמים את החומר בראש הפרומפט ואת השאלה בסוף. לפי Anthropic, זה שיפר איכות בעד 30% במבחנים.", "<documents>\n<document index=\"1\"><source>incident.log</source>\n...\n</document>\n</documents>\n\nQuote the relevant lines first. Then: what caused the outage?"],
+  ["structured_output ולא result", "עם ‎--json-schema הפלט המאומת נמצא בשדה structured_output. השדה חסר אם לא התקבל פלט תקין, ולכן בודקים לפני שממשיכים בצינור.", "claude -p \"classify this PR\" --output-format json \\\n  --json-schema \"$(cat schema.json)\" \\\n  | jq -e '.structured_output' > result.json \\\n  || echo \"no valid output\""],
+  ["ראיון במקום מפרט", "בקשו מ-Claude לראיין אתכם עם הכלי AskUserQuestion. הוא שואל שאלה אחר שאלה עם אפשרויות לבחירה, ורק אז כותב מפרט.", "I want to build X. Interview me in detail using the AskUserQuestion tool about users, flows, edge cases and tradeoffs. Then write docs/spec.md."]
+);
+drawSecrets();
+BADGES.push(["guide","🚀","מרעיון לאוויר","השלמתם את כל 16 השלבים במדריך המלא", () => !!state.awarded["ag-all"]], ["prompter","🎯","מהנדסי פרומפטים","בניתם פרומפט עם ציון 90 ומעלה", () => !!state.awarded["pg-90"]]);
+["fe","be","ops"].forEach(k => { if(TRACKS[k] && !TRACKS[k].m.includes("appguide")) TRACKS[k].m.push("appguide"); });
+Object.keys(TRACKS).forEach(k => { if(!TRACKS[k].m.includes("promptgen")) TRACKS[k].m.push("promptgen"); });
+checkBadges(true);
 
 renderStats();
 show(ids.includes(location.hash.slice(1)) ? location.hash.slice(1) : store.get("last", "intro"), false);
