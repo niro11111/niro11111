@@ -8,7 +8,9 @@ trap 'rm -rf "$tmp"' EXIT
 python3 - "$tmp/page.js" <<'PY'
 import sys
 s = open("src/claude-code-course.html", encoding="utf-8").read()
-open(sys.argv[1], "w", encoding="utf-8").write(s[s.index("<script>") + 8 : s.rindex("</script>")])
+js = s[s.index("<script>") + 8 : s.rindex("</script>")]
+if "</script" in js.lower(): sys.exit("build failed: a literal </script> inside the script ends it early; write <\\/script> instead")
+open(sys.argv[1], "w", encoding="utf-8").write(js)
 PY
 node --check "$tmp/page.js" || { echo "build failed: script syntax error" >&2; exit 1; }
 # head material (title, meta, fonts, style) goes into <head>, the app into <body>
