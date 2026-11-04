@@ -10,7 +10,7 @@ const IO = {
 const A = (id, name, nameHe, scope, tools, extra = {}) => ({ id, name, nameHe, scope, tools, maxSteps: 6, dataScopes: ['general'], delegatesTo: [], ...IO, ...extra });
 
 export const AGENTS = [
-  A('executive', 'Executive Intelligence', 'מודיעין מנהלי', 'Coordinates JARVIS, breaks goals into steps and delegates to specialists', ['llm.answer', 'tasks.create', 'tasks.list', 'ai.council', 'ai.plan_run', 'agents.create', 'agents.invoke'],
+  A('executive', 'Executive Intelligence', 'מודיעין מנהלי', 'Coordinates JARVIS, breaks goals into steps and delegates to specialists', ['llm.answer', 'tasks.create', 'tasks.list', 'ai.council', 'ai.plan_run', 'ai.decide', 'agents.create', 'agents.invoke', 'brain.watch_create', 'brain.watch_list'],
     { maxSteps: 12, delegatesTo: ['assistant', 'research', 'browser', 'finance', 'household', 'smarthome', 'communication', 'coding', 'knowledge', 'creative', 'automation'] }),
   A('assistant', 'Personal Assistant', 'עוזר אישי', 'Calendar, reminders, tasks, shopping and daily planning',
     ['briefing.daily', 'briefing.weekly', 'tasks.create', 'tasks.list', 'tasks.complete', 'calendar.create', 'calendar.list', 'reminders.create', 'shopping.add', 'shopping.list', 'calc.evaluate', 'date.until', 'convert.units', 'timer.start', 'notes.add', 'notes.list'], { dataScopes: ['general', 'family', 'work'] }),
@@ -18,7 +18,7 @@ export const AGENTS = [
   A('computer', 'Computer', 'מחשב', 'Authorized desktop actions through the local desktop bridge', ['computer.open_app', 'computer.open_url', 'computer.list_dir', 'computer.read_file', 'computer.screenshot'], { maxSteps: 8, dataScopes: ['general', 'work'] }),
   A('browser', 'Browser', 'דפדפן', 'Reads web pages as untrusted content and extracts information', ['research.fetch', 'computer.open_url'], { maxSteps: 4 }),
   A('finance', 'Finance', 'פיננסים', 'Family Wealth OS analysis. Read-only; money movement is never executed',
-    ['wealth.overview', 'wealth.analysis', 'wealth.report', 'wealth.bills', 'wealth.goals', 'wealth.simulate', 'wealth.transfer', 'wealth.record', 'wealth.goal_contribute', 'wealth.bill_paid', 'calc.evaluate'], { dataScopes: ['general', 'financial'] }),
+    ['wealth.overview', 'wealth.analysis', 'wealth.report', 'wealth.bills', 'wealth.goals', 'wealth.simulate', 'wealth.transfer', 'wealth.record', 'wealth.goal_contribute', 'wealth.bill_paid', 'wealth.goal_odds', 'calc.evaluate'], { dataScopes: ['general', 'financial'] }),
   A('household', 'Household', 'משק בית', 'Family logistics: bills, maintenance tasks, shopping', ['wealth.bills', 'wealth.bill_paid', 'tasks.create', 'reminders.create', 'shopping.add', 'shopping.list', 'timer.start'], { dataScopes: ['general', 'family'] }),
   A('smarthome', 'Smart Home', 'בית חכם', 'Connected devices, scenes and home status', ['home.devices', 'home.control', 'home.scene'], { maxSteps: 10 }),
   A('communication', 'Communication', 'תקשורת', 'Drafts and summarizes messages; never sends on its own', ['llm.answer', 'notify.send'], { maxSteps: 4 }),

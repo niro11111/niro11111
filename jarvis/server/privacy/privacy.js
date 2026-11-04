@@ -1,7 +1,7 @@
 // Privacy Center: what is stored, for how long, and who (which agent/domain) may read it.
 import { now } from '../lib/store.js';
 
-const DEFAULTS = { memoryEnabled: true, healthEnabled: false, storeTranscripts: true, voiceRetentionDays: 30, proactiveEnabled: true, financialAlertsOnWatch: true };
+const DEFAULTS = { memoryEnabled: true, learningEnabled: true, healthEnabled: false, storeTranscripts: true, voiceRetentionDays: 30, proactiveEnabled: true, financialAlertsOnWatch: true };
 
 export class Privacy {
   constructor(store, audit) { this.store = store; this.audit = audit; }

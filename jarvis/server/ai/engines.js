@@ -7,6 +7,7 @@
 // Every engine is provider-agnostic (router.complete) and every action a model proposes goes
 // through Core.runFromModel, so the approval and policy rules always apply.
 import { now } from '../lib/store.js';
+import { decisionMatrix } from '../wealth/calc.js';
 
 export const GEN_KINDS = {
   document: { ext: 'md', mime: 'text/markdown', he: 'מסמך', instruction: 'Write a complete, well-structured document in Markdown (headings, lists where useful). No preamble.' },
@@ -87,6 +88,11 @@ export class AIEngines {
       { id: 'planner', name: 'Plan & execute', nameHe: 'תכנון וביצוע', status: on, detail: 'goal to steps, executed with approvals' },
       { id: 'agents', name: 'Custom agents', nameHe: 'סוכנים מותאמים', status: on, detail: `${this.s.store.all('custom_agents').length} defined` },
       { id: 'vision', name: 'Vision', nameHe: 'ראייה', status: a.vision ? 'online' : 'needs AI', detail: 'understands attached images' },
+      { id: 'rag', name: 'Personal context (RAG)', nameHe: 'הקשר אישי (RAG)', status: 'online', detail: 'answers cite your notes, memory, documents, tasks and calendar' },
+      { id: 'deep', name: 'Deep thinking', nameHe: 'חשיבה עמוקה', status: on, detail: 'draft → self-critique → revised answer' },
+      { id: 'decide', name: 'Decision engine', nameHe: 'מנוע החלטות', status: on, detail: 'weighted criteria, exact ranking, robustness check' },
+      { id: 'watchers', name: 'Watchers', nameHe: 'צופים אוטונומיים', status: 'online', detail: 'monitor metrics and alert, no model per check' },
+      { id: 'simulation', name: 'Monte Carlo', nameHe: 'סימולציית מונטה קרלו', status: 'online', detail: 'odds of reaching savings goals' },
       { id: 'deterministic', name: 'Deterministic engines', nameHe: 'מנועים דטרמיניסטיים', status: 'online', detail: 'finance math, calculator, dates, units, memory search: no model needed' },
     ];
   }
@@ -179,6 +185,27 @@ Return ONLY JSON: {"summary": string, "steps": [{"title": string, "tool": string
       }
     }
     return this.s.store.insert('plans', { goal: String(goal), summary: String(plan.summary ?? ''), steps, executed: execute });
+  }
+
+  /** Decision engine: the model proposes options, criteria and scores; the ranking is computed exactly. */
+  async decide({ question, lang = 'en' }) {
+    if (!String(question ?? '').trim()) throw Object.assign(new Error('question required'), { status: 400 });
+    const out = await this.ask({ complexity: 'high' }, `${this.sysPrompt(lang)}
+Help decide. Identify 2-5 options (use the user's options if given) and 3-6 criteria that matter for THIS user, each with weight 1-5, and score every option on every criterion 1-10 with honest reasoning.
+Return ONLY JSON: {"options": string[], "criteria": [{"name": string, "weight": number}], "scores": {"<option>": {"<criterion>": number}}, "notes": {"<option>": string}}`, String(question));
+    const j = parseJson(out.text);
+    if (!Array.isArray(j.options) || j.options.length < 2 || !Array.isArray(j.criteria)) throw new Error('the model did not return a usable decision matrix');
+    const result = decisionMatrix(j);
+    return this.s.store.insert('decisions', { question: String(question), options: j.options, scores: j.scores, notes: j.notes ?? {}, ...result });
+  }
+
+  /** Deep thinking: draft -> self-critique -> revised answer. Three model calls. */
+  async deepThink({ prompt, lang = 'en', context = '' }) {
+    const base = `${this.sysPrompt(lang)}${context ? `\n${context}` : ''}`;
+    const draft = await this.ask({ complexity: 'high' }, `${base}\nThink carefully and answer thoroughly.`, String(prompt));
+    const critique = await this.ask({ complexity: 'high' }, `${this.sysPrompt(lang)}\nYou are a rigorous reviewer. List concrete errors, unsupported claims, missing considerations and unclear parts in the draft. Be brief. If it is solid, say so.`, `Question:\n${prompt}\n\nDraft answer:\n${draft.text}`);
+    const final = await this.ask({ complexity: 'high' }, `${base}\nRewrite the answer, fixing every valid point of the review. Output only the improved answer.`, `Question:\n${prompt}\n\nDraft:\n${draft.text}\n\nReview:\n${critique.text}`);
+    return { text: final.text, draft: draft.text, critique: critique.text, model: final.route.model };
   }
 
   // ---------- custom agents ----------

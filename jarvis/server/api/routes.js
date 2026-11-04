@@ -185,6 +185,34 @@ export function createApi(s, token, opts = {}) {
   r('POST', '/api/ai/agents', (req) => (req.body.description && !req.body.instructions ? s.ai.designAgent({ description: req.body.description, lang: lang(req) }) : s.ai.createAgent(req.body)));
   r('DELETE', '/api/ai/agents/:id', (req, p) => ({ deleted: s.store.remove('custom_agents', p.id) }));
 
+  // --- brain: learning, feedback, watchers, decisions ---
+  r('GET', '/api/brain', () => {
+    const tasks = s.store.all('tasks_exec').slice(-200);
+    const fin = tasks.filter((x) => ['COMPLETED', 'FAILED'].includes(x.state));
+    const toolUse = {};
+    for (const x of tasks) for (const tl of x.plan?.tools ?? []) toolUse[tl] = (toolUse[tl] ?? 0) + 1;
+    return {
+      pipeline: ['intent', 'context', 'plan', 'permissions', 'approval', 'execute', 'verify', 'learn'],
+      tasks: tasks.length, successPct: fin.length ? Math.round((fin.filter((x) => x.state === 'COMPLETED').length * 100) / fin.length) : null,
+      avgMs: fin.length ? Math.round(fin.reduce((a, x) => a + (x.durationMs ?? 0), 0) / fin.length) : null,
+      topTools: Object.entries(toolUse).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([tool, n]) => ({ tool, n })),
+      learning: { ...s.learning.stats(), queue: s.learning.queue(), enabled: s.learning.enabled() },
+      watchers: s.watchers.list(), decisions: s.store.all('decisions').slice(-5).reverse(), engines: s.ai.list(),
+    };
+  });
+  r('POST', '/api/brain/feedback', (req) => s.learning.feedback(req.body));
+  r('POST', '/api/brain/learn/:id/approve', (req, p) => s.learning.approve(p.id));
+  r('DELETE', '/api/brain/learn/:id', (req, p) => ({ deleted: s.learning.reject(p.id) }));
+  r('POST', '/api/brain/suggestions/:id/apply', (req, p) => s.learning.applySuggestion(p.id));
+  r('GET', '/api/brain/watchers', () => s.watchers.list());
+  r('POST', '/api/brain/watchers', (req) => (req.body.text ? s.watchers.fromText(req.body.text, lang(req)) : s.watchers.create(req.body)));
+  r('PATCH', '/api/brain/watchers/:id', (req, p) => s.store.update('watchers', p.id, { enabled: !!req.body.enabled }));
+  r('DELETE', '/api/brain/watchers/:id', (req, p) => ({ deleted: s.store.remove('watchers', p.id) }));
+  r('POST', '/api/brain/watchers/check', async () => ({ fired: await s.watchers.tick() }));
+  r('GET', '/api/brain/metrics', async () => Object.fromEntries(await Promise.all(Object.entries((await import('../brain/watchers.js')).METRICS).map(async ([k, v]) => [k, { desc: v.desc, params: v.params }]))));
+  r('POST', '/api/ai/decide', (req) => s.ai.decide({ question: req.body.question, lang: lang(req) }));
+  r('GET', '/api/wealth/goal-odds', async (req) => (await s.tools['wealth.goal_odds'].run({}, { ...ctx(req), lang: 'en' })).data);
+
   // --- notes & habits ---
   r('GET', '/api/notes', (req) => (req.query.get('q') ? s.productivity.searchNotes(req.query.get('q')) : s.productivity.listNotes()));
   r('POST', '/api/notes', (req) => s.productivity.addNote(req.body));

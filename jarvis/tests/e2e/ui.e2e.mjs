@@ -10,7 +10,7 @@ import { DemoHomeAdapter } from '../../server/home/smarthome.js';
 
 const require = createRequire(import.meta.url);
 const { chromium } = require('playwright');
-const VIEWS = ['command', 'conversation', 'map', 'agents', 'ai', 'automations', 'knowledge', 'planner', 'wealth', 'home', 'devices', 'console', 'privacy', 'preferences'];
+const VIEWS = ['command', 'conversation', 'map', 'agents', 'brain', 'ai', 'automations', 'knowledge', 'planner', 'wealth', 'home', 'devices', 'console', 'privacy', 'preferences'];
 
 const s = await createApp({ router: new ModelRouter(), home: new DemoHomeAdapter(), fetch: async () => { throw new Error('offline'); } });
 const srv = createServer(s, 'e2e', { rateLimit: 100000 });

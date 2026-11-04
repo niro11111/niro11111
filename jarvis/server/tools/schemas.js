@@ -29,6 +29,8 @@ export const TOOL_SCHEMAS = {
   'ai.plan_run': S({ goal: str(true, { max: 20000 }) }),
   'agents.create': S({ description: str(true, { max: 4000 }) }),
   'agents.invoke': S({ handle: str(true), message: str(true, { max: 20000 }) }),
+  'brain.watch_create': S({ text: str(true, { max: 500 }) }),
+  'ai.decide': S({ question: str(true, { max: 8000 }) }),
   'calc.evaluate': S({ expression: str(true, { max: 300 }) }),
   'date.until': S({ date: str(true) }),
   'convert.units': S({ value: { type: 'number', required: true }, from: str(true), to: str(true) }),

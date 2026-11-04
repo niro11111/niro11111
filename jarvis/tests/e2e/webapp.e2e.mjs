@@ -73,7 +73,7 @@ try {
     assert.match(await page.textContent('#view'), /ספורט/);
   });
   await check('every screen renders in the standalone app', async () => {
-    for (const v of ['command', 'map', 'agents', 'ai', 'automations', 'knowledge', 'planner', 'wealth', 'home', 'devices', 'console', 'privacy', 'preferences']) {
+    for (const v of ['command', 'map', 'agents', 'brain', 'ai', 'automations', 'knowledge', 'planner', 'wealth', 'home', 'devices', 'console', 'privacy', 'preferences']) {
       await page.goto(`${url}#${v}`); await page.waitForTimeout(400);
       assert.ok(!(await page.$('#view .panel.err')), v);
     }
@@ -86,6 +86,18 @@ try {
     await page.type('.composer input[dir=auto]', 'הפתקים שלי', { delay: 20 });
     await page.waitForFunction(() => /לקנות מתנה לנועה/.test([...document.querySelectorAll('.chat .msg.jarvis')].pop()?.textContent ?? ''), null, { timeout: 8000 });
     await page.click('.dict-btn');
+  });
+  await check('brain: feedback, learning queue and a watcher from words', async () => {
+    await page.goto(`${url}#conversation`); await page.waitForSelector('#view .composer');
+    await ask(page, 'אני מעדיף תשובות קצרות, מה המשימות שלי', /./);
+    await page.click('.chat .msg.jarvis:last-child [data-fb="1"]');
+    await page.waitForSelector('.chat .msg.jarvis:last-child .fb .muted');
+    await page.goto(`${url}#brain`); await page.waitForSelector('#wF');
+    assert.match(await page.textContent('#view'), /אני מעדיף תשובות קצרות/);
+    await page.click('[data-lok]');
+    await page.waitForFunction(() => !document.querySelector('[data-lok]'));
+    await page.fill('#wF input', 'תתריע לי אם ההוצאות על מסעדות עוברות 500'); await page.click('#wF button');
+    await page.waitForFunction(() => /spend_category_month\(dining\) > 500/.test(document.querySelector('#view').textContent));
   });
   await check('wealth forms record a transaction', async () => {
     await page.goto(`${url}#wealth`); await page.waitForSelector('#txF');

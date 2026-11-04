@@ -22,6 +22,8 @@ import { Weather } from './context/weather.js';
 import { Privacy } from './privacy/privacy.js';
 import { expoPushSender } from './notify/expo-push.js';
 import { AIEngines } from './ai/engines.js';
+import { Learning } from './brain/learning.js';
+import { Watchers } from './brain/watchers.js';
 
 export async function createApp(opts = {}) {
   const { file = null, router = null, home = null, seed = true } = opts;
@@ -51,13 +53,16 @@ export async function createApp(opts = {}) {
   s.tools = buildTools(s);
   s.core = new Core(s);
   s.ai = new AIEngines(s);
+  s.learning = new Learning(s);
+  s.core.learning = s.learning; // CORE was built before these services existed
+  s.watchers = new Watchers(s);
   s.automations = new Automations({ ...s, ctx: { householdId, actor: 'automation' } });
   return s;
 }
 
 /** Background loop: reminders, deferred notifications, scheduled workflows, proactive scan. */
 export function startScheduler(s, { everyMs = 30_000 } = {}) {
-  let lastProactive = 0;
+  let lastProactive = 0; let lastWatch = 0;
   const tick = async () => {
     try {
       for (const r of s.productivity.dueReminders()) {
@@ -69,6 +74,7 @@ export function startScheduler(s, { everyMs = 30_000 } = {}) {
       s.privacy.purgeVoice();
       s.memory.purgeExpired();
       await s.automations.tick();
+      if (Date.now() - lastWatch > 5 * 60e3) { lastWatch = Date.now(); await s.watchers.tick(); }
       const prefs = s.store.getMeta('proactive', {});
       if (s.privacy.get().proactiveEnabled && Date.now() - lastProactive > 60 * 60e3) {
         lastProactive = Date.now();

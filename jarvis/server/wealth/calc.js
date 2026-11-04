@@ -124,3 +124,53 @@ export function simulateCuts(txs, key, cuts) {
   const monthly = sum(lines, (l) => l.monthlySaving);
   return { month: key, lines, monthlySaving: monthly, yearlySaving: monthly * 12 };
 }
+
+/** Seeded PRNG (mulberry32) so simulations are reproducible and testable. */
+export function rng(seed = 42) {
+  let a = seed >>> 0;
+  return () => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+const gauss = (r) => { let u = 0; while (!u) u = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * r()); };
+
+/**
+ * Monte Carlo: probability of reaching a savings goal by its deadline, given a monthly
+ * contribution that varies (normal, sd = volatility * mean, never negative).
+ * Money in minor units. Deterministic for a given seed.
+ */
+export function goalProbability({ target, saved, deadline }, { monthly, volatility = 0.3, runs = 2000, seed = 7, now = Date.now(), horizonMonths = 120 }) {
+  const remaining = Math.max(0, target - saved);
+  const monthsLeft = deadline ? Math.max(0, Math.floor((Date.parse(deadline) - now) / (30.44 * 864e5))) : null;
+  if (remaining === 0) return { probability: 1, monthsLeft, medianMonths: 0, p10Months: 0, p90Months: 0, runs: 0 };
+  if (!(monthly > 0)) return { probability: 0, monthsLeft, medianMonths: null, p10Months: null, p90Months: null, runs: 0 };
+  const r = rng(seed); const hits = [];
+  let reached = 0;
+  for (let i = 0; i < runs; i++) {
+    let acc = 0; let m = 0;
+    while (acc < remaining && m < horizonMonths) { m++; acc += Math.max(0, monthly * (1 + volatility * gauss(r))); }
+    hits.push(acc >= remaining ? m : Infinity);
+    if (acc >= remaining && (monthsLeft === null || m <= monthsLeft)) reached++;
+  }
+  hits.sort((x, y) => x - y);
+  const q = (p) => { const v = hits[Math.floor(p * (hits.length - 1))]; return Number.isFinite(v) ? v : null; };
+  return { probability: Math.round((reached / runs) * 1000) / 1000, monthsLeft, medianMonths: q(0.5), p10Months: q(0.1), p90Months: q(0.9), runs };
+}
+
+/** Weighted decision matrix: deterministic ranking + which criteria could flip the winner. */
+export function decisionMatrix({ options, criteria, scores }) {
+  const crit = criteria.filter((c) => c?.name).map((c) => ({ name: String(c.name), weight: Math.max(0, Math.min(5, Number(c.weight) || 0)) }));
+  const opts = options.map(String);
+  const total = (weights) => opts.map((o) => {
+    let num = 0; let den = 0;
+    weights.forEach((c) => { const sc = Math.max(0, Math.min(10, Number(scores?.[o]?.[c.name]) || 0)); num += c.weight * sc; den += c.weight * 10; });
+    return { option: o, score: den ? Math.round((num / den) * 1000) / 10 : 0 };
+  }).sort((a, b) => b.score - a.score);
+  const ranking = total(crit);
+  const winner = ranking[0]?.option;
+  const sensitive = crit.filter((c, i) => {
+    const off = total(crit.map((x, j) => (j === i ? { ...x, weight: 0 } : x)))[0]?.option;
+    const dbl = total(crit.map((x, j) => (j === i ? { ...x, weight: Math.min(10, x.weight * 2) } : x)))[0]?.option;
+    return off !== winner || dbl !== winner;
+  }).map((c) => c.name);
+  const margin = ranking.length > 1 ? Math.round((ranking[0].score - ranking[1].score) * 10) / 10 : null;
+  return { ranking, winner, margin, sensitiveTo: sensitive, robust: sensitive.length === 0 && (margin ?? 100) >= 5, criteria: crit };
+}

@@ -118,6 +118,8 @@ export class Core {
         throw new Error(t(lang, 'denied', { list: denied.map((s) => s.tool).join(', ') }));
       }
       this.audit.log(actor, 'task.planned', { taskId: task.id, tools: task.plan.tools, autonomy: task.plan.autonomy });
+      // Learning: explicit preferences in what the user says are queued for review (never auto-verified).
+      if (actor === 'user' && !steps.some((st) => st.tool === 'memory.remember')) { const l = this.learning?.observe(message); if (l && !l.duplicate) task.learned = { id: l.id, content: l.content }; }
       convo.lastSteps = steps.map(({ agent, tool, args }) => ({ agent, tool, args: stripCtx(args) }));
       convo.history.push({ role: 'user', content: message });
       const out = await this.run(task);

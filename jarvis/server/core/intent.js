@@ -21,6 +21,8 @@ export function parseClause(raw, convo = {}) {
     const at = parseWhen(m[1]) ?? new Date(Date.now() + 36e5).toISOString();
     return [{ agent: 'assistant', tool: 'reminders.create', args: { text: stripWhen(m[1]) || m[1], at } }];
   }
+  // --- watchers (before any domain rule: "alert me if <anything>" is a monitoring request) ---
+  if (/^(?:תתריע|התרע|תודיע לי|תעדכן אותי|alert me|notify me|warn me|watch)(?:\s|$)[\s\S]*(?:אם|כש|כאשר|\bif\b|\bwhen\b)/i.test(text)) return [{ agent: 'executive', tool: 'brain.watch_create', args: { text } }];
   // --- memory ---
   if ((m = text.match(/^(?:remember(?: that)?|תזכור ש|תזכור כי|זכור ש)\s*(.+)/i))) {
     return [{ agent: 'knowledge', tool: 'memory.remember', args: { content: m[1], type: /prefer|אוהב|מעדיף/i.test(m[1]) ? 'preference' : 'knowledge', provenance: 'user_statement' } }];
@@ -73,6 +75,11 @@ export function parseClause(raw, convo = {}) {
     return [{ agent: 'assistant', tool: 'calc.evaluate', args: { expression: m[1] } }];
   }
   if (/^[\d\s.+\-*/^()%×÷,]+=?\s*\??$/.test(text) && /\d\s*[+\-*/^×÷%]/.test(text)) return [{ agent: 'assistant', tool: 'calc.evaluate', args: { expression: text.replace(/[=?]/g, '') } }];
+  // --- brain: deep thinking, watchers, decisions, goal odds ---
+  if ((m = text.match(/^(?:חשוב לעומק|תחשוב לעומק|חשיבה עמוקה|think (?:deeply|hard)|deep think)[:\s,]+([\s\S]+)/i))) return [{ agent: 'executive', tool: 'llm.answer', args: { prompt: m[1], complexity: 'high', deep: true } }];
+  if (has(t, /my watchers|watchers|הצופים שלי|ההתראות האוטומטיות/)) return [{ agent: 'executive', tool: 'brain.watch_list', args: {} }];
+  if ((m = text.match(/^(?:תעזור לי להחליט|עזור לי להחליט|להחליט|החלטה|decide|help me decide|should i)[:\s]+([\s\S]+)/i)) || (m = text.match(/^(.+\s(?:או|vs\.?|versus|or)\s.+)\?\s*(?:מה עדיף|מה כדאי|which is better)\??$/i))) return [{ agent: 'executive', tool: 'ai.decide', args: { question: m[1] ?? text } }];
+  if (has(t, /(?:what are )?(?:the )?odds|chance (?:of|to) reach|probability.*goal|מה הסיכוי|הסיכוי להגיע|סיכויים ל/) && has(t, /goal|יעד|חיסכון|קרן|save|saving/)) return [{ agent: 'finance', tool: 'wealth.goal_odds', args: {} }];
   // --- AI engines: custom agents, generator, app builder, council, plan & execute ---
   if ((m = text.match(/^@([\p{L}\p{N}_-]+)\s+([\s\S]+)/u))) return [{ agent: 'executive', tool: 'agents.invoke', args: { handle: m[1], message: m[2] } }];
   if ((m = text.match(/^(?:צור סוכן|תיצור סוכן|סוכן חדש|create (?:an? )?agent|new agent)[:\s]+([\s\S]+)/i))) return [{ agent: 'executive', tool: 'agents.create', args: { description: m[1] } }];
@@ -93,7 +100,7 @@ export function parseClause(raw, convo = {}) {
   }
   if (has(t, /weekly (report|summary|brief)|דוח שבועי|סיכום שבועי/)) return [{ agent: 'assistant', tool: 'briefing.weekly', args: {} }];
   // --- tasks ---
-  if ((m = text.match(/(?:add (?:a )?task|new task|create (?:a )?task|הוסף משימה|משימה חדשה)[:\s]+(.+)/i))) {
+  if ((m = text.match(/(?:add (?:a )?task|new task|create (?:a )?task|הוסף משימה|תוסיף משימה|תוסיפי משימה|משימה חדשה)[:\s]+(?:ל)?(.+)/i))) {
     const due = parseWhen(m[1]);
     return [{ agent: 'assistant', tool: 'tasks.create', args: { title: stripWhen(m[1]), due, priority: /urgent|important|דחוף|חשוב/i.test(m[1]) ? 'high' : 'normal' } }];
   }

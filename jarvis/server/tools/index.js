@@ -9,7 +9,8 @@ import { fetchPage } from './research.js';
 import { t } from '../lib/i18n.js';
 import { TOOL_SCHEMAS } from './schemas.js';
 import { evaluate, parseDate, daysUntil, convert } from './utility.js';
-import { toMinor } from '../wealth/calc.js';
+import { toMinor, goalProbability } from '../wealth/calc.js';
+import { gatherContext, contextBlock, withSources } from '../brain/context.js';
 
 const dt = (iso, lang) => new Date(iso).toLocaleString(lang === 'he' ? 'he-IL' : 'en-GB', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 
@@ -157,6 +158,14 @@ export function buildTools(s) {
 
   // ---------- language, vision, audio ----------
   def('llm.answer', { risk: RISK.READ, desc: 'Answer with the routed model', run: async (a, ctx) => {
+    // Personal context (RAG) from memory, notes, documents, tasks, calendar, shopping and habits.
+    const items = a.privacy === 'local_only' ? [] : gatherContext(s, a.prompt);
+    const block = contextBlock(items, ctx.lang);
+    if (a.deep) {
+      const r = await s.ai.deepThink({ prompt: a.prompt, lang: ctx.lang, context: block });
+      const src = withSources(r.text, items, ctx.lang);
+      return { data: { model: r.model, deep: true, sources: src.sources }, summary: src.text };
+    }
     const need = { complexity: a.complexity ?? 'medium', latency: ctx.channel === 'voice' || ctx.channel === 'watch' ? 'realtime' : 'normal', privacy: a.privacy };
     const route = router.route(need);
     // Providers that support page tools get JARVIS's tools; every call still passes the policy.
@@ -167,13 +176,15 @@ export function buildTools(s) {
 You can act through JARVIS tools (tasks, reminders, calendar, notes, habits, shopping, memory, family finances, smart home, calculator, dates, units).
 Use tools for anything about the user's own data instead of guessing. A tool result with executed:false or awaitingApproval means it has NOT happened: say so.
 Money is never moved: wealth tools only read or keep the household's records. Today is ${new Date().toISOString().slice(0, 10)}.` : ''}
+${block}
 Known context about the user (provenance in brackets; treat inferred/ai_suggestion as uncertain):
 ${(a.memories ?? []).map((m) => `- ${m.content} [${m.provenance}]`).join('\n') || '- none'}`,
       messages: [...(a.history ?? []), { role: 'user', content: a.prompt }],
       context: { memories: a.memories },
     });
     if (out.offline) throw new Error(t(ctx.lang, 'no_llm'));
-    return { data: { model: out.route.model, route: out.route }, summary: out.text };
+    const src = withSources(out.text, items, ctx.lang);
+    return { data: { model: out.route.model, route: out.route, sources: src.sources }, summary: src.text };
   } });
   def('vision.describe', { risk: RISK.READ, desc: 'Describe an image', run: async (a, ctx) => {
     const out = await router.complete({ complexity: 'medium', vision: true }, {
@@ -308,6 +319,35 @@ ${(a.memories ?? []).map((m) => `- ${m.content} [${m.provenance}]`).join('\n') |
     const r = await s.ai.invokeAgent(a.handle, a.message, ctx);
     return { data: r, summary: `@${r.agent}: ${r.text}` };
   } });
+
+  // ---------- brain: watchers, decisions, goal odds ----------
+  const metricLabel = (w) => w.label;
+  def('brain.watch_create', { risk: RISK.WRITE, desc: 'Create a watcher that monitors a metric and alerts when a condition becomes true', run: async (a, ctx) => {
+    const w = await s.watchers.fromText(a.text, ctx.lang);
+    const { value, state } = await s.watchers.evaluate(w).catch(() => ({ value: null, state: false }));
+    s.store.update('watchers', w.id, { lastValue: value, state, lastCheckedAt: new Date().toISOString() });
+    return { data: { id: w.id }, summary: ctx.lang === 'he' ? `נוצר צופה: "${w.label}" (${w.metric} ${w.op} ${w.value}). עכשיו: ${value ?? '–'}${state ? ' (התנאי כבר מתקיים)' : ''}. אבדוק כל כמה דקות ואתריע כשהתנאי יתקיים.` : `Watcher created: "${w.label}" (${w.metric} ${w.op} ${w.value}). Now: ${value ?? '–'}${state ? ' (already true)' : ''}. I'll check every few minutes and alert you when it becomes true.` };
+  }, verify: (r) => !!store.get('watchers', r.data.id) });
+  def('brain.watch_list', { risk: RISK.READ, desc: 'List watchers and their current values', run: async (a, ctx) => {
+    const l = s.watchers.list();
+    return { data: l, summary: l.length ? l.map((w) => `${w.state ? '⚡' : '·'} ${metricLabel(w)} — ${w.lastValue ?? '–'}${w.enabled ? '' : ' (off)'}`).join('\n') : (ctx.lang === 'he' ? 'אין צופים פעילים.' : 'No watchers.') };
+  } });
+  def('ai.decide', { risk: RISK.READ, desc: 'Decision engine: weighted criteria with an exact ranking and a robustness check', run: async (a, ctx) => {
+    const d = await s.ai.decide({ question: a.question, lang: ctx.lang });
+    const he2 = ctx.lang === 'he';
+    return { data: { id: d.id }, output: { type: 'decision', id: d.id, title: a.question.slice(0, 60) },
+      summary: `${he2 ? 'המלצה' : 'Recommendation'}: ${d.winner} (${d.ranking[0].score}/100${d.margin != null ? `, ${he2 ? 'פער' : 'margin'} ${d.margin}` : ''})\n${d.ranking.map((r, i) => `${i + 1}. ${r.option} — ${r.score}`).join('\n')}\n${d.criteria.map((c) => `${c.name} ×${c.weight}`).join(' · ')}\n${d.robust ? (he2 ? 'ההחלטה יציבה: שינוי משקלות לא משנה את המנצח.' : 'Robust: changing weights does not change the winner.') : `${he2 ? 'שימו לב: ההחלטה רגישה ל' : 'Sensitive to'}: ${d.sensitiveTo.join(', ') || (he2 ? 'פער קטן' : 'small margin')}`}` };
+  } });
+  def('wealth.goal_odds', { risk: RISK.READ, desc: 'Monte Carlo odds of reaching savings goals by their deadlines', run: W(async (a, ctx) => {
+    const goals = wealth.scoped('goals', ctx.householdId);
+    const fc = wealth.goals(ctx);
+    const he2 = ctx.lang === 'he';
+    const rows = goals.map((g) => {
+      const monthly = g.monthlyContribution ?? Math.max(0, fc.find((x) => x.goalId === g.id)?.monthlyContribution ?? 0);
+      return { goal: g.name, ...goalProbability(g, { monthly }) };
+    });
+    return { data: rows, summary: rows.length ? rows.map((r) => `- ${r.goal}: ${Math.round(r.probability * 100)}% ${he2 ? 'סיכוי להגיע ליעד בזמן' : 'chance to reach it on time'}${r.medianMonths != null ? ` · ${he2 ? 'צפי' : 'expected'} ${r.medianMonths} ${he2 ? 'חודשים' : 'months'} (${r.p10Months}–${r.p90Months})` : ''}${r.monthsLeft != null ? ` · ${he2 ? 'נשארו' : 'left'} ${r.monthsLeft}` : ''}`).join('\n') + `\n${he2 ? 'סימולציה של 2,000 תרחישים עם תנודתיות בהפקדות. זו הערכה, לא הבטחה.' : 'Simulation of 2,000 scenarios with varying deposits. An estimate, not a guarantee.'}` : t(ctx.lang, 'goals_none') };
+  }) });
 
   return T;
 }
