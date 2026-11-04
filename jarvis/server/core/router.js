@@ -87,7 +87,7 @@ export class ModelRouter {
           break;
         } finally {
           // Metadata only: no prompt or answer content is recorded.
-          this.onCall?.({ provider: r.provider, model: r.model, tier: r.tier, latencyMs: Date.now() - t0, inputTokens: out?.usage?.input_tokens ?? 0,
+          this.onCall?.({ provider: r.provider, model: r.model, tier: r.tier, task: need.task ?? (need.vision ? 'vision' : need.webSearch ? 'research' : need.latency === 'realtime' ? 'voice' : 'general'), complexity: need.complexity ?? null, latencyMs: Date.now() - t0, inputTokens: out?.usage?.input_tokens ?? 0,
             outputTokens: out?.usage?.output_tokens ?? 0, ok: !error && !out?.offline, offline: !!out?.offline, error });
         }
       }

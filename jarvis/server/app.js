@@ -27,6 +27,7 @@ import { Watchers } from './brain/watchers.js';
 import { Missions } from './brain/missions.js';
 import { Capabilities } from './brain/capabilities.js';
 import { AGENTS } from './agents/registry.js';
+import { LearningEngine } from './learn/engine.js';
 
 export async function createApp(opts = {}) {
   const { file = null, router = null, home = null, seed = true } = opts;
@@ -64,6 +65,8 @@ export async function createApp(opts = {}) {
   s.agentsFor = (tool) => AGENTS.filter((a) => a.tools.includes(tool)).map((a) => a.id);
   s.capabilities.restore();
   s.router.setPreferences?.(store.getMeta('modelPrefs', {}));
+  s.learn = new LearningEngine(s);
+  s.core.learn = s.learn;
   s.watchers = new Watchers(s);
   s.automations = new Automations({ ...s, ctx: { householdId, actor: 'automation' } });
   return s;
@@ -71,7 +74,7 @@ export async function createApp(opts = {}) {
 
 /** Background loop: reminders, deferred notifications, scheduled workflows, proactive scan. */
 export function startScheduler(s, { everyMs = 30_000 } = {}) {
-  let lastProactive = 0; let lastWatch = 0;
+  let lastProactive = 0; let lastWatch = 0; let lastLearn = Date.now();
   const tick = async () => {
     try {
       for (const r of s.productivity.dueReminders()) {
@@ -85,6 +88,7 @@ export function startScheduler(s, { everyMs = 30_000 } = {}) {
       await s.automations.tick();
       if (Date.now() - lastWatch > 5 * 60e3) { lastWatch = Date.now(); await s.watchers.tick(); }
       await s.missions.tick();
+      if (Date.now() - lastLearn > 60 * 60e3) { lastLearn = Date.now(); await s.learn.cycle(); }
       const prefs = s.store.getMeta('proactive', {});
       if (s.privacy.get().proactiveEnabled && Date.now() - lastProactive > 60 * 60e3) {
         lastProactive = Date.now();

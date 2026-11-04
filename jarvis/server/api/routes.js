@@ -235,6 +235,50 @@ export function createApi(s, token, opts = {}) {
     return analyzeRequest(String(req.body.text ?? ''), parse(String(req.body.text ?? ''), {}), s.tools);
   });
 
+  // --- AUTONOMOUS LEARNING & SELF-IMPROVEMENT API v1 ---
+  const L = '/api/v1/learning';
+  const owner = (req) => (req.actor === 'user' ? 'user' : req.actor);
+  r('GET', `${L}/dashboard`, () => s.learn.dashboard());
+  r('GET', `${L}/mode`, () => s.learn.modes());
+  r('PUT', `${L}/mode`, (req) => s.learn.setMode(req.body.mode, owner(req)));
+  r('GET', `${L}/performance`, (req) => s.learn.performance(Object.fromEntries(['days', 'channel', 'agent', 'tool', 'from', 'to'].map((k) => [k, req.query.get(k) ?? undefined]))));
+  r('POST', `${L}/performance/snapshot`, () => s.learn.snapshot());
+  r('GET', `${L}/signals`, (req) => s.learn.signals({ windowDays: Number(req.query.get('days') ?? 14) }));
+  r('POST', `${L}/analyze`, (req) => s.learn.analyze({ windowDays: Number(req.body.days ?? 14), min: Math.max(2, Number(req.body.min ?? 3)) }));
+  r('GET', `${L}/patterns`, () => s.learn.patterns());
+  r('POST', `${L}/patterns/:id/dismiss`, (req, p) => s.learn.dismissPattern(p.id, owner(req)));
+  r('GET', `${L}/proposals`, (req) => s.learn.proposals(req.query.get('status') ?? undefined));
+  r('POST', `${L}/proposals`, (req) => s.learn.createProposal({ ...req.body, createdBy: owner(req), type: 'manual' }));
+  r('GET', `${L}/proposals/:id`, (req, p) => s.learn.proposal(p.id));
+  r('POST', `${L}/proposals/:id/experiment`, (req, p) => s.learn.experiment(p.id, owner(req)));
+  r('POST', `${L}/proposals/:id/approve`, (req, p) => s.learn.approve(p.id, owner(req)));
+  r('POST', `${L}/proposals/:id/reject`, (req, p) => s.learn.reject(p.id, owner(req), req.body.reason));
+  r('GET', `${L}/experiments`, () => s.learn.experiments());
+  r('GET', `${L}/experiments/:id`, (req, p) => s.learn.experimentReport(p.id));
+  r('GET', `${L}/deployments`, () => s.learn.deployments());
+  r('POST', `${L}/deployments/:id/rollback`, (req, p) => s.learn.rollback({ deploymentId: p.id }, owner(req)));
+  r('GET', `${L}/versions`, () => s.learn.versions.targets());
+  r('GET', `${L}/versions/:target`, (req, p) => s.learn.versions.history(decodeURIComponent(p.target)));
+  r('POST', `${L}/versions/:target/rollback`, (req, p) => s.learn.rollback({ target: decodeURIComponent(p.target), toVersion: req.body.version ?? null }, owner(req)));
+  r('POST', `${L}/feedback`, (req) => s.learning.feedback(req.body));
+  r('GET', `${L}/profile`, () => s.learn.profile());
+  r('GET', `${L}/profile/export`, () => s.learn.exportProfile());
+  r('PUT', `${L}/profile/categories/:id`, (req, p) => s.learn.setCategoryEnabled(p.id, req.body.enabled !== false, owner(req)));
+  r('POST', `${L}/profile/items/:id/approve`, (req, p) => s.learn.approveProfileItem(p.id, owner(req)));
+  r('PATCH', `${L}/profile/items/:id`, (req, p) => s.learn.correctProfileItem(p.id, req.body.value, owner(req)));
+  r('DELETE', `${L}/profile/items/:id`, (req, p) => s.learn.deleteProfileItem(p.id, owner(req)));
+  r('GET', `${L}/models`, () => s.learn.modelBenchmarks());
+  r('POST', `${L}/models/benchmark`, () => s.learn.modelBenchmarks({ persist: true }));
+  r('GET', `${L}/agents`, () => s.learn.agentEvaluations());
+  r('GET', `${L}/research`, () => s.learn.research());
+  r('GET', `${L}/freshness`, () => s.learn.freshness());
+  r('GET', `${L}/fwos/categorization`, () => s.learn.fwosCategorization());
+  r('POST', `${L}/fwos/categorization/:id/apply`, (req, p) => s.learn.applyCategorization(decodeURIComponent(p.id), owner(req)));
+  r('GET', `${L}/suggestions`, (req) => s.learn.suggestions({ all: req.query.get('all') === '1' }));
+  r('POST', `${L}/suggestions/:id/:action`, (req, p) => s.learn.suggestionAction(decodeURIComponent(p.id), p.action, owner(req), { until: req.body.until }));
+  r('POST', `${L}/cycle`, () => s.learn.cycle());
+  r('GET', `${L}/audit`, () => s.learn.audit());
+
   // --- notes & habits ---
   r('GET', '/api/notes', (req) => (req.query.get('q') ? s.productivity.searchNotes(req.query.get('q')) : s.productivity.listNotes()));
   r('POST', '/api/notes', (req) => s.productivity.addNote(req.body));

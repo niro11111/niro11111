@@ -79,6 +79,23 @@ try {
     }
     assert.deepEqual(errors, []);
   });
+  await check('self-improvement: recurring failure → proposal → sandbox test → deploy → rollback, all tabs render', async () => {
+    await page.goto(`${url}#conversation`); await page.waitForSelector('#view .composer');
+    for (const m of ['תמונת מצב כספית', 'מצב כספי', 'מה המצב הכספי שלי']) await ask(page, m, /מודל|model/);
+    await page.goto(`${url}#learn`); await page.waitForSelector('#lCycle', { timeout: 15000 });
+    await page.click('#lCycle'); await page.waitForTimeout(2500);
+    await page.click('[data-ltab=C]'); await page.waitForSelector('[data-pok]', { timeout: 15000 });
+    await page.click('[data-pok]'); await page.waitForTimeout(300);
+    await page.click('.dlg-yes');
+    await page.waitForSelector('[data-drb]', { timeout: 10000 });
+    await page.goto(`${url}#conversation`); await page.waitForSelector('#view .composer');
+    await ask(page, 'תמונת מצב כספית', /הכנסות|הוצאות|תזרים|₪/);
+    await page.goto(`${url}#learn`); await page.waitForSelector('[data-ltab]'); await page.click('[data-ltab=C]'); await page.waitForSelector('[data-drb]');
+    await page.click('[data-drb]'); await page.click('.dlg-yes'); await page.waitForFunction(() => !document.querySelector('[data-drb]'), null, { timeout: 10000 });
+    if (process.env.SHOT) { await page.click('[data-ltab=C]'); await page.waitForTimeout(500); await page.click('[data-prep]'); await page.waitForTimeout(500); await page.screenshot({ path: process.env.SHOT, fullPage: true }); }
+    for (const tb of ['A', 'B', 'D', 'E', 'F', 'G']) { await page.goto(`${url}#learn`); await page.waitForSelector('[data-ltab]'); await page.click(`[data-ltab=${tb}]`); await page.waitForTimeout(500); }
+    assert.deepEqual(errors, []);
+  });
   await check('dictation mode sends automatically after a pause', async () => {
     await page.goto(`${url}#conversation`); await page.waitForSelector('#view .composer');
     await page.click('.dict-btn');

@@ -2,6 +2,8 @@
 
 The central intelligence layer of JARVIS. It is not one big prompt. It combines deterministic software (intent parsing, permissions, math, missions, verification) with language models used through a provider-independent gateway, and only where a model adds value.
 
+Self-improvement engine: [`LEARNING.md`](LEARNING.md).
+
 Live status of every capability: [`BRAIN_COVERAGE.md`](BRAIN_COVERAGE.md). Regenerate it with `npm run brain:report`. It is also available in the app (Brain Center → Coverage) and at `GET /api/v1/brain/coverage`.
 
 ## 1. Phase 1 audit (what existed before this phase)
@@ -105,6 +107,8 @@ Event contract v1 (`GET events` returns the schema): `request.received`, `missio
 It measures pass rate, latency, permission violations and false successes. Run it from the Brain Center or with `POST /api/v1/brain/evaluations`. Current result: 15/15, 0 violations, 0 false successes.
 
 ## 7. Roadmap (next phases)
+
+Done since: the Autonomous Learning & Self-Improvement Engine ([`LEARNING.md`](LEARNING.md)).
 
 1. **Knowledge graph:** entity extraction and relationships across memories, notes and missions.
 2. **Multi-user households:** per-member context isolation and family roles.

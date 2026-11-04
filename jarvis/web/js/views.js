@@ -5,6 +5,7 @@ import { coreHTML, setCoreState } from './core.js';
 import { chatPanel, renderChats, clearChat, chatEvents } from './chat.js';
 import { voice, startListening, stopAll, saveVoicePrefs, toggleListening } from './voice.js';
 import { lineChart, donut, gauge } from './charts.js';
+import { learnView } from './learnview.js';
 
 let cleanups = [];
 export function cleanup() { cleanups.forEach((f) => f()); cleanups = []; }
@@ -551,7 +552,7 @@ async function brainExtras(v) {
 }
 
 export const VIEWS = [
-  ['sec_core'], ['command', '◉', command], ['conversation', '◍', conversation], ['map', '⌬', map], ['agents', '⎔', agents], ['brain', '🧠', brainView], ['missions', '◈', missionsView], ['ai', '✦', aiStudio], ['automations', '⟳', automations], ['knowledge', '⛁', knowledge],
+  ['sec_core'], ['command', '◉', command], ['conversation', '◍', conversation], ['map', '⌬', map], ['agents', '⎔', agents], ['brain', '🧠', brainView], ['learn', '⟲', learnView], ['missions', '◈', missionsView], ['ai', '✦', aiStudio], ['automations', '⟳', automations], ['knowledge', '⛁', knowledge],
   ['sec_life'], ['planner', '✓', planner], ['wealth', '₪', wealth], ['home', '⌂', home],
   ['sec_system'], ['devices', '⌚', devices], ['console', '⌨', consoleView], ['privacy', '⛨', privacy], ['preferences', '⚙', settings],
 ];

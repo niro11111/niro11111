@@ -57,6 +57,18 @@ export const COVERAGE = [
   ['§25 API & events', 'Versioned API /api/v1/brain and typed event contracts v1', 'implemented-tested', 'api/routes.js · brain/events.js · tests/brain2'],
   ['§26 Security', 'Prompt-injection, permission, duplicate, tool-isolation tests', 'implemented-tested', 'tests/*, eval suite'],
   ['§26 Security', 'Load tests', 'planned', ''],
+  ['§L Learning', 'Performance monitoring with daily history and filters (channel, agent, tool, dates)', 'implemented-tested', 'learn/engine.js performance/snapshot · tests/learning'],
+  ['§L Learning', 'Error analysis: 13 failure classes, recurring patterns, evidence, "insufficient evidence" when unsupported', 'implemented-tested', 'learn/classify.js, engine.hypothesis · tests/learning AC1-2'],
+  ['§L Learning', 'Improvement proposals → isolated sandbox experiments → baseline vs candidate comparison with regression detection', 'implemented-tested', 'learn/experiments.js · tests/learning AC3-7'],
+  ['§L Learning', 'Approval-gated deployment, versioned prompts/aliases/routing/style/workflows, rollback, learning audit', 'implemented-tested', 'learn/versions.js · tests/learning AC8-12'],
+  ['§L Learning', 'Optimization modes 1-4 (default 2); protected areas the engine can never change; only the owner changes the mode', 'implemented-tested', 'learn/engine.js MODES, versions.js PROTECTED · tests/learning'],
+  ['§L Learning', 'Structured feedback → preference proposals (source, confidence, observedAt, scope, expiry); never from one example', 'implemented-tested', 'brain/learning.js, engine.onFeedback · tests/learning'],
+  ['§L Learning', 'Personalization profile: inspect, correct, delete, disable categories, export', 'implemented-tested', 'engine.profile · tests/learning'],
+  ['§L Learning', 'Model benchmarks per task category and agent evaluation from live metrics', 'implemented-tested', 'engine.modelBenchmarks/agentEvaluations (live accuracy needs labelled answers)'],
+  ['§L Learning', 'Benchmarks of live model answer quality in experiments', 'blocked', 'sandbox has no model by design; needs a labelled answer set and a test key'],
+  ['§L Learning', 'Capability R&D (unmet requests, roadmap), knowledge freshness, proactive suggestions (approve/postpone/dismiss)', 'implemented-tested', 'engine.research/freshness/suggestions · tests/learning'],
+  ['§L Learning', 'Family Wealth OS: categorization suggestions only, 2+ consistent examples, applied after approval', 'implemented-tested', 'engine.fwosCategorization · tests/learning'],
+  ['§L Learning', 'Self-improvement dashboard (screens A-G)', 'implemented-tested', 'web/js/learnview.js · e2e webapp'],
 ];
 
 export function coverageReport() {

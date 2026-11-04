@@ -5,11 +5,15 @@
 //  2. Feedback (thumbs up/down + optional note) on answers is recorded; repeated signals
 //     produce adaptation suggestions (e.g. shorter answers) the user can apply in one click.
 import { now } from '../lib/store.js';
+import { FEEDBACK_CATEGORIES } from '../learn/classify.js';
 
 const PATTERNS = [
   /\b(?:i (?:really )?(?:prefer|like|love|hate|dislike|don't like|do not like|always|never|usually)|my favou?rite)\b[^.!?\n]{3,120}/i,
   /(?:אני (?:מאוד )?(?:מעדיף|מעדיפה|אוהב|אוהבת|שונא|שונאת|לא אוהב|לא אוהבת|תמיד|אף פעם לא|בדרך כלל)|ה(?:\S+) האהוב(?:ה)? עליי)[^.!?\n]{2,120}/,
 ];
+
+const CATEGORY_HINTS = [[/ארוך|long|verbose|יותר מדי מילים/i, 'too_long'], [/קצר מדי|too short|more detail|פירוט|מפורט/i, 'too_short'], [/english|hebrew|אנגלית|עברית|שפה/i, 'language'], [/לא הבנת|misunderst|not what i asked|לא מה שביקשתי/i, 'misunderstood'], [/wrong|incorrect|לא נכון|שגוי|טעות/i, 'accuracy'], [/slow|איטי/i, 'too_slow'], [/tone|טון|גס|רשמי/i, 'tone']];
+export const inferCategory = (note) => CATEGORY_HINTS.find(([re]) => re.test(String(note ?? '')))?.[1] ?? null;
 
 export class Learning {
   constructor(s) { this.s = s; }
@@ -35,11 +39,17 @@ export class Learning {
   approve(id) { return this.s.memory.correct(id, { provenance: 'user_statement' }, 'user'); }
   reject(id) { return this.s.memory.delete(id, 'user'); }
 
-  feedback({ taskId, rating, note = '' }) {
+  feedback({ taskId, rating, note = '', category = null, correction = '' }) {
     if (![1, -1].includes(Number(rating))) throw Object.assign(new Error('rating must be 1 or -1'), { status: 400 });
+    if (category && !FEEDBACK_CATEGORIES.includes(category)) throw Object.assign(new Error(`category must be one of ${FEEDBACK_CATEGORIES.join(', ')}`), { status: 400 });
     const task = this.s.store.get('tasks_exec', taskId);
-    const rec = this.s.store.insert('feedback', { taskId, rating: Number(rating), note: String(note).slice(0, 500), tools: task?.plan?.tools ?? [], agents: task?.plan?.agents ?? [], at: now() });
-    this.s.audit.log('user', 'learning.feedback', { taskId, rating: rec.rating });
+    // No category chosen: infer one from an explicit note (never from silence).
+    const inferred = !category && Number(rating) < 0 ? inferCategory(note) : null;
+    category = category ?? inferred;
+    const rec = this.s.store.insert('feedback', { taskId, rating: Number(rating), note: String(note).slice(0, 500), category, categoryInferred: !!inferred, correction: String(correction ?? '').slice(0, 500), lang: task?.lang ?? null, channel: task?.channel ?? null, tools: task?.plan?.tools ?? [], agents: task?.plan?.agents ?? [], at: now() });
+    this.s.audit.log('user', 'learning.feedback', { taskId, rating: rec.rating, category });
+    const proposal = this.s.learn?.onFeedback(rec);
+    if (proposal) rec.profileProposal = { id: proposal.id, key: proposal.key, value: proposal.value };
     return rec;
   }
 

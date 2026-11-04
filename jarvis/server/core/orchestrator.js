@@ -101,7 +101,7 @@ export class Core {
     try {
       transition(task, S.PLANNING); this.emit(task);
       const resolved = [];
-      for (const st of parse(message, convo)) resolved.push(...(await this.resolve(st, convo)));
+      for (const st of this.learned(parse(message, convo), message)) resolved.push(...(await this.resolve(st, convo)));
       emitBrain(this.store, 'request.received', { taskId: task.id, kind: 'pending-analysis', lang });
       const out = await this.plan(task, resolved, convo, message);
       this.recordVoice(task, started);
@@ -109,6 +109,12 @@ export class Core {
     } catch (e) {
       return this.fail(task, e);
     }
+  }
+
+  /** Learned phrases (versioned, read-only targets) apply only where the deterministic parser had no rule. */
+  learned(steps, message) {
+    if (steps.length === 1 && steps[0].tool === 'llm.answer' && !steps[0].args?.deep) return this.learn?.aliasFor(message) ?? steps;
+    return steps;
   }
 
   /** Analysis -> clarification or plan -> permissions -> run. */
