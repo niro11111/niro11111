@@ -381,6 +381,35 @@ main{overflow-wrap:break-word}
 .ecCard .ltr a{word-break:break-all}
 .pill.ecOff{background:var(--accent);color:var(--accent-ink)}
 .ecCard .tick{margin-top:6px}
+
+/* workspace */
+.tblwrap{overflow-x:auto;max-width:100%}
+.wtColors{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.wtC{display:flex;gap:8px;align-items:center;font-weight:400;font-size:.86rem;min-width:0}
+.wtC input{width:38px;height:30px;padding:0;border:1px solid var(--line);border-radius:6px;flex:none;background:none}
+.wtC span{min-width:0;overflow-wrap:anywhere}
+.wtPrev{direction:ltr;text-align:left;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.82rem;border-radius:10px;padding:10px 12px;margin-bottom:8px;line-height:1.6;overflow-x:auto;border:1px solid var(--line)}
+.wtPrev div{white-space:pre-wrap;overflow-wrap:anywhere}
+.wtBox{border:1px solid;border-radius:6px;padding:2px 8px;margin:4px 0}
+.kbBar{align-items:end;gap:10px}
+.kbBar label{display:grid;gap:4px;font-weight:700;font-size:.88rem}
+.kbTbl td{vertical-align:middle}
+.kbIn{width:9.5em;max-width:100%}
+.kbCmds{display:grid;gap:6px;margin:6px 0}
+.kbCmd{gap:6px;align-items:center;flex-wrap:wrap}
+.kbCmd input{width:8em;max-width:40vw}
+.kbIssues{list-style:none;padding:0;margin:8px 0;display:grid;gap:4px}
+.kbIssues li{border-radius:8px;padding:4px 10px;border:1px solid var(--line);background:var(--surface)}
+.kbIssues li.err{border-color:var(--red);color:var(--red)}
+.kbIssues li.warn{border-color:var(--amber)}
+.kbIssues li.ok{border-color:var(--ok);color:var(--ok)}
+.slbPrev{direction:ltr;text-align:left;background:#16181d;color:#e6e6e6;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.82rem;border-radius:10px;padding:8px;margin-bottom:8px;overflow-wrap:anywhere}
+.slbPrev .slG{color:#4eba65}.slbPrev .slY{color:#ffc107}.slbPrev .slR{color:#ff6b80}.slbPrev .slSep{color:#777}
+.cfWhy{display:grid;gap:4px;padding-inline-start:18px;font-size:.92rem}
+.ecDeep{margin-top:6px;border:1px solid var(--line);border-radius:8px;padding:4px 10px;background:var(--surface-2)}
+.ecDeep summary{cursor:pointer;font-weight:700}
+.ecDeep p{font-size:.92rem}
+@media (max-width:700px){.wtColors{grid-template-columns:minmax(0,1fr)}}
 </style>
 
 <div class="app" dir="rtl" lang="he">
@@ -2153,7 +2182,7 @@ fly deploy</pre></div></li>
 <section class="mod" id="ecosystem" data-level="ארגז הכלים של המומחה" data-title="חבילות והרחבות מ-GitHub">
   <div class="eyebrow"></div>
   <h1>חבילות והרחבות מ-GitHub שמשדרגות את Claude Code</h1>
-  <p class="lead">קטלוג של Plugins, Skills, שרתי MCP, כלים ו-SDK מ-GitHub. כל פקודת התקנה נבדקה מול ה-README של הריפו בנובמבר 2026. בוחרים מה מתאים לכם ומקבלים סקריפט התקנה אחד וקובץ ‎.mcp.json לשיתוף עם הצוות. לפני שמתקינים משהו שלא מ-Anthropic, עוברים על רשימת הבטיחות בסוף הפרק.</p>
+  <p class="lead">קטלוג של כ-40 Plugins, Skills, שרתי MCP, כלים, ממשקים, מתודולוגיות ותוספים לעורכים מ-GitHub. כל פקודת התקנה נבדקה מול ה-README של הריפו בנובמבר 2026. בוחרים מה מתאים לכם ומקבלים סקריפט התקנה אחד וקובץ ‎.mcp.json לשיתוף עם הצוות. לפני שמתקינים משהו שלא מ-Anthropic, עוברים על רשימת הבטיחות בסוף הפרק.</p>
   <div class="row ecBar">
     <label>חיפוש<input type="text" id="ecQ" placeholder="playwright, skills, עלות…"></label>
     <label>ערכה מומלצת<select id="ecKit"><option value="">בחרו ערכה…</option></select></label>
@@ -2176,6 +2205,99 @@ fly deploy</pre></div></li>
     <li><b>בודקים מה נוסף</b>: אחרי התקנה מריצים <code>/plugin</code>, <code>/mcp</code>, <code>/hooks</code> ו-<code>/agents</code> ורואים בדיוק מה נכנס.</li>
   </ol>
   <div class="quiz" data-q="ecosystem"></div>
+</section>
+
+<section class="mod" id="workspace" data-level="ארגז הכלים של המומחה" data-title="סביבת עבודה מושלמת: מראה, קיצורים ונוחות">
+  <div class="eyebrow"></div>
+  <h1>סביבת עבודה מושלמת: מראה, קיצורים ונוחות</h1>
+  <p class="lead">כל מה שאפשר לשנות במראה ובתחושה של Claude Code, לפי התיעוד הרשמי: ערכת צבעים משלכם, קיצורי מקלדת חדשים (כולל צירופים כמו <code class="ltr">ctrl+k ctrl+s</code>), שורת סטטוס שאתם מרכיבים, הגדרות נוחות, הגדרת טרמינל ומאמן קיצורים. כל בונה מייצר קובץ מוכן, בודק שגיאות ומסביר מה כל שורה עושה.</p>
+
+  <h2>1. ערכת צבעים משלכם</h2>
+  <p>חוץ מ-6 הערכות המובנות (<code>dark</code>, <code>light</code>, גרסאות <code>daltonized</code> לעיוורון צבעים וגרסאות <code>ansi</code> שמשתמשות בצבעי הטרמינל), אפשר ליצור ערכה משלכם: קובץ JSON ב-<code class="ltr">~/.claude/themes/</code>, שמתחיל מערכה בסיסית ודורס רק את הצבעים שבחרתם. הקובץ נטען מחדש אוטומטית, ובוחרים אותו ב-<code>/theme</code>.</p>
+  <div class="grid2">
+    <div class="form">
+      <label>שם הערכה<input type="text" id="wtName" value="My Theme"></label>
+      <label>בסיס<select id="wtBase"><option>dark</option><option>light</option><option>dark-daltonized</option><option>light-daltonized</option><option>dark-ansi</option><option>light-ansi</option></select></label>
+      <label>להתחיל מערכה מוכנה<select id="wtPreset"><option value="">בחרו…</option></select></label>
+      <div class="wtColors" id="wtColors"></div>
+    </div>
+    <div>
+      <div class="wtPrev" id="wtPrev" role="img" aria-label="תצוגה מקדימה של הטרמינל בערכת הצבעים"></div>
+      <div class="code" data-lang="json" id="wtOut"><pre></pre></div>
+      <div class="row"><button class="btn" type="button" id="wtDl">הורדת קובץ הערכה</button></div>
+    </div>
+  </div>
+
+  <h2>2. קיצורי מקלדת משלכם</h2>
+  <p>הקיצורים נשמרים ב-<code class="ltr">~/.claude/keybindings.json</code> (הפקודה <code>/keybindings</code> פותחת אותו), ושינויים נקלטים בלי להפעיל מחדש. כל קיצור שייך ל<b>הקשר</b> (Chat, Global, Task…), ו-<code>null</code> מבטל קיצור קיים. אפשר גם לקשור מקש לפקודת סלאש: <code class="ltr">"meta+k": "command:compact"</code>. הבונה בודק מקשים שמורים, התנגשויות עם tmux ו-screen, ותחביר צירופים.</p>
+  <div class="row kbBar"><label>תבנית<select id="kbPreset"><option value="">בחרו…</option></select></label><button class="btn sm" type="button" id="kbReset">איפוס</button></div>
+  <div class="tblwrap"><table class="kbTbl"><thead><tr><th scope="col">פעולה</th><th scope="col">הקשר</th><th scope="col">ברירת מחדל</th><th scope="col">המקש שלכם</th><th scope="col">ביטול</th></tr></thead><tbody id="kbRows"></tbody></table></div>
+  <h3>קישור פקודות סלאש למקשים</h3>
+  <div class="kbCmds" id="kbCmds"></div>
+  <button class="btn sm" type="button" id="kbAddCmd">+ פקודה נוספת</button>
+  <ul class="kbIssues" id="kbIssues" aria-live="polite"></ul>
+  <div class="code" data-lang="json" data-file="~/.claude/keybindings.json" id="kbOut"><pre></pre></div>
+  <div class="row"><button class="btn" type="button" id="kbDl">הורדת keybindings.json</button></div>
+  <details class="box"><summary><b>כללים שכדאי לדעת</b></summary>
+    <ul>
+      <li><b>שמורים ולא ניתנים לשינוי:</b> <kbd>Ctrl+C</kbd>, <kbd>Ctrl+D</kbd>, וגם <kbd>Ctrl+M</kbd>, <kbd>Ctrl+[</kbd>, <kbd>Ctrl+I</kbd> ו-<kbd>Ctrl+H</kbd>, שהטרמינל שולח כ-Enter, Escape, Tab ו-Backspace.</li>
+      <li><b>התנגשויות עם הטרמינל:</b> <kbd>Ctrl+B</kbd> הוא מקש הקידומת של tmux (לוחצים פעמיים), <kbd>Ctrl+A</kbd> של screen, ו-<kbd>Ctrl+Z</kbd> משהה את התהליך.</li>
+      <li><b>צירופים:</b> מקשים מופרדים ברווח, וכל מקש צריך להגיע תוך 3 שניות מהקודם.</li>
+      <li><b>מקשי שינוי:</b> <code>ctrl</code>, <code>shift</code>, <code>alt</code> (או <code>meta</code>/<code>option</code>) ו-<code>cmd</code>. ב-macOS, כדי ש-<kbd>Option</kbd> יעבוד כ-meta, צריך להגדיר את הטרמינל (סעיף 5).</li>
+      <li><b>מקשי Vim</b> לא משתנים כאן. בשביל זה יש את ההגדרה <code>vimInsertModeRemaps</code> (סעיף 4).</li>
+      <li><b>לבדיקה:</b> <code class="ltr">claude --debug</code> מציג אזהרות על JSON שגוי, פעולה לא מוכרת או קיצור כפול.</li>
+    </ul>
+  </details>
+
+  <h2>3. בונה שורת סטטוס</h2>
+  <p>שורת הסטטוס היא סקריפט ש-Claude Code מריץ אחרי כל הודעה. הוא מקבל ב-stdin קובץ JSON עם מצב הסשן ומדפיס שורה, ואפשר גם כמה שורות, עם צבעי ANSI וקישורים. בוחרים את השדות ורואים תצוגה מקדימה עם נתונים לדוגמה.</p>
+  <div class="grid2">
+    <div class="form"><b>שדות</b><div class="chk" id="slbFields"></div>
+      <label>מפריד<select id="slbSep"><option value=" │ ">│</option><option value=" · ">·</option><option value="  ">רווח</option><option value=" | ">|</option></select></label>
+      <label class="tick"><input type="checkbox" id="slbColor" checked> צבעים לפי מצב (ירוק, צהוב, אדום)</label>
+      <label>ריווח מהשוליים (padding)<input type="number" id="slbPad" min="0" max="8" value="0"></label>
+      <label>רענון כל X שניות (ריק = רק אחרי הודעות)<input type="number" id="slbRef" min="1" placeholder="—"></label>
+    </div>
+    <div>
+      <div class="slbPrev" id="slbPrev"></div>
+      <div class="code" data-lang="bash" data-file="~/.claude/statusline.sh" id="slbOut"><pre></pre></div>
+      <div class="code" data-lang="json" data-file="~/.claude/settings.json" id="slbSet"><pre></pre></div>
+      <div class="row"><button class="btn" type="button" id="slbDl">הורדת statusline.sh</button></div>
+      <p class="hint">התקנה: שומרים, <code class="ltr">chmod +x ~/.claude/statusline.sh</code>, ומוסיפים את ההגדרה. צריך jq. דרך מהירה יותר: <code class="ltr">/statusline show model, folder, branch and context %</code> ו-Claude יכתוב את הסקריפט בעצמו.</p>
+    </div>
+  </div>
+
+  <h2>4. הגדרות נוחות</h2>
+  <div class="grid2">
+    <div class="form" id="cfForm">
+      <label>שפת התשובות (language)<input type="text" id="cfLang" class="ltr" value="hebrew"></label>
+      <label>סגנון פלט (outputStyle)<select id="cfStyle"><option value="">ברירת מחדל</option><option>Proactive</option><option>Concise</option><option>Explanatory</option><option>Learning</option></select></label>
+      <label>מצב עריכה (editorMode)<select id="cfEditor"><option value="">רגיל</option><option value="vim">vim</option></select></label>
+      <label class="tick"><input type="checkbox" id="cfJj"> ב-vim: ‏<code>jj</code> יוצא למצב NORMAL</label>
+      <label class="tick"><input type="checkbox" id="cfBell" checked> התראה בצליל הטרמינל כש-Claude מחכה לכם</label>
+      <label class="tick"><input type="checkbox" id="cfBang"> אחרי פקודת <code>!</code>, רק להוסיף את הפלט להקשר בלי תגובה מ-Claude</label>
+      <label class="tick"><input type="checkbox" id="cfFull"> מצב מסך מלא בלי הבהובים (CLAUDE_CODE_NO_FLICKER)</label>
+      <label>שורות ייחוס ב-commit וב-PR (attribution)<select id="cfAttr"><option value="">ברירת מחדל</option><option value="custom">טקסט משלי</option><option value="off">בלי ייחוס בכלל</option></select></label>
+      <label id="cfAttrL" hidden>הטקסט ל-commit<input type="text" id="cfAttrText" class="ltr" value="Assisted-by: Claude Code"></label>
+      <label>הודעות פתיחה לצוות (שורה לכל הודעה)<textarea id="cfAnn" rows="2" placeholder="ברוכים הבאים! קראו את docs/onboarding.md"></textarea></label>
+    </div>
+    <div>
+      <div class="code" data-lang="json" data-file="~/.claude/settings.json" id="cfOut"><pre></pre></div>
+      <ul class="cfWhy" id="cfWhy"></ul>
+    </div>
+  </div>
+
+  <h2>5. הגדרת הטרמינל</h2>
+  <div class="tabs" id="tmTabs"></div>
+  <div id="tmBody"></div>
+
+  <h2>6. כל הקיצורים ומאמן קיצורים</h2>
+  <div class="row"><label>חיפוש קיצור<input type="text" id="scQ" placeholder="model, תמונה, היסטוריה…"></label></div>
+  <div class="tblwrap"><table><thead><tr><th scope="col">מקשים</th><th scope="col">מה זה עושה</th><th scope="col">קבוצה</th></tr></thead><tbody id="scRows"></tbody></table></div>
+  <h3>מאמן קיצורים</h3>
+  <div class="qgCard" id="scDrill" aria-live="polite"></div>
+  <div class="row"><button class="btn pri" type="button" id="scNext">שאלה הבאה</button><span class="hint" id="scScore"></span></div>
+  <div class="quiz" data-q="workspace"></div>
 </section>
 
 <section class="mod" id="gallery" data-level="ארגז הכלים של המומחה" data-title="גלריית התאמה אישית">
@@ -2851,6 +2973,12 @@ const Q = {
     ["איך מתקינים Plugin מ-marketplace?", ["npm install","‏/plugin install <name>@<marketplace>","מעתיקים קבצים ידנית","‏claude mcp add"], 1, "קודם מוסיפים את ה-marketplace (אם הוא לא הרשמי), ואז מתקינים לפי שם@marketplace."],
     ["למה לקרוא את הקוד של Plugin מהקהילה לפני התקנה?", ["כדי ללמוד JavaScript","Plugin יכול להוסיף Hooks שרצים אוטומטית עם ההרשאות שלכם","זה לא נחוץ","כדי לתת לו כוכב"], 1, "Hooks רצים על המחשב שלכם בלי שתאשרו כל פעם."],
     ["איך משתפים שרתי MCP עם כל הצוות בלי לחשוף סודות?", ["שולחים טוקנים בצ'אט","‏.mcp.json בריפו עם ${VAR} למשתני סביבה","מצלמים את המסך","כל אחד ממציא הגדרה"], 1, "הקובץ ב-git, הסודות בסביבה של כל מפתח."]
+  ],
+  workspace: [
+    ["איפה נשמרים קיצורי מקלדת מותאמים?", ["ב-CLAUDE.md","‏~/.claude/keybindings.json","ב-.bashrc","אי אפשר לשנות קיצורים"], 1, "‏/keybindings פותח את הקובץ, ושינויים נקלטים בלי להפעיל מחדש."],
+    ["איך מבטלים קיצור ברירת מחדל?", ["מוחקים את Claude Code","קובעים לו את הערך null","כותבים none","אי אפשר"], 1, "למשל \"ctrl+s\": null."],
+    ["איזה קיצור אי אפשר לשנות?", ["Ctrl+G","Ctrl+C","Ctrl+S","Alt+P"], 1, "‏Ctrl+C ו-Ctrl+D שמורים, וגם מקשים שהטרמינל שולח כ-Enter, Tab ו-Escape."],
+    ["איפה שמים ערכת צבעים משלכם?", ["‏~/.claude/themes/<name>.json","ב-CSS","ב-package.json","ב-git config"], 0, "קובץ עם base ו-overrides, ובוחרים אותו ב-/theme."]
   ],
   promptpro: [
     ["מתי משתמשים בפרה-מורטם?", ["אחרי שהכול נשבר","לפני שינוי גדול, כדי לצפות כשלים מראש","אף פעם","רק בבדיקות"], 1, "מדמיינים כישלון ומונעים אותו מראש."],
@@ -5667,6 +5795,103 @@ const ECO_KITS = [
   ["בונים סוכנים ו-MCP", ["sdkpy","sdkts","inspector","cookbooks","fetch"]],
   ["מסמכים ותוכן", ["skills","fetch","memory"]]
 ];
+// Deep explanation for every catalog entry: how it works, how to check it, how to remove it.
+const ECO_DEEP = {
+  official:"marketplace הוא ריפו עם קטלוג של Plugins. כל Plugin יכול להכיל פקודות, Skills, Subagents, Hooks ושרתי MCP, והכול נטען אחרי ההתקנה. הספרייה הרשמית מתוחזקת על ידי Anthropic, ולכן היא נקודת ההתחלה הבטוחה ביותר.",
+  skills:"כל Skill הוא תיקייה עם SKILL.md, ולפעמים גם סקריפטים. Claude רואה רק את התיאור הקצר, וטוען את כל ה-Skill רק כשהמשימה מתאימה, כך שהם כמעט לא תופסים הקשר. ה-Skills למסמכים מריצים סקריפטים שיוצרים קבצי docx, pdf, pptx ו-xlsx אמיתיים.",
+  superpowers:"אוסף Skills שמכתיב סדר עבודה: קודם סיעור מוחות ותוכנית, אחר כך בדיקה שנכשלת, מימוש, ובסוף ריוויו. ה-Skills נטענים לבד לפי השלב. שימו לב: זו מתודולוגיה קשיחה, וכדאי לנסות אותה על פרויקט צדדי לפני שמכניסים אותה לצוות.",
+  wshobson:"marketplace עם עשרות Plugins לפי תחום. כל Plugin מוסיף Subagents ופקודות מומחים. מתקינים רק את התחומים שאתם עובדים בהם: כל Subagent שמותקן מוסיף תיאור שנטען להקשר.",
+  playwright:"השרת מפעיל דפדפן ונותן ל-Claude כלים כמו ניווט, לחיצה, הקלדה וצילום. ברירת המחדל עובדת עם עץ הנגישות של הדף ולא עם תמונות, ולכן היא מהירה ומדויקת. אפשר להריץ את הדפדפן גלוי (headed) כדי לראות מה Claude עושה.",
+  devtools:"השרת מתחבר ל-Chrome דרך פרוטוקול DevTools: Console, בקשות רשת, הקלטת ביצועים ו-Lighthouse. Claude יכול להריץ trace, לקרוא אותו ולהסביר מה מאט את הדף.",
+  github:"השרת חושף עשרות כלים ל-GitHub API. הגרסה המרוחקת מתחברת עם OAuth או עם טוקן, והגרסה המקומית רצה ב-Docker. מומלץ טוקן עם הרשאות מינימליות, ולקריאה בלבד אם רק מנתחים.",
+  context7:"השרת מחפש את הספרייה ומחזיר קטעי תיעוד ודוגמאות לגרסה הנכונה. Claude משתמש בזה במקום לזכור API מהאימון, שאולי כבר השתנה. פקודת ה-setup מגדירה את Claude Code בשבילכם.",
+  sentry:"שרת מרוחק עם OAuth: מתחברים פעם אחת ב-/mcp. Claude יכול לחפש Issues, לקרוא stack traces ו-breadcrumbs, ולקשר אותם לקוד. כדאי לשלב עם בדיקה שמשחזרת את הבאג לפני התיקון.",
+  supabase:"שרת מרוחק עם OAuth לחשבון Supabase. יש לו כלים לניהול טבלאות, migrations ושאילתות SQL. חשוב: חברו אותו לפרויקט פיתוח, והעדיפו מצב קריאה בלבד כשאפשר.",
+  fetch:"השרת מביא URL וממיר HTML ל-Markdown, כך ש-Claude מקבל טקסט נקי במקום דף מלא. שימו לב שתוכן מאתרים זרים יכול להכיל prompt injection.",
+  git:"שרת ייחוס שמממש פעולות git ככלים מובנים. ב-Claude Code עצמו git זמין כבר דרך Bash, ולכן השרת שימושי בעיקר ללימוד MCP או לכלים אחרים שאין להם shell.",
+  memory:"השרת שומר גרף ידע (ישויות, קשרים, תצפיות) בקובץ מקומי. Claude מוסיף ושולף ממנו עובדות בין סשנים. ל-Claude Code יש גם זיכרון מובנה ו-CLAUDE.md, אז השתמשו בזה רק אם צריך זיכרון מובנה במיוחד.",
+  inspector:"Inspector מתחבר לשרת MCP כמו לקוח אמיתי, מציג את הכלים, ה-resources וה-prompts, ומאפשר להריץ כל כלי עם קלט שלכם. זו הדרך המהירה לדבג שרת לפני שמחברים אותו ל-Claude Code.",
+  ccusage:"הכלי קורא את קבצי ה-JSONL ש-Claude Code שומר מקומית, ומחשב טוקנים ועלות משוערת לפי יום, חודש, סשן או חלון של 5 שעות. כלום לא נשלח החוצה, והוא לא דורש התקנה קבועה.",
+  ccstatusline:"פותח עורך אינטראקטיבי בטרמינל, ושומר את הבחירות שלכם. ב-settings.json נרשמת פקודת statusLine שמריצה אותו. Claude Code שולח לו JSON עם מצב הסשן, והוא מצייר שורה צבעונית.",
+  action:"‏/install-github-app מתקין את האפליקציה בריפו, שומר את הסוד ויוצר workflow. מאז, @claude בתגובה מפעיל ריצה ב-GitHub Actions שקוראת את ההקשר, עובדת על ענף ופותחת PR. ההרשאות נקבעות בבלוק permissions של ה-workflow.",
+  sdkpy:"ה-SDK מריץ את אותה לולאת סוכן של Claude Code (כלים, הרשאות, Hooks, Subagents) מתוך קוד Python. משתמשים בו כשצריך סוכן כחלק ממוצר או מצינור, ולא רק בטרמינל.",
+  sdkts:"אותה לולאה מ-TypeScript, עם async iterator של הודעות. מתאים לשרתי Node, לבוטים ולכלים פנימיים.",
+  cookbooks:"מחברות Jupyter ודוגמאות קוד מוכנות להרצה. כדאי לפתוח אחת שקשורה למה שאתם בונים ולבקש מ-Claude Code להתאים אותה לפרויקט שלכם.",
+  awesome:"רשימה שמתעדכנת על ידי הקהילה, ולא קוד להתקנה. השתמשו בה כמקור רעיונות, ובדקו כל כלי לפי רשימת הבטיחות לפני שמתקינים.",
+  cc:"הריפו הרשמי לא מכיל את קוד המקור של הכלי, אבל יש בו CHANGELOG לכל גרסה, מקום לדווח על באגים, Plugins לדוגמה והגדרת devcontainer לעבודה מבודדת."
+};
+
+// ================= more verified community packages (Nov 2026) + deep explanations =================
+ECO.push(
+  {id:"powerline", c:"מראה ונוחות", n:"Claude Powerline", r:"Owloops/claude-powerline", o:0, st:"1.2k", d:"שורת סטטוס בסגנון powerline של vim, עם ערכות צבעים, מידע git ומעקב שימוש.", w:"רוצים שורת סטטוס מעוצבת בלי לכתוב סקריפט.", cmd:["/plugin marketplace add Owloops/claude-powerline","/plugin install claude-powerline@claude-powerline","/powerline"]},
+  {id:"anotifier", c:"מראה ונוחות", n:"anotifier", r:"DevinoSolutions/anotifier-for-claude-codex-cursor", o:0, st:"35", d:"התראות כש-Claude מסיים או מחכה: התראה בשולחן העבודה, push לטלפון דרך ntfy, webhook או צליל.", w:"מריצים משימות ארוכות ורוצים לדעת כשצריך אתכם. פרויקט קטן: בדקו את הקוד לפני התקנה.", cmd:["npx anotifier@latest setup"]},
+  {id:"monitor", c:"ניטור", n:"Claude Code Usage Monitor", r:"Maciek-roboblog/Claude-Code-Usage-Monitor", o:0, st:"8.8k", d:"מסך חי בטרמינל עם צריכת הטוקנים, קצב השריפה, תחזית מתי תגיעו למגבלה ואזהרות.", w:"עובדים קרוב למגבלות ורוצים לראות את זה בזמן אמת.", cmd:["uv tool install claude-monitor","claude-monitor"]},
+  {id:"squad", c:"סשנים וממשקים", n:"Claude Squad", r:"smtg-ai/claude-squad", o:0, st:"8.7k", d:"מנהל כמה סוכנים במקביל (Claude Code, Codex, Aider ועוד), כל אחד ב-tmux וב-worktree משלו. רואים את כולם במסך אחד.", w:"מריצים כמה משימות במקביל על אותו ריפו. צריך tmux ו-gh.", cmd:["brew install claude-squad","cs"]},
+  {id:"ccmanager", c:"סשנים וממשקים", n:"CCManager", r:"kbwo/ccmanager", o:0, st:"1.3k", d:"מנהל סשנים על פני worktrees ופרויקטים, ומראה מי עסוק, מי מחכה ומי סיים.", w:"קופצים בין כמה סשנים ורוצים לדעת איזה מהם צריך אתכם.", cmd:["npx ccmanager"]},
+  {id:"cloudcli", c:"סשנים וממשקים", n:"CloudCLI UI (claudecodeui)", r:"siteboon/claudecodeui", o:0, st:"14k", d:"ממשק web ומובייל ל-Claude Code: שיחות, קבצים, git ו-shell מהדפדפן או מהטלפון.", w:"רוצים לעבוד מהטלפון או מדפדפן. אל תחשפו את הפורט לאינטרנט בלי הגנה.", cmd:["npx @cloudcli-ai/cloudcli","# open http://localhost:3001"]},
+  {id:"opcode", c:"סשנים וממשקים", n:"opcode", r:"winfunc/opcode", o:0, st:"22k", d:"אפליקציית desktop ל-Claude Code: סוכנים, סשנים, שימוש ו-MCP בממשק גרפי. כרגע אין הורדה מוכנה, ובונים מהקוד.", w:"מעדיפים ממשק גרפי ומוכנים לבנות מהמקור.", cmd:["git clone https://github.com/winfunc/opcode && cd opcode","bun install && bun run tauri build"]},
+  {id:"hooksm", c:"מתודולוגיות ואוספים", n:"Claude Code Hooks Mastery", r:"disler/claude-code-hooks-mastery", o:0, st:"4k", d:"ריפו לימודי עם דוגמה לכל אירוע Hooks, כסקריפטי Python עם uv. מעולה כבסיס להעתקה.", w:"לומדים Hooks לעומק ורוצים דוגמאות עובדות.", cmd:["git clone https://github.com/disler/claude-code-hooks-mastery"]},
+  {id:"speckit", c:"מתודולוגיות ואוספים", n:"Spec Kit", r:"github/spec-kit", o:0, st:"147k", d:"ערכה של GitHub לפיתוח מונחה מפרט: מפרט, תוכנית ומשימות, ורק אז קוד. עובדת עם כמה סוכנים, כולל Claude Code.", w:"פרויקט גדול שבו המפרט הוא מקור האמת.", cmd:["uv tool install specify-cli","specify init my-project"]},
+  {id:"bmad", c:"מתודולוגיות ואוספים", n:"BMAD Method", r:"bmad-code-org/BMAD-METHOD", o:0, st:"55k", d:"מתודולוגיה עם סוכנים לפי תפקיד (אנליסט, PM, ארכיטקט, מפתח, QA) שמובילים פרויקט מרעיון עד מימוש.", w:"רוצים תהליך מלא עם תפקידים מוגדרים. גרסה 7 היא alpha.", cmd:["npx bmad-method install"]},
+  {id:"templates", c:"מתודולוגיות ואוספים", n:"Claude Code Templates", r:"davila7/claude-code-templates", o:0, st:"33k", d:"CLI שמתקין סוכנים, פקודות, הגדרות ושרתי MCP מקטלוג גדול, ויש לו גם דשבורד שימוש מקומי.", w:"רוצים להרכיב סביבה מרכיבים מוכנים בפקודה אחת.", cmd:["npx claude-code-templates@latest"]},
+  {id:"voltagent", c:"מתודולוגיות ואוספים", n:"Awesome Subagents (VoltAgent)", r:"VoltAgent/awesome-claude-code-subagents", o:0, st:"26k", d:"מאות Subagents מסודרים בקטגוריות (שפות, תשתיות, אבטחה, נתונים), כ-Plugins להתקנה.", w:"צריכים סוכן מומחה לתחום מסוים.", cmd:["/plugin marketplace add VoltAgent/awesome-claude-code-subagents","/plugin install voltagent-lang"]},
+  {id:"cmdsuite", c:"מתודולוגיות ואוספים", n:"Claude Command Suite", r:"qdhenry/Claude-Command-Suite", o:0, st:"1.3k", d:"מאות פקודות Slash מוכנות בנושאים: ריוויו, בדיקות, אבטחה, תיעוד ותפעול.", w:"רוצים ספריית פקודות גדולה. העתיקו רק את מה שתשתמשו בו.", cmd:["git clone https://github.com/qdhenry/Claude-Command-Suite && cd Claude-Command-Suite","./install.sh"]},
+  {id:"nvim", c:"עורכים", n:"claudecode.nvim", r:"coder/claudecode.nvim", o:0, st:"3.1k", d:"תוסף Neovim שמדבר באותו פרוטוקול כמו התוספים הרשמיים של VS Code: Claude רואה את הבחירה ומציג diffs בעורך.", w:"עובדים ב-Neovim. דורש Neovim 0.8 ומעלה ו-snacks.nvim.", cmd:["-- lazy.nvim:","{ \"coder/claudecode.nvim\", dependencies = { \"folke/snacks.nvim\" }, config = true }","-- then :ClaudeCode"]},
+  {id:"emacs", c:"עורכים", n:"claude-code-ide.el", r:"manzaltu/claude-code-ide.el", o:0, st:"1.7k", d:"שילוב של Claude Code ב-Emacs דרך MCP: הקשר מהעורך, diffs ותפריט פקודות.", w:"עובדים ב-Emacs 30 ומעלה.", cmd:[";; use-package with :vc","(use-package claude-code-ide :vc (:url \"https://github.com/manzaltu/claude-code-ide.el\" :rev :newest))",";; M-x claude-code-ide-menu"]},
+  {id:"router", c:"סשנים וממשקים", n:"Claude Code Router", r:"musistudio/claude-code-router", o:0, st:"38k", d:"שער מקומי שמנתב את הבקשות של Claude Code לספקים ומודלים אחרים. שימו לב: הקוד והשיחות עוברים אז לספק שבחרתם, ואיכות העבודה תלויה במודל.", w:"צריכים לנתב לספק אחר מסיבות ארגוניות. לא מומלץ למתחילים.", cmd:["npm install -g @musistudio/claude-code-router","ccr ui"]}
+);
+Object.assign(ECO_DEEP, {
+  powerline:"ה-Plugin מוסיף פקודה /powerline שמגדירה את statusLine בהגדרות. הסקריפט מקבל את ה-JSON של הסשן ומצייר מקטעים צבעוניים. אפשר לשלב עם גופן Nerd Font כדי לקבל את החצים המעוצבים.",
+  anotifier:"ההתקנה מוסיפה Hooks לאירועים Notification ו-Stop, שמפעילים את ערוץ ההתראה שבחרתם. פרויקט קטן (פחות מ-100 כוכבים): קראו את ה-Hooks שהוא כותב להגדרות לפני שאתם מאשרים. חלופה בלי התקנה: Hook של Notification עם צליל, בסעיף 5 של הפרק \"סביבת עבודה מושלמת\".",
+  monitor:"הכלי קורא את הלוגים המקומיים, מחשב קצב צריכה וחוזה מתי תגיעו למגבלה. ‏--once --output json מתאים לסקריפטים ולשורת סטטוס.",
+  squad:"כל סשן רץ ב-session נפרד של tmux וב-git worktree משלו, כך שהסוכנים לא דורסים זה את זה. מאשרים, בודקים diff ועושים push מהמסך הראשי. שימו לב: התקנה דרך curl | bash מריצה סקריפט מהרשת, אז העדיפו brew.",
+  ccmanager:"הכלי מזהה את מצב כל סשן (עסוק, מחכה לאישור, סיים) ומאפשר לקפוץ ישר לזה שצריך אתכם. יש לו גם Hooks לשינויי מצב.",
+  cloudcli:"שרת מקומי שמריץ את Claude Code ומציג אותו בדפדפן. הוא מקבל את כל ההרשאות של Claude Code על המחשב, ולכן לא חושפים אותו לרשת בלי אימות או VPN.",
+  opcode:"אפליקציית Tauri שעוטפת את Claude Code: ניהול סוכנים, היסטוריית סשנים, צריכה ושרתי MCP. כרגע צריך Bun ו-Rust כדי לבנות.",
+  hooksm:"כל אירוע מודגם בסקריפט uv עצמאי, כולל לוגים, חסימה, ו-TTS. מעתיקים את מה שצריך ל-.claude/hooks ומתאימים.",
+  speckit:"specify init יוצר תבניות ופקודות לפרויקט. העבודה עוברת בשלבים קבועים: constitution, ‏specify, ‏plan, ‏tasks ו-implement. מתאים במיוחד כשכמה אנשים או סוכנים עובדים על אותו מפרט.",
+  bmad:"ההתקנה מוסיפה לפרויקט סוכני תפקידים ותהליך עבודה. כל סוכן מייצר מסמך שהבא אחריו משתמש בו (PRD, ארכיטקטורה, סיפורי משתמש). כבד יחסית, ומתאים לפרויקטים גדולים.",
+  templates:"ה-CLI מציג קטלוג אינטראקטיבי, או מקבל דגלים כמו --agent, ‏--command ו---mcp, ומעתיק את הקבצים ל-.claude. אחרי ההתקנה בדקו מה נוסף ב-/agents וב-/mcp.",
+  voltagent:"marketplace עם Plugins לפי קטגוריה. כל Subagent הוא קובץ Markdown עם תיאור ורשימת כלים. התקינו קטגוריות ממוקדות, כי כל תיאור שנטען תופס מקום בהקשר.",
+  cmdsuite:"ההתקנה מעתיקה פקודות ל-.claude/commands. מאות פקודות זה הרבה: עברו על הרשימה והשאירו רק את מה שאתם באמת משתמשים בו.",
+  nvim:"Claude Code מתחבר לעורך דרך WebSocket ו-MCP, בדיוק כמו בתוספים הרשמיים. כך הוא יודע מה הקובץ הפתוח, מה בחרתם, ומציג הצעות כ-diff שמאשרים בעורך.",
+  emacs:"מתחבר בפרוטוקול של ה-IDE, ונותן ל-Claude גישה למידע מהעורך (קבצים פתוחים, אבחונים) ולתצוגת diff. צריך vterm, ‏eat או ghostel לטרמינל.",
+  router:"השער רץ מקומית ו-Claude Code מופנה אליו דרך ANTHROPIC_BASE_URL. לפני שימוש: בדקו את מדיניות הארגון, ודעו שהקוד שלכם נשלח לספק החיצוני. Claude Code מותאם למודלים של Anthropic, וחלק מהיכולות עשויות לא לעבוד."
+});
+ECO_KITS.push(["מראה ונוחות", ["powerline","monitor","ccmanager"]], ["מתודולוגיית spec", ["speckit","superpowers","hooksm"]], ["עורכים", ["nvim","emacs"]]);
+
+
+// Turn catalog commands into a script that really runs in a terminal:
+// in-session /plugin commands become `claude plugin …`, launchers and editor config become comments.
+const ECO_LAUNCH = /^(cs|claude-monitor|ccr ui|npx ccmanager|npx ccusage|npx -y ccstatusline|npx @modelcontextprotocol\/inspector|npx @cloudcli-ai\/cloudcli|npx claude-code-templates|claude$)/;
+function ecoShell(cmds){
+  return cmds.map(c => {
+    const t = c.trim();
+    let m;
+    if((m = t.match(/^\/plugin marketplace add (\S+)/))) return "claude plugin marketplace add " + m[1] + " || true   # ok if already added";
+    if((m = t.match(/^\/plugin install (\S+)/))) return (/</.test(m[1]) ? "# fill in the name, then run: " : "") + "claude plugin install " + m[1];
+    if(/^\//.test(t)) return "# then, inside Claude Code: " + t;
+    if(/^(--|;;|\(|\{)/.test(t)) return "# editor config: " + t;
+    if(/^#/.test(t)) return t;
+    if(ECO_LAUNCH.test(t)) return "# run when needed: " + t;
+    if(/^(pip install|npm install (?!-g)|specify init|npx bmad-method install)/.test(t)) return "# inside your project folder: " + t;
+    return t;
+  }).join("\n");
+}
+function ecoMeta(e){
+  const all = e.cmd.join("\n");
+  let v = "מריצים את הפקודה ובודקים שאין שגיאות.", x = "אין התקנה קבועה: הפקודה רצה ונעלמת. הגדרות שהכלי כתב (אם כתב) מסירים מ-settings.json.";
+  const pl = all.match(/\/plugin install (\S+)/), mc = all.match(/claude mcp add (?:--transport \w+ )?(?:-e \S+ )?([\w-]+)/), npmg = all.match(/npm install -g (\S+)/), uvt = all.match(/uv tool install (\S+)/), br = all.match(/brew install (\S+)/), gc = all.match(/git clone \S+?\/([\w.-]+?)(?:\s|$)/);
+  if(pl){ v = "‏/plugin ← Installed מציג את ה-Plugin. בודקים מה הוא הוסיף ב-/agents, ‏/hooks ו-/mcp."; x = "‏/plugin ← Installed ← בוחרים את " + pl[1] + " ← Uninstall."; }
+  else if(mc){ v = "‏claude mcp list או /mcp מציגים את השרת " + mc[1] + " ואת מצב החיבור."; x = "claude mcp remove " + mc[1]; }
+  else if(npmg){ v = "מריצים את הכלי ובודקים את הגרסה."; x = "npm uninstall -g " + npmg[1]; }
+  else if(uvt){ v = "מריצים את הכלי, למשל עם --help."; x = "uv tool uninstall " + uvt[1]; }
+  else if(br){ v = "מריצים את הכלי ובודקים את הגרסה."; x = "brew uninstall " + br[1]; }
+  else if(gc){ v = "קוראים את ה-README בתיקייה ומריצים את הדוגמה הראשונה."; x = "מוחקים את התיקייה " + gc[1] + " (ואת מה שהתקנתם ממנה ל-.claude)."; }
+  else if(/pip install|npm install /.test(all)){ v = "מייבאים את הספרייה בקוד ומריצים דוגמה."; x = "מסירים את התלות מהפרויקט (pip uninstall או npm uninstall)."; }
+  else if(/^#/.test(all.trim())){ v = "פותחים את הקישור."; x = "אין מה להסיר."; }
+  return {v, x};
+}
 (function(){
   const cats = ["הכול", ...new Set(ECO.map(e => e.c))];
   let cat = "הכול";
@@ -5676,14 +5901,14 @@ const ECO_KITS = [
   function list(){
     const q = $("#ecQ").value.trim().toLowerCase(), S = sel();
     const items = ECO.filter(e => (cat === "הכול" || e.c === cat) && (!q || (e.n + " " + e.r + " " + e.d + " " + e.w + " " + e.c).toLowerCase().includes(q)));
-    $("#ecList").innerHTML = items.length ? items.map(e => '<div class="trick ecCard' + (S.includes(e.id) ? " got" : "") + '"><span class="pill">' + esc(e.c) + '</span> <span class="pill ' + (e.o ? "ecOff" : "ecCom") + '">' + (e.o ? "רשמי" : "קהילה") + '</span> <span class="hint">★ ' + e.st + '</span><h3>' + esc(e.n) + '</h3><p class="ltr hint"><a href="https://github.com/' + e.r + '" target="_blank" rel="noopener">github.com/' + esc(e.r) + '</a></p><p>' + esc(e.d) + '</p><p class="hint">מתי: ' + esc(e.w) + '</p><div class="code" data-lang="bash"><pre>' + esc(e.cmd.join("\n")) + '</pre></div><label class="tick"><input type="checkbox" data-eco="' + e.id + '"' + (S.includes(e.id) ? " checked" : "") + '> להוסיף להתקנה שלי</label></div>').join("") : '<p class="box">לא נמצאו הרחבות. נסו מילה אחרת.</p>';
+    $("#ecList").innerHTML = items.length ? items.map(e => '<div class="trick ecCard' + (S.includes(e.id) ? " got" : "") + '"><span class="pill">' + esc(e.c) + '</span> <span class="pill ' + (e.o ? "ecOff" : "ecCom") + '">' + (e.o ? "רשמי" : "קהילה") + '</span> <span class="hint">★ ' + e.st + '</span><h3>' + esc(e.n) + '</h3><p class="ltr hint"><a href="https://github.com/' + e.r + '" target="_blank" rel="noopener">github.com/' + esc(e.r) + '</a></p><p>' + esc(e.d) + '</p><p class="hint">מתי: ' + esc(e.w) + '</p><div class="code" data-lang="bash"><pre>' + esc(e.cmd.join("\n")) + '</pre></div>' + (m => '<details class="ecDeep"><summary>הסבר מעמיק</summary><p>' + esc(ECO_DEEP[e.id] || e.d) + '</p><p><b>איך בודקים שזה עובד:</b> ' + esc(m.v) + '</p><p><b>איך מסירים:</b> <span class="ltr">' + esc(m.x) + '</span></p></details>')(ecoMeta(e)) + '<label class="tick"><input type="checkbox" data-eco="' + e.id + '"' + (S.includes(e.id) ? " checked" : "") + '> להוסיף להתקנה שלי</label></div>').join("") : '<p class="box">לא נמצאו הרחבות. נסו מילה אחרת.</p>';
     $$("#ecList .code").forEach(decorate);
   }
   function out(){
     const S = sel(), chosen = ECO.filter(e => S.includes(e.id));
     $("#ecSelN").textContent = chosen.length ? "(" + chosen.length + " נבחרו)" : "";
-    const script = "#!/usr/bin/env bash\n# Claude Code extensions · generated by Claude Code Academy\n# Lines that start with / run inside a Claude Code session; the rest run in the terminal.\nset -e\n\n" +
-      (chosen.length ? chosen.map(e => "# " + e.n + " · github.com/" + e.r + (e.o ? " (official)" : " (community: review before installing)") + "\n" + e.cmd.join("\n")).join("\n\n") : "# Select extensions above to build your install script") + "\n";
+    const script = "#!/usr/bin/env bash\n# Claude Code extensions · generated by Claude Code Academy\n# Run in a terminal: bash install-extensions.sh. Commented lines are for later or for your editor.\nset -e\n\n" +
+      (chosen.length ? (chosen.some(e => /@claude-plugins-official/.test(e.cmd.join(" "))) ? "claude plugin marketplace add anthropics/claude-plugins-official || true   # official directory\n\n" : "") + chosen.map(e => "# " + e.n + " · github.com/" + e.r + (e.o ? " (official)" : " (community: review before installing)") + "\n" + (sh => /(^|&& )cd /m.test(sh) ? "(\n" + sh + "\n)" : sh)(ecoShell(e.cmd))).join("\n\n") : "# Select extensions above to build your install script") + "\n";
     setCode("#ecScript", script);
     const servers = {}; chosen.filter(e => e.mcp).forEach(e => servers[e.id] = e.mcp);
     setCode("#ecMcp", JSON.stringify({mcpServers: servers}, null, 2));
@@ -5699,7 +5924,7 @@ const ECO_KITS = [
   $("#ecDlMcp").onclick = () => { const r = out(); if(!JSON.parse(r.mcp).mcpServers || !Object.keys(JSON.parse(r.mcp).mcpServers).length){ toast("לא נבחרו שרתי MCP"); return; } saveFile(".mcp.json", r.mcp); };
   list(); out();
   REFRESH.push(() => { list(); out(); });
-  window.__ECO = ECO;
+  window.__ECO = ECO; window.__ECO_KITS = ECO_KITS;
 })();
 
 // ================= error decoder =================
@@ -5837,6 +6062,208 @@ const ERRS = [
 ["fe","be","ops"].forEach(k => { if(TRACKS[k] && !TRACKS[k].m.includes("ecosystem")) TRACKS[k].m.push("ecosystem"); });
 Object.keys(TRACKS).forEach(k => ["errdoc","quizgen"].forEach(id => { if(!TRACKS[k].m.includes(id)) TRACKS[k].m.push(id); }));
 BADGES.push(["streak10","🔥","רצף לוהט","10 תשובות נכונות ברצף בבוחן האינסופי", () => !!state.awarded["qg-10"]], ["debugger","🩺","מפענחי שגיאות","פענחתם 5 שגיאות שונות", () => !!state.awarded["ed-5"]], ["eco","🧩","מרחיבים","בניתם ערכת הרחבות", () => !!state.awarded["eco-3"]]);
+// ================= workspace: themes, keybindings, status line, comfort settings, terminal, shortcuts =================
+(function(){
+  // ---------- 1. custom theme ----------
+  const TOK = [["claude","הצבע של Claude (לוגו ומבטאים)","#d97757"],["text","טקסט ראשי","#e6e6e6"],["subtle","טקסט משני","#8a8a8a"],["promptBorder","מסגרת שורת הקלט","#5f5f5f"],["permission","בקשות הרשאה","#b1b9f9"],["planMode","מצב תכנון","#48968c"],["success","הצלחה","#4eba65"],["error","שגיאה","#ff6b80"],["warning","אזהרה","#ffc107"],["diffAdded","שורות שנוספו ב-diff","#225c2b"],["diffRemoved","שורות שנמחקו ב-diff","#7a2936"],["suggestion","הצעות והשלמות","#b1b9f9"]];
+  const PRE = {
+    "Dracula":{base:"dark", c:{claude:"#bd93f9",text:"#f8f8f2",subtle:"#6272a4",promptBorder:"#44475a",permission:"#8be9fd",planMode:"#50fa7b",success:"#50fa7b",error:"#ff5555",warning:"#f1fa8c",diffAdded:"#1f4d2c",diffRemoved:"#5c2030",suggestion:"#ff79c6"}},
+    "Nord":{base:"dark", c:{claude:"#88c0d0",text:"#eceff4",subtle:"#7b88a1",promptBorder:"#4c566a",permission:"#81a1c1",planMode:"#a3be8c",success:"#a3be8c",error:"#bf616a",warning:"#ebcb8b",diffAdded:"#2e4a3a",diffRemoved:"#4f2a32",suggestion:"#b48ead"}},
+    "Solarized Light":{base:"light", c:{claude:"#cb4b16",text:"#073642",subtle:"#586e75",promptBorder:"#93a1a1",permission:"#268bd2",planMode:"#2aa198",success:"#859900",error:"#dc322f",warning:"#b58900",diffAdded:"#d7e8c4",diffRemoved:"#f3d0cc",suggestion:"#6c71c4"}},
+    "Monokai":{base:"dark", c:{claude:"#fd971f",text:"#f8f8f2",subtle:"#75715e",promptBorder:"#49483e",permission:"#66d9ef",planMode:"#a6e22e",success:"#a6e22e",error:"#f92672",warning:"#e6db74",diffAdded:"#2d3b16",diffRemoved:"#4a1529",suggestion:"#ae81ff"}},
+    "אבן ירושלמית":{base:"light", c:{claude:"#9a6b2f",text:"#2b2620",subtle:"#6b6153",promptBorder:"#c9b896",permission:"#2f5f8a",planMode:"#3d7a5e",success:"#3d7a3d",error:"#a8322d",warning:"#8a6200",diffAdded:"#dfe9cf",diffRemoved:"#f1d6cf",suggestion:"#6a4c93"}}
+  };
+  const slug = s => (s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "my-theme";
+  $("#wtPreset").innerHTML += Object.keys(PRE).map(k => '<option>' + esc(k) + '</option>').join("");
+  $("#wtColors").innerHTML = TOK.map(t => '<label class="wtC"><input type="color" data-tok="' + t[0] + '" value="' + t[2] + '"><span><b class="ltr">' + t[0] + '</b> ' + esc(t[1]) + '</span></label>').join("");
+  function theme(){
+    const ov = {}; $$("#wtColors [data-tok]").forEach(i => { const d = TOK.find(t => t[0] === i.dataset.tok)[2]; if(i.value.toLowerCase() !== d) ov[i.dataset.tok] = i.value; });
+    const json = JSON.stringify({name: $("#wtName").value.trim() || "My Theme", base: $("#wtBase").value, overrides: ov}, null, 2);
+    const box = $("#wtOut"); box.dataset.file = "~/.claude/themes/" + slug($("#wtName").value) + ".json"; setCode("#wtOut", json);
+    const C = k => $('#wtColors [data-tok="' + k + '"]').value, light = $("#wtBase").value.startsWith("light");
+    $("#wtPrev").style.background = light ? "#fbfaf7" : "#16181d"; $("#wtPrev").style.color = C("text");
+    $("#wtPrev").innerHTML = '<div><span style="color:' + C("claude") + '">✻ Claude Code</span> <span style="color:' + C("subtle") + '">~/projects/taskflow</span></div>' +
+      '<div style="color:' + C("subtle") + '">&gt; fix the flaky checkout test</div>' +
+      '<div><span style="color:' + C("success") + '">●</span> Read(tests/checkout.spec.ts)</div>' +
+      '<div style="background:' + C("diffRemoved") + '">- await page.waitForTimeout(2000)</div><div style="background:' + C("diffAdded") + '">+ await expect(page.getByRole("button", {name: "Pay"})).toBeEnabled()</div>' +
+      '<div style="color:' + C("permission") + '">Allow Bash(npm test)? 1. Yes  2. No</div><div style="color:' + C("warning") + '">⚠ 1 test skipped</div><div style="color:' + C("error") + '">✗ lint: 2 errors</div>' +
+      '<div class="wtBox" style="border-color:' + C("promptBorder") + '">&gt; <span style="color:' + C("suggestion") + '">/compact</span></div><div style="color:' + C("planMode") + '">⏸ plan mode on</div>';
+    return json;
+  }
+  $("#wtPreset").addEventListener("change", () => { const p = PRE[$("#wtPreset").value]; if(!p) return; $("#wtBase").value = p.base; $("#wtName").value = $("#wtPreset").value === "אבן ירושלמית" ? "Jerusalem Stone" : $("#wtPreset").value; $$("#wtColors [data-tok]").forEach(i => { i.value = p.c[i.dataset.tok] || TOK.find(t => t[0] === i.dataset.tok)[2]; }); theme(); award("ws-theme", 10, "ערכת צבעים"); });
+  ["#wtName","#wtBase"].forEach(s => $(s).addEventListener("input", theme)); $("#wtBase").addEventListener("change", theme);
+  $("#wtColors").addEventListener("input", theme);
+  $("#wtDl").onclick = () => saveFile(slug($("#wtName").value) + ".json", theme());
+  theme();
+
+  // ---------- 2. keybindings ----------
+  const ACT = [
+    ["chat:externalEditor","Chat","ctrl+g","פתיחת הפרומפט בעורך שלכם"],["chat:stash","Chat","ctrl+s","שמירת הטיוטה בצד והחזרתה"],["chat:modelPicker","Chat","meta+p","החלפת מודל"],
+    ["chat:thinkingToggle","Chat","meta+t","הפעלה וכיבוי של חשיבה מורחבת"],["chat:fastMode","Chat","meta+o","מצב מהיר"],["chat:cycleMode","Chat","shift+tab","מעבר בין מצבי הרשאה"],
+    ["chat:newline","Chat","ctrl+j","שורה חדשה בלי לשלוח"],["chat:clearInput","Chat","ctrl+l","ניקוי שורת הקלט"],["chat:undo","Chat","ctrl+_","ביטול עריכה בשורת הקלט"],
+    ["chat:imagePaste","Chat","ctrl+v","הדבקת תמונה"],["chat:killAgents","Chat","ctrl+x ctrl+k","עצירת כל הסוכנים ברקע"],["chat:sendNow","Chat","ctrl+enter","שליחת הודעות בתור עכשיו"],
+    ["app:toggleTodos","Global","ctrl+t","רשימת המשימות של Claude"],["app:toggleTranscript","Global","ctrl+o","תצוגת התמליל המלא"],["history:search","Global","ctrl+r","חיפוש בהיסטוריה"],
+    ["task:background","Task","ctrl+b","העברת פקודה רצה לרקע"]
+  ];
+  const RESERVED = ["ctrl+c","ctrl+d","ctrl+m","ctrl+[","ctrl+i","ctrl+h"], WARN = {"ctrl+b":"מקש הקידומת של tmux","ctrl+a":"מקש הקידומת של screen","ctrl+z":"משהה את התהליך בטרמינל","ctrl+w":"מוחק מילה ב-readline","ctrl+e":"קפיצה לסוף השורה ב-readline","ctrl+u":"מוחק עד תחילת השורה"};
+  const MODS = ["ctrl","control","shift","alt","opt","option","meta","cmd","command","super","win"], SPECIAL = ["escape","esc","enter","return","tab","space","up","down","left","right","pageup","pagedown","home","end","backspace","delete","wheelup","wheeldown"];
+  const norm = k => k.trim().toLowerCase().replace(/\s+/g, " ").split(" ").map(t => t.split("+").map(x => ({control:"ctrl", opt:"alt", option:"alt", meta:"alt", command:"cmd", super:"cmd", win:"cmd", esc:"escape", return:"enter"}[x] || x)).join("+")).join(" ");
+  const validStroke = s => s.split(" ").every(t => { const p = t.split("+"); const key = p.pop(); return p.every(m => MODS.includes(m)) && new Set(p).size === p.length && (key.length === 1 || SPECIAL.includes(key) || /^f([1-9]|1[0-2])$/.test(key)); });
+  const PRESETS = {
+    "פקודות במקש אחד":{cmd:[["meta+k","compact"],["meta+c","context"],["meta+d","diff"]]},
+    "עורך חיצוני ב-Ctrl+E":{set:{"chat:externalEditor":"ctrl+e"}},
+    "חופש ל-tmux (רקע ב-Ctrl+X B)":{set:{"task:background":"ctrl+x b"}},
+    "בלי stash":{off:["chat:stash"]}
+  };
+  $("#kbPreset").innerHTML += Object.keys(PRESETS).map(k => '<option>' + esc(k) + '</option>').join("");
+  $("#kbRows").innerHTML = ACT.map((a, i) => '<tr><td><b>' + esc(a[3]) + '</b><br><code class="ltr">' + a[0] + '</code></td><td>' + a[1] + '</td><td><kbd class="ltr">' + a[2] + '</kbd></td><td><input type="text" class="ltr kbIn" data-kb="' + i + '" aria-label="מקש חדש ל' + esc(a[3]) + '" placeholder="' + a[2] + '"></td><td><input type="checkbox" data-kboff="' + i + '" aria-label="ביטול ' + esc(a[3]) + '"></td></tr>').join("");
+  const cmdRow = (k, c) => '<div class="row kbCmd"><input type="text" class="ltr" aria-label="מקש" placeholder="meta+k" value="' + esc(k || "") + '"><span>→</span><span class="ltr">command:</span><input type="text" class="ltr" aria-label="שם הפקודה" placeholder="compact" value="' + esc(c || "") + '"><button class="btn sm" type="button" data-kbdel aria-label="הסרה">✕</button></div>';
+  function kb(){
+    const issues = [], ctx = {}, seen = {};
+    const add = (c, k, v, label) => {
+      const n = norm(k);
+      if(!validStroke(n)){ issues.push(["err", "\"" + k + "\" (" + label + "): תחביר לא תקין. דוגמה: ctrl+shift+k או ctrl+k ctrl+s"]); return; }
+      if(RESERVED.includes(n)){ issues.push(["err", n + " שמור ואי אפשר לקשור אותו (" + label + ")"]); return; }
+      const first = n.split(" ")[0]; if(WARN[first]) issues.push(["warn", n + ": " + WARN[first] + ". זה יעבוד, אבל ייתכן שיתנגש בטרמינל."]);
+      const key = c + "|" + n; if(seen[key]) issues.push(["err", n + " מוגדר פעמיים בהקשר " + c + ": " + seen[key] + " ו-" + label]); seen[key] = label;
+      const clash = ACT.find(a => a[1] === c && norm(a[2]) === n && a[3] !== label);
+      if(clash && !$$("#kbRows [data-kb]").some(i => ACT[+i.dataset.kb] === clash && i.value.trim())) issues.push(["warn", n + " כבר משמש את \"" + clash[3] + "\". הקיצור החדש יחליף אותו."]);
+      (ctx[c] = ctx[c] || {})[n] = v;
+    };
+    // a new key adds a binding; the old default keeps working unless "ביטול" sets it to null
+    $$("#kbRows [data-kb]").forEach(i => {
+      const a = ACT[+i.dataset.kb], off = $('[data-kboff="' + i.dataset.kb + '"]').checked;
+      if(i.value.trim()) add(a[1], i.value, a[0], a[3]);
+      if(off) (ctx[a[1]] = ctx[a[1]] || {})[a[2]] = null;
+    });
+    $$("#kbCmds .kbCmd").forEach(r => { const [k, c] = [...r.querySelectorAll("input")].map(x => x.value.trim()); if(!k && !c) return; if(!k || !/^[a-z0-9:_-]+$/i.test(c)){ issues.push(["err", "פקודה \"" + (c || "?") + "\" במקש \"" + (k || "?") + "\": צריך מקש ושם פקודה בלי /"]); return; } add("Chat", k, "command:" + c.replace(/^\//, ""), "/" + c); });
+    const bindings = Object.keys(ctx).filter(c => Object.keys(ctx[c]).length).map(c => ({context: c, bindings: ctx[c]}));
+    const json = JSON.stringify({$schema:"https://www.schemastore.org/claude-code-keybindings.json", $docs:"https://code.claude.com/docs/en/keybindings", bindings}, null, 2);
+    setCode("#kbOut", json);
+    $("#kbIssues").innerHTML = issues.length ? issues.map(x => '<li class="' + x[0] + '">' + (x[0] === "err" ? "✗ " : "⚠ ") + esc(x[1]) + '</li>').join("") : (bindings.length ? '<li class="ok">✓ הקובץ תקין</li>' : '<li class="hint">הקלידו מקש חדש לפעולה, או בחרו תבנית.</li>');
+    if(bindings.length && !issues.some(x => x[0] === "err")) award("ws-kb", 10, "קיצורים משלכם");
+    return {json, ok: !issues.some(x => x[0] === "err")};
+  }
+  $("#kbRows").addEventListener("input", kb); $("#kbRows").addEventListener("change", kb);
+  $("#kbCmds").addEventListener("input", kb);
+  $("#kbCmds").addEventListener("click", e => { if(e.target.matches("[data-kbdel]")){ e.target.closest(".kbCmd").remove(); kb(); } });
+  $("#kbAddCmd").onclick = () => { $("#kbCmds").insertAdjacentHTML("beforeend", cmdRow()); };
+  $("#kbReset").onclick = () => { $$("#kbRows [data-kb]").forEach(i => i.value = ""); $$("#kbRows [data-kboff]").forEach(i => i.checked = false); $("#kbCmds").innerHTML = cmdRow(); kb(); };
+  $("#kbPreset").addEventListener("change", () => {
+    const p = PRESETS[$("#kbPreset").value]; if(!p) return;
+    if(p.cmd){ $$("#kbCmds .kbCmd").filter(r => ![...r.querySelectorAll("input")].some(x => x.value.trim())).forEach(r => r.remove()); $("#kbCmds").insertAdjacentHTML("beforeend", p.cmd.map(c => cmdRow(c[0], c[1])).join("")); }
+    if(p.set) Object.entries(p.set).forEach(([a, k]) => { const i = ACT.findIndex(x => x[0] === a); $('[data-kb="' + i + '"]').value = k; });
+    if(p.off) p.off.forEach(a => { const i = ACT.findIndex(x => x[0] === a); $('[data-kboff="' + i + '"]').checked = true; });
+    $("#kbPreset").value = ""; kb();
+  });
+  $("#kbDl").onclick = () => { const r = kb(); if(!r.ok){ toast("יש שגיאות בקובץ. תקנו לפני ההורדה"); return; } saveFile("keybindings.json", r.json); };
+  $("#kbCmds").innerHTML = cmdRow(); kb();
+  window.__kb = {norm, validStroke, run: kb};
+
+  // ---------- 3. status line builder ----------
+  const SAMPLE = {model:{display_name:"Opus"}, workspace:{current_dir:"/home/you/projects/taskflow"}, context_window:{used_percentage:63.4}, cost:{total_cost_usd:1.237, total_duration_ms:2460000, total_lines_added:148, total_lines_removed:37}, rate_limits:{five_hour:{used_percentage:41}}, effort:{level:"high"}, output_style:{name:"Explanatory"}, vim:{mode:"NORMAL"}, pr:{number:128}, worktree:{name:"feat-login"}};
+  const F = [
+    ["model","מודל",1,'add "🤖 $(j \'.model.display_name\')"', d => "🤖 " + d.model.display_name],
+    ["dir","תיקייה",1,'dir=$(j \'.workspace.current_dir\'); add "📁 ${dir##*/}"', d => "📁 " + d.workspace.current_dir.split("/").pop()],
+    ["branch","ענף git",1,'b=$(git -C "$dir" branch --show-current 2>/dev/null); [ -n "$b" ] && add "🌿 $b"', d => "🌿 main"],
+    ["ctx","ניצול הקשר עם פס",1,'p=$(j \'.context_window.used_percentage // 0\'); p=${p%.*}; n=$((p/10)); [ "$n" -gt 10 ] && n=10; bar=""; for i in 1 2 3 4 5 6 7 8 9 10; do if [ "$i" -le "$n" ]; then bar="$bar█"; else bar="$bar░"; fi; done; add "$(color $p 60 85)🧠 $bar $p%$R"', d => { const p = Math.floor(d.context_window.used_percentage), n = Math.min(10, Math.floor(p / 10)); return {t:"🧠 " + "█".repeat(n) + "░".repeat(10 - n) + " " + p + "%", v:p, a:60, b:85}; }],
+    ["cost","עלות הסשן",1,'c=$(j \'.cost.total_cost_usd // 0\'); add "💲$(printf \'%.2f\' "$c")"', d => "💲" + d.cost.total_cost_usd.toFixed(2)],
+    ["time","משך הסשן",0,'ms=$(j \'.cost.total_duration_ms // 0\'); add "⌛ $((ms/60000))m"', d => "⌛ " + Math.floor(d.cost.total_duration_ms / 60000) + "m"],
+    ["lines","שורות שנוספו ונמחקו",0,'add "+$(j \'.cost.total_lines_added // 0\')/-$(j \'.cost.total_lines_removed // 0\')"', d => "+" + d.cost.total_lines_added + "/-" + d.cost.total_lines_removed],
+    ["rate","מגבלת 5 השעות",0,'r=$(j \'.rate_limits.five_hour.used_percentage // empty\'); [ -n "$r" ] && add "$(color ${r%.*} 70 90)⏱ 5h ${r%.*}%$R"', d => ({t:"⏱ 5h " + d.rate_limits.five_hour.used_percentage + "%", v:d.rate_limits.five_hour.used_percentage, a:70, b:90})],
+    ["effort","רמת מאמץ",0,'e=$(j \'.effort.level // empty\'); [ -n "$e" ] && add "⚡ $e"', d => "⚡ " + d.effort.level],
+    ["style","סגנון פלט",0,'s=$(j \'.output_style.name // empty\'); [ -n "$s" ] && add "🎨 $s"', d => "🎨 " + d.output_style.name],
+    ["vim","מצב vim",0,'v=$(j \'.vim.mode // empty\'); [ -n "$v" ] && add "✎ $v"', d => "✎ " + d.vim.mode],
+    ["pr","מספר PR",0,'n=$(j \'.pr.number // empty\'); [ -n "$n" ] && add "🔀 PR #$n"', d => "🔀 PR #" + d.pr.number],
+    ["wt","worktree",0,'w=$(j \'.worktree.name // empty\'); [ -n "$w" ] && add "🌳 $w"', d => "🌳 " + d.worktree.name]
+  ];
+  $("#slbFields").innerHTML = F.map(f => '<label><input type="checkbox" value="' + f[0] + '"' + (f[2] ? " checked" : "") + '>' + esc(f[1]) + '</label>').join("");
+  function slb(){
+    const on = $$("#slbFields input:checked").map(i => i.value), sep = $("#slbSep").value, col = $("#slbColor").checked;
+    const use = F.filter(f => on.includes(f[0])), needDir = on.includes("branch") && !on.includes("dir");
+    const sh = "#!/usr/bin/env bash\n# Claude Code status line · reads session JSON on stdin, prints one line\ninput=$(cat)\nj(){ echo \"$input\" | jq -r \"$1\"; }\nout=\"\"; SEP='" + sep + "'\nadd(){ [ -n \"$1\" ] && out=\"${out:+$out$SEP}$1\"; }\n" +
+      (col ? "R=$'\\e[0m'\ncolor(){ if [ \"$1\" -ge \"$3\" ]; then printf '\\e[31m'; elif [ \"$1\" -ge \"$2\" ]; then printf '\\e[33m'; else printf '\\e[32m'; fi; }\n" : "R=''\ncolor(){ :; }\n") +
+      (needDir ? "dir=$(j '.workspace.current_dir')\n" : "") + use.map(f => f[3]).join("\n") + "\nprintf '%s' \"$out\"\n";
+    setCode("#slbOut", sh);
+    const st = {type:"command", command:"~/.claude/statusline.sh"}; const pad = +$("#slbPad").value; if(pad) st.padding = pad; const rf = +$("#slbRef").value; if(rf >= 1) st.refreshInterval = rf;
+    setCode("#slbSet", JSON.stringify({statusLine: st}, null, 2));
+    $("#slbPrev").innerHTML = use.map(f => { const r = f[4](SAMPLE); if(typeof r === "string") return '<span>' + esc(r) + '</span>'; const c = !col ? "" : r.v >= r.b ? "slR" : r.v >= r.a ? "slY" : "slG"; return '<span class="' + c + '">' + esc(r.t) + '</span>'; }).join('<span class="slSep">' + esc(sep) + '</span>') || '<span class="hint">בחרו שדות</span>';
+    $("#slbPrev").style.paddingInlineStart = (8 + pad * 8) + "px";
+    return sh;
+  }
+  ["#slbFields","#slbSep","#slbColor","#slbPad","#slbRef"].forEach(s => { $(s).addEventListener("change", slb); $(s).addEventListener("input", slb); });
+  $("#slbDl").onclick = () => { saveFile("statusline.sh", slb()); award("ws-sl", 10, "שורת סטטוס משלכם"); };
+  slb();
+
+  // ---------- 4. comfort settings ----------
+  function cf(){
+    const s = {}, why = [];
+    const lang = $("#cfLang").value.trim(); if(lang){ s.language = lang; why.push(["language", "Claude עונה בשפה הזו, וגם שמות הסשנים בה."]); }
+    if($("#cfStyle").value){ s.outputStyle = $("#cfStyle").value; why.push(["outputStyle", {Proactive:"Claude לוקח יוזמה ומציע את הצעד הבא.", Concise:"תשובות קצרות וענייניות.", Explanatory:"מסביר את ההחלטות וה\"למה\" תוך כדי עבודה.", Learning:"משאיר לכם חלקים לכתוב בעצמכם, כדי ללמוד."}[s.outputStyle]]); }
+    if($("#cfEditor").value){ s.editorMode = "vim"; why.push(["editorMode", "עריכת שורת הקלט במקשי vim: Esc ל-NORMAL, ‏i להקלדה."]); if($("#cfJj").checked){ s.vimInsertModeRemaps = {jj:"<Esc>"}; why.push(["vimInsertModeRemaps", "‏jj יוצא ממצב הקלדה. נקרא רק מההגדרות האישיות (~/.claude), לא מהפרויקט."]); } }
+    if($("#cfBell").checked){ s.preferredNotifChannel = "terminal_bell"; why.push(["preferredNotifChannel", "צליל כש-Claude מסיים או מחכה לאישור. ב-iTerm2, ‏Ghostty ו-Kitty תופיע גם התראה בשולחן העבודה."]); }
+    if($("#cfBang").checked){ s.respondToBashCommands = false; why.push(["respondToBashCommands", "‏!npm test מכניס את הפלט להקשר, ו-Claude לא עונה עליו. מתאים כשאוספים מידע לפני שאלה."]); }
+    if($("#cfFull").checked){ s.env = {CLAUDE_CODE_NO_FLICKER:"1"}; why.push(["env", "מצב מסך מלא שמונע הבהובים בשיחות ארוכות. אפשר גם /tui fullscreen."]); }
+    $("#cfAttrL").hidden = $("#cfAttr").value !== "custom";
+    if($("#cfAttr").value === "off"){ s.attribution = false; why.push(["attribution", "בלי שורות ייחוס ב-commits וב-PRs. הוראה ב-CLAUDE.md גוברת על זה."]); }
+    if($("#cfAttr").value === "custom"){ s.attribution = {commit: $("#cfAttrText").value.trim(), pr: ""}; why.push(["attribution", "הטקסט שלכם בסוף כל commit, ושום דבר ב-PR."]); }
+    const ann = $("#cfAnn").value.split("\n").map(x => x.trim()).filter(Boolean); if(ann.length){ s.companyAnnouncements = ann; why.push(["companyAnnouncements", "הודעה אקראית אחת מהרשימה מוצגת בפתיחה. שימושי בהגדרות פרויקט לצוות."]); }
+    const json = JSON.stringify(s, null, 2); setCode("#cfOut", json);
+    $("#cfWhy").innerHTML = why.map(w => '<li><code class="ltr">' + w[0] + '</code>: ' + esc(w[1]) + '</li>').join("");
+    return json;
+  }
+  $("#cfForm").addEventListener("input", cf); $("#cfForm").addEventListener("change", cf); cf();
+
+  // ---------- 5. terminal setup ----------
+  const TERM = [
+    ["iTerm2", "<p>‏Shift+Enter עובד בלי הגדרה. כדי ש-Option יעבוד כ-meta (בשביל <kbd>Option+P</kbd> להחלפת מודל ו-<kbd>Option+T</kbd> לחשיבה): Settings ← Profiles ← Keys ← General, וקובעים את Left/Right Option key ל-<b>Esc+</b>.</p><p>להתראות בשולחן העבודה: מפעילים Notification Center Alerts, ובוחרים \"Send escape sequence-generated alerts\".</p><p>הדבקת תמונה: <kbd>Cmd+V</kbd>.</p>"],
+    ["Ghostty · Kitty · WezTerm", "<p>‏Shift+Enter עובד בלי הגדרה, ו-Ghostty ו-Kitty שולחים התראה לשולחן העבודה כבר כברירת מחדל. אלה טרמינלים מהירים עם תמיכה טובה בצבעים ובקישורים, כך שהם מתאימים במיוחד לשורת סטטוס עשירה.</p>"],
+    ["Apple Terminal", "<p>‏Shift+Enter עובד. בשביל Option כ-meta: Settings ← Profiles ← Keyboard ← <b>Use Option as Meta Key</b>.</p><p>להתראה בצליל: <code class=\"ltr\">\"preferredNotifChannel\": \"terminal_bell\"</code>.</p>"],
+    ["VS Code · Cursor · Zed", "<p>בטרמינל המובנה מריצים פעם אחת <code>/terminal-setup</code> כדי ש-Shift+Enter יוריד שורה. ב-macOS, בשביל Option כ-meta, מוסיפים ל-settings של VS Code:</p><div class=\"code\" data-lang=\"json\"><pre>{ \"terminal.integrated.macOptionIsMeta\": true }</pre></div><p>‏<code>/ide</code> מחבר את Claude Code לעורך, כדי שיראה את הקובץ הפתוח והבחירה, ויציג diffs בעורך עצמו.</p>"],
+    ["Windows Terminal · WSL", "<p>‏Shift+Enter עובד ב-Windows Terminal. הדבקת תמונה היא <kbd>Alt+V</kbd>. אם Shift+Tab לא מחליף מצב, <kbd>Alt+M</kbd> עושה את אותו הדבר. אם Backspace מוחק מילה שלמה במקום תו, מגדירים <code class=\"ltr\">CLAUDE_CODE_BS_AS_CTRL_BACKSPACE=0</code>.</p>"],
+    ["tmux", "<p>‏<kbd>Ctrl+B</kbd> הוא מקש הקידומת של tmux, אז כדי להעביר פקודה לרקע לוחצים פעמיים, או משנים את הקיצור (סעיף 2). כדי שמקשים מורחבים והתראות יעברו, מוסיפים ל-<code class=\"ltr\">~/.tmux.conf</code>:</p><div class=\"code\" data-lang=\"bash\"><pre>set -g allow-passthrough on\nset -g focus-events on\nset -s extended-keys on\nset -as terminal-features 'xterm*:extkeys'</pre></div>"],
+    ["כל טרמינל", "<p>שורה חדשה בלי לשלוח עובדת בכל מקום עם <kbd>Ctrl+J</kbd>, או <kbd>\\</kbd> ואז Enter. הדבקה של יותר מ-800 תווים או יותר מ-3 שורות מתקפלת ל-<code class=\"ltr\">[Pasted text #1 +40 lines]</code>, והתוכן המלא עדיין נשלח.</p><p>התראה בצליל דרך Hook (macOS):</p><div class=\"code\" data-lang=\"json\"><pre>{\"hooks\":{\"Notification\":[{\"hooks\":[{\"type\":\"command\",\"command\":\"afplay /System/Library/Sounds/Glass.aiff\"}]}]}}</pre></div>"]
+  ];
+  $("#tmTabs").innerHTML = TERM.map((t, i) => '<button type="button"' + (i ? "" : ' class="on"') + '>' + esc(t[0]) + '</button>').join("");
+  const tm = i => { $("#tmBody").innerHTML = '<div class="box">' + TERM[i][1] + '</div>'; $$("#tmBody .code").forEach(decorate); };
+  $("#tmTabs").addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; const i = [...$("#tmTabs").children].indexOf(b); $$("#tmTabs button").forEach(x => x.classList.toggle("on", x === b)); tm(i); });
+  tm(0);
+
+  // ---------- 6. shortcuts + trainer ----------
+  const SC = [
+    ["Shift+Tab","מעבר בין מצבי הרשאה: רגיל, אישור עריכות, תכנון","שליטה"],["Esc","עצירת Claude באמצע, או סגירת חלון","שליטה"],["Esc Esc","ניקוי הטיוטה, או חזרה לנקודת שמירה (rewind)","שליטה"],
+    ["Ctrl+C","עצירה או ניקוי הקלט","שליטה"],["Ctrl+D (פעמיים)","יציאה מ-Claude Code","שליטה"],["Ctrl+X Ctrl+K","עצירת כל הסוכנים שרצים ברקע","שליטה"],
+    ["Ctrl+G","פתיחת הפרומפט בעורך הטקסט שלכם","קלט"],["Ctrl+S","שמירת הטיוטה בצד והחזרתה","קלט"],["Ctrl+J","שורה חדשה בלי לשלוח","קלט"],["Shift+Enter","שורה חדשה (ברוב הטרמינלים)","קלט"],
+    ["Ctrl+V","הדבקת תמונה (Alt+V ב-Windows, ‏Cmd+V ב-iTerm2)","קלט"],["Ctrl+_","ביטול עריכה בשורת הקלט","קלט"],["Ctrl+Enter","שליחת הודעות שבתור עכשיו","קלט"],["Tab","קבלת השלמה אוטומטית","קלט"],
+    ["Ctrl+R","חיפוש בהיסטוריית הפרומפטים","ניווט"],["Ctrl+O","תצוגת התמליל המלא","ניווט"],["Ctrl+T","רשימת המשימות של Claude","ניווט"],["Ctrl+B","העברת פקודה שרצה לרקע","ניווט"],["Ctrl+L","ציור המסך מחדש","ניווט"],
+    ["Alt+P / Option+P","החלפת מודל","מודל"],["Alt+T / Option+T","חשיבה מורחבת (במודלים שתמיד חושבים, אין לזה השפעה)","מודל"],["Alt+O / Option+O","מצב מהיר","מודל"],
+    ["/","פקודה או Skill בתחילת השורה","קיצורי קלט"],["!","מצב shell: מריץ פקודה ומכניס את הפלט להקשר","קיצורי קלט"],["@","אזכור קובץ או תיקייה","קיצורי קלט"],["?","עזרה על הקיצורים (בשורה ריקה)","קיצורי קלט"],
+    ["Ctrl+A / Ctrl+E","תחילת וסוף השורה","עריכה"],["Ctrl+K / Ctrl+U","מחיקה עד סוף השורה, או עד תחילתה","עריכה"],["Ctrl+W","מחיקת המילה הקודמת","עריכה"],["Ctrl+Y","הדבקת מה שנמחק","עריכה"],["Alt+B / Alt+F","מילה אחורה ומילה קדימה","עריכה"]
+  ];
+  function scList(){ const q = $("#scQ").value.trim().toLowerCase(); $("#scRows").innerHTML = SC.filter(s => !q || (s.join(" ")).toLowerCase().includes(q)).map(s => '<tr><td><kbd class="ltr">' + esc(s[0]) + '</kbd></td><td>' + esc(s[1]) + '</td><td>' + esc(s[2]) + '</td></tr>').join("") || '<tr><td colspan="3">לא נמצא קיצור</td></tr>'; }
+  $("#scQ").addEventListener("input", scList); scList();
+  const D = {ok:0, n:0, cur:null};
+  function drill(){
+    const s = SC[Math.floor(Math.random() * SC.length)];
+    const wrong = SC.filter(x => x !== s && x[2] === s[2]).concat(SC.filter(x => x[2] !== s[2])).filter(x => x !== s).sort(() => Math.random() - .5).slice(0, 3);
+    const opts = wrong.concat([s]).sort(() => Math.random() - .5);
+    D.cur = {s, opts, done:false};
+    $("#scDrill").innerHTML = '<div class="q"><span class="pill">' + esc(s[2]) + '</span><b>איזה קיצור: ' + esc(s[1]) + '?</b><div class="opts">' + opts.map((o, i) => '<label><input type="radio" name="scd" value="' + i + '"><span class="ltr">' + esc(o[0]) + '</span></label>').join("") + '</div><div class="why"></div></div>';
+    window.__scCur = {answer: opts.indexOf(s)};
+  }
+  $("#scDrill").addEventListener("change", e => {
+    if(!D.cur || D.cur.done || !e.target.matches("input")) return; D.cur.done = true;
+    const pick = +e.target.value, good = D.cur.opts[pick] === D.cur.s; D.n++; if(good) D.ok++;
+    $$("#scDrill label").forEach((l, i) => { l.classList.toggle("r", D.cur.opts[i] === D.cur.s); l.classList.toggle("w", i === pick && !good); l.querySelector("input").disabled = true; });
+    const w = $("#scDrill .why"); w.style.display = "block"; w.textContent = good ? "✓ נכון" : "✗ התשובה: " + D.cur.s[0];
+    $("#scScore").textContent = D.ok + "/" + D.n + " נכונות";
+    if(D.ok >= 8) award("ws-sc", 15, "מאסטר קיצורים");
+  });
+  $("#scNext").onclick = drill; drill();
+})();
+
+Object.keys(TRACKS).forEach(k => { if(!TRACKS[k].m.includes("workspace")) TRACKS[k].m.push("workspace"); });
+BADGES.push(["styled","🎨","בית משלכם","יצרתם ערכת צבעים, קיצורים ושורת סטטוס", () => !!(state.awarded["ws-theme"] && state.awarded["ws-kb"] && state.awarded["ws-sl"])]);
 checkBadges(true);
 
 renderStats();
