@@ -56,6 +56,23 @@ export const TARGETS = {
     validate: (s, v) => (v && typeof v === 'object' && Object.entries(v).every(([k, t]) => /^[a-z_]{2,30}$/.test(k) && s.router.tiers[t]) ? [] : ['each preference must map a task name to a known model tier']),
     apply: (s, v) => { s.store.setMeta('modelPrefs', s.router.setPreferences(v)); },
   },
+  'ml.routing': {
+    label: 'Neural intent routing', system: true,
+    get: (s) => s.store.getMeta('mlRouting', { enabled: false }),
+    validate(s, v) {
+      if (!v || typeof v !== 'object') return ['must be an object'];
+      if (!v.enabled) return [];
+      const m = v.modelId && s.store.get('ml_models', v.modelId);
+      if (!m || m.name !== 'intent-router') return ['modelId must name a trained intent-router model'];
+      if (m.status === 'retired') return ['the model is retired'];
+      const errs = [];
+      if (!(v.threshold >= 0.7 && v.threshold <= 0.99)) errs.push('threshold must be 0.70-0.99');
+      if (!(v.margin >= 0.3 && v.margin <= 0.95)) errs.push('margin must be 0.30-0.95');
+      if ((m.metrics?.routedPrecision ?? 0) < 0.9) errs.push(`routing precision on held-out data ${m.metrics?.routedPrecision} is below 0.9`);
+      return errs;
+    },
+    apply: (s, v) => { s.store.setMeta('mlRouting', v); s.ml?.cache.clear(); },
+  },
   'preferences.scoped': {
     label: 'Scoped preferences', system: false,
     get: (s) => s.store.getMeta('scopedPreferences', []),

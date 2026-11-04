@@ -1,6 +1,7 @@
 // Failure analysis: classify an error, decide whether a retry is safe, suggest authorized
 // alternatives, and record it. Retries are never automatic for consequential operations.
 const RULES = [
+  { re: /rejected by static analysis|not allowed in the read-only|failed its integrity check/i, kind: 'policy', fix: 'Blocked for safety: the code tried something outside a pure computation (network, files, globals). Rewrite it as a pure function.', fixHe: 'נחסם מטעמי בטיחות: הקוד ניסה לעשות משהו מעבר לחישוב טהור (רשת, קבצים, משתנים גלובליים). כתבו אותו כפונקציה טהורה.' },
   { re: /timed out|timeout|ETIMEDOUT|ECONNRESET|network|fetch failed|upstream|unavailable|busy|503|502|overloaded/i, kind: 'transient', fix: 'Temporary problem. It is safe to try a read again shortly.', fixHe: 'תקלה זמנית. אפשר לנסות שוב בעוד רגע.' },
   { re: /rate.?limit|429|too many/i, kind: 'transient', fix: 'Rate limited. Wait a minute before retrying.', fixHe: 'הגבלת קצב. כדאי לחכות דקה ולנסות שוב.' },
   { re: /offline|unavailable device|not connected|bridge is not connected/i, kind: 'external', fix: 'A device or service is offline. Check its power or connection, or use another device.', fixHe: 'מכשיר או שירות לא מחובר. בדקו חשמל או חיבור, או השתמשו במכשיר אחר.' },

@@ -244,6 +244,28 @@ ${(a.memories ?? []).map((m) => `- ${m.content} [${m.provenance}]`).join('\n') |
   } });
 
   // ---------- conversation ----------
+  def('knowledge.graph', { risk: RISK.READ, desc: 'Personal knowledge graph: who is someone, how two things are related (with sources)', run: async (a, ctx) => {
+    const he2 = ctx.lang === 'he';
+    if (!s.store.all('kg_nodes').length) s.kg.rebuild();
+    if (a.a && a.b) {
+      const p = s.kg.path(a.a, a.b);
+      if (!p.found) return { data: p, summary: he2 ? `לא מצאתי קשר בין ${a.a} ל-${a.b} בידע שלך.` : `I found no connection between ${a.a} and ${a.b} in your knowledge.` };
+      return { data: p, summary: `${p.from} → ${p.to}:\n${p.steps.map((x) => `- ${x.fromLabel} —${x.rel}→ ${x.toLabel} [${x.sources.map((y) => y.id).join(', ')}]`).join('\n')}` };
+    }
+    const r = s.kg.about(a.query ?? '');
+    if (!r) return { data: null, summary: he2 ? `אין לי מידע על ${a.query} בגרף הידע.` : `I have nothing about ${a.query} in the knowledge graph.` };
+    return { data: r, summary: `${r.node.label} (${r.node.type}, ${he2 ? 'אזכורים' : 'mentions'}: ${r.node.mentions}):\n${r.facts.slice(0, 8).map((f) => `- ${f.subject} —${f.rel}→ ${f.object} [${f.sources.map((y) => y.id).join(', ')}]`).join('\n') || (he2 ? '- מוזכר בלי קשרים מפורשים' : '- mentioned, no explicit relationships')}` };
+  } });
+  def('compute.code', { risk: RISK.READ, desc: 'Code-assisted computation: runs a pure JavaScript function in an isolated sandbox (no network, files or globals)', run: async (a) => {
+    const { staticAnalysis } = await import('../learn/devlab.js');
+    const { runIsolated } = await import('../learn/isolate.js');
+    const code = /function\s+run\s*\(/.test(a.code) ? a.code : `function run(input) { return (${a.code}); }`;
+    const sa = staticAnalysis(code);
+    if (!sa.passed) throw new Error(`code rejected by static analysis: ${sa.findings.map((f) => `${f.rule} (${f.note})`).join('; ')}`);
+    const r = await runIsolated(code, a.input ?? null, { timeoutMs: 1500 });
+    if (!r.ok) throw new Error(`computation failed: ${r.error}`);
+    return { data: { result: r.out, ms: r.ms }, summary: `= ${JSON.stringify(r.out)}` };
+  } });
   def('learning.feedback', { risk: RISK.WRITE, desc: 'Record spoken or written feedback about the previous answer', run: async (a, ctx) => {
     const prev = s.store.all('tasks_exec', (t) => t.conversationId === ctx.conversationId && t.id !== ctx.taskId && t.actor === ctx.actor && !(t.plan?.tools ?? []).includes('learning.feedback')).at(-1);
     const he2 = ctx.lang === 'he';

@@ -51,7 +51,22 @@ function serveStatic(p, res) {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const dataFile = process.env.JARVIS_DATA ?? path.resolve(here, '../data/jarvis.json');
-  const s = await createApp({ file: dataFile });
+  let s;
+  if ((process.env.JARVIS_DB_ENGINE ?? 'sqlite') === 'sqlite') {
+    // Dedicated database for JARVIS: one SQLite file (imports an existing JSON store once).
+    const { openDatabase } = await import('./db/sqlite.js');
+    const { Store } = await import('./lib/store.js');
+    const dbFile = process.env.JARVIS_DB ?? path.resolve(here, '../data/jarvis.db');
+    const { backend, data, imported } = openDatabase(dbFile, { legacyJson: dataFile });
+    const store = new Store(null, { data, onSave: (dirty) => backend.schedule(dirty) });
+    backend.attach(store);
+    s = await createApp({ store });
+    s.db = backend;
+    backend.flush(new Set(Object.keys(store.data)));
+    const close = () => { try { backend.close(); } catch {} process.exit(0); };
+    process.on('SIGINT', close); process.on('SIGTERM', close);
+    console.log(`Database: SQLite ${path.basename(dbFile)} (schema v${backend.status().schemaVersion})${imported ? `, imported ${imported} rows from ${path.basename(dataFile)}` : ''}`);
+  } else s = await createApp({ file: dataFile });
   const token = resolveToken(s.store);
   startScheduler(s);
   const host = process.env.JARVIS_HOST ?? '127.0.0.1';

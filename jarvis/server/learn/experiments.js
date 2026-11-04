@@ -15,6 +15,9 @@ async function sandbox(prod, override) {
   const sb = await createApp({ store, router: new ModelRouter(), home: new DemoHomeAdapter(), seed: true, fetch: async () => { throw new Error('offline: sandbox has no network'); } });
   sb.sandbox = true;
   // Mirror production's learnable configuration so the baseline is faithful.
+  // Trained ML models are configuration too (weights only, no user data): mirror them first.
+  for (const m of prod.store.all('ml_models', (x) => x.name === 'intent-router')) sb.store.insert('ml_models', structuredClone(m));
+  if (prod.store.getMeta('learnSigningKey')) sb.store.setMeta('learnSigningKey', prod.store.getMeta('learnSigningKey')); // to verify model signatures only
   for (const t of Object.keys(TARGETS)) TARGETS[t].apply(sb, structuredClone(TARGETS[t].get(prod)));
   if (override?.target.startsWith('workflow:')) {
     const id = override.target.slice(9);

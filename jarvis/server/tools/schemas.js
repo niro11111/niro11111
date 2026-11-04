@@ -17,6 +17,8 @@ export const TOOL_SCHEMAS = {
   'wealth.transfer': S({ action: str(true) }),
   'shopping.add': S({ item: str(true, { max: 200 }) }),
   'computer.open_app': S({ name: str(true) }),
+  'knowledge.graph': S({ query: str(), a: str(), b: str() }),
+  'compute.code': S({ code: str(true), input: { type: 'any' } }),
   'learning.feedback': S({ rating: { type: 'number', required: true }, note: str(), category: str() }),
   'computer.open_url': S({ url: str(true) }),
   'computer.read_file': S({ path: str(true) }),

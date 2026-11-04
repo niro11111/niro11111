@@ -595,8 +595,9 @@ export class LearningEngine {
       feasibility: g.kind === 'existing-capability' ? 'Teach a phrase (intent alias) through a tested proposal.' : 'Needs a new capability: a developer registers it through the extension review (6 checks + owner approval). JARVIS never installs code on its own.',
       feasibilityHe: g.kind === 'existing-capability' ? 'ללמד ביטוי (כינוי כוונה) דרך הצעה שנבדקה.' : 'דורש יכולת חדשה: מפתח רושם אותה דרך בדיקת ההרחבות (6 בדיקות + אישור הבעלים). JARVIS לעולם לא מתקין קוד בעצמו.',
     })).sort((a, b) => b.count - a.count);
+    const clusters = this.s.ml?.requestClusters();
     const roadmap = COVERAGE.filter(([, , st]) => ['planned', 'blocked', 'partial'].includes(st)).map(([section, capability, status, evidence]) => ({ section, capability, status, evidence }));
-    return { items, roadmap, policy: 'Research only: no plugin is installed, no downloaded code runs, no permission is granted automatically.' };
+    return { items, clusters, roadmap, policy: 'Research only: no plugin is installed, no downloaded code runs, no permission is granted automatically.' };
   }
 
   // ---------------- knowledge freshness ----------------
@@ -695,6 +696,15 @@ export class LearningEngine {
   }
   snapshotAgents() { const out = this.agentEvaluations(); const rec = this.s.store.insert('agent_evaluations', { at: now(), agents: out }); this.log('agents.evaluated', { id: rec.id, agents: out.length }); return rec; }
 
+  // ---------------- neural routing (ML layer) ----------------
+  /** Proposal to activate a trained neural intent model in production: tested in the sandbox like any change. */
+  proposeMlRouting(modelId, { threshold = 0.85, margin = 0.5 } = {}, actor = 'learning-engine') {
+    const m = this.s.store.get('ml_models', modelId);
+    if (!m || m.name !== 'intent-router') throw err('no such intent model', 404);
+    const replays = this.s.store.all('tasks_exec', (t) => t.actor === 'user' && t.state === 'FAILED' && t.plan?.tools?.length === 1 && t.plan.tools[0] === 'llm.answer').slice(-8).map((t) => t.objective);
+    return this.createProposal({ target: 'ml.routing', candidate: { enabled: true, modelId, threshold, margin }, type: 'ml_routing', risk: 'medium', change: `Enable neural intent routing (model v${m.version}, routing precision ${m.metrics.routedPrecision} on held-out data, accuracy ${m.metrics.testAccuracy})`, changeHe: `הפעלת ניתוב כוונות נוירוני (מודל v${m.version}, דיוק על נתוני בדיקה ${m.metrics.testAccuracy}, F1 ${m.metrics.macroF1})`, rationale: `Requests with no deterministic rule are routed to a read-only capability only when the network is confident (p ≥ ${threshold}, margin ≥ ${margin}) and the request shares a content word with that capability's training examples.`, rationaleHe: `בקשות בלי כלל קבוע ינותבו ליכולת לקריאה בלבד רק כשהרשת בטוחה (p ≥ ${threshold}, פער ≥ ${margin}) והבקשה חולקת מילת תוכן עם דוגמאות האימון של היכולת.`, evidence: [{ source: 'ml_model', ref: modelId, at: m.trainedAt }], replays, createdBy: actor });
+  }
+
   // ---------------- knowledge quality ----------------
   knowledge() { return { freshness: this.freshness(), quality: insight.knowledgeQuality(this.s) }; }
   async checkKnowledgeLinks(actor) {
@@ -733,6 +743,9 @@ export class LearningEngine {
     if (this.categoryEnabled('finance_categorization')) for (const f of this.fwosCategorization().suggestions) add({ id: f.id, kind: 'fwos', ref: f.id, title: `Categorize ${f.applyTo.length} "${f.merchant}" expense(s) as ${f.category}`, titleHe: `לסווג ${f.applyTo.length} הוצאות "${f.merchant}" כ-${f.category}`, detected: `${f.examples.length} earlier consistent examples`, detectedHe: `${f.examples.length} דוגמאות עקביות קודמות`, why: 'Uncategorized expenses distort budgets and reports.', whyHe: 'הוצאות לא מסווגות מעוותות תקציבים ודוחות.', benefit: 'more accurate reports; amounts and rules unchanged', benefitHe: 'דוחות מדויקים יותר; סכומים וכללים לא משתנים', priority: 'low', action: 'approve to apply' });
     for (const f of insight.financeValidation(this.s).findings) add({ id: `fin:${f.kind}:${(f.refs ?? []).join(',').slice(0, 40)}`, kind: 'finance-validation', ref: f.kind, title: f.recommendation, titleHe: f.recommendation, detected: f.detail, detectedHe: f.detail, why: 'Data quality in Family Wealth OS.', whyHe: 'איכות נתונים ב-Family Wealth OS.', risk: 'none', approvalRequired: false, priority: 'low' });
     for (const x of insight.securityMonitor(this.s, this).suspicious) add({ id: `sec:${x.kind}:${x.detail.slice(0, 30)}`, kind: 'security', ref: x.kind, title: x.kind === 'config-drift' ? 'Review a configuration change made outside versioning' : `Review: ${x.kind.replace(/-/g, ' ')}`, titleHe: x.kind === 'config-drift' ? 'לבדוק שינוי תצורה שנעשה מחוץ לניהול הגרסאות' : `לבדוק: ${x.kind}`, detected: x.detail, detectedHe: x.detail, why: 'Potential security or integrity issue.', whyHe: 'בעיית אבטחה או שלמות אפשרית.', risk: 'none', approvalRequired: false, priority: x.kind === 'tampered-version' ? 'high' : 'normal' });
+    const mlCfg = this.s.store.getMeta('mlRouting', {});
+    const bestMl = this.s.store.all('ml_models', (m) => m.name === 'intent-router' && m.status !== 'retired').sort((a, b) => (b.metrics?.macroF1 ?? 0) - (a.metrics?.macroF1 ?? 0))[0];
+    if (bestMl && bestMl.id !== mlCfg.modelId && (bestMl.metrics?.routedPrecision ?? 0) >= 0.9 && !this.s.store.all('improvement_proposals', (p) => p.target === 'ml.routing' && p.candidate?.modelId === bestMl.id).length) add({ id: `ml:${bestMl.id}`, kind: 'ml', ref: bestMl.id, title: `Test neural routing with model v${bestMl.version}`, titleHe: `לבדוק ניתוב נוירוני עם מודל v${bestMl.version}`, detected: `a trained intent network: held-out accuracy ${bestMl.metrics.testAccuracy}, macro-F1 ${bestMl.metrics.macroF1}`, detectedHe: `רשת כוונות מאומנת: דיוק ${bestMl.metrics.testAccuracy}, F1 ${bestMl.metrics.macroF1}`, why: 'Paraphrases the rules miss could open the right screen instead of failing.', whyHe: 'ניסוחים שהכללים מפספסים יוכלו לפתוח את המסך הנכון במקום להיכשל.', benefit: 'fewer failed requests (measured in the sandbox before any change)', benefitHe: 'פחות בקשות שנכשלות (נמדד בסביבה המבודדת לפני כל שינוי)', risk: 'medium', priority: 'normal', action: 'approve to create a tested proposal' });
     const rank = { high: 0, normal: 1, low: 2 };
     const withState = list.map((x) => ({ ...x, status: state[x.id]?.status ?? 'open', until: state[x.id]?.until ?? null })).sort((a, b) => rank[a.priority] - rank[b.priority]);
     const open = withState.filter((x) => x.status === 'open' || (x.status === 'postponed' && Date.parse(x.until) <= Date.now()));
@@ -752,6 +765,7 @@ export class LearningEngine {
       else if (sg.kind === 'rollback') result = this.rollback({ deploymentId: sg.ref, reason: 'did not fix the problem' }, actor);
       else if (sg.kind === 'profile') result = this.approveProfileItem(sg.ref, actor);
       else if (sg.kind === 'fwos') result = this.applyCategorization(sg.ref, actor);
+      else if (sg.kind === 'ml') result = this.proposeMlRouting(sg.ref, {}, actor);
       else if (sg.kind === 'automation') { result = this.s.automations.create({ ...sg.workflow, learnedFrom: sg.id }); this.log('automation.created', { workflowId: result.id, from: sg.id }, actor); }
       else if (sg.ref === 'brain.evaluation') result = await (await import('../brain/evaluation.js')).runEvaluation(this.s.store);
       state[id] = { status: 'approved', at: now() };
@@ -777,7 +791,7 @@ export class LearningEngine {
   async cycle({ maxExperiments = 1 } = {}) {
     this.snapshot();
     const patterns = this.analyze();
-    if (this.mode() >= 2) this.refreshObserved();
+    if (this.mode() >= 2) { this.refreshObserved(); try { await this.s.ml?.maybeRetrain(); } catch {} }
     let tested = 0;
     if (this.mode() >= 3) for (const p of this.proposals('proposed').slice(0, maxExperiments)) { await this.experiment(p.id); tested++; }
     this.purge();

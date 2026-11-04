@@ -19,6 +19,8 @@ export function parseClause(raw, convo = {}) {
 
   // --- conversation: greetings and thanks need no model and no tools ---
   if (SMALLTALK.test(text.trim())) return [{ agent: 'assistant', tool: 'chat.smalltalk', args: { text } }];
+  // --- code-assisted computation (isolated sandbox) ---
+  if ((m = text.match(/^(?:run code|compute with code|calculate with code|חשב בקוד|הרץ קוד)[:\s]+([\s\S]+)$/i))) return [{ agent: 'assistant', tool: 'compute.code', args: { code: m[1].trim() } }];
   // --- feedback on the previous answer (voice or text) ---
   if ((m = text.match(/^(?:jarvis,?\s*)?(?:that(?:'s| was| is)|this (?:is|was)|it(?:'s| was))\s+(wrong|incorrect|not right|not what i asked|too long|too short|great|perfect|exactly right|helpful)[\s.!]*$/i) ?? text.match(/^(?:זה|זו|התשובה)\s+(?:היה |הייתה |היתה )?(לא נכון|לא נכונה|שגוי|שגויה|לא מה שביקשתי|ארוך מדי|ארוכה מדי|קצר מדי|קצרה מדי|מצוין|מצוינת|מעולה|בדיוק מה שרציתי|עזר(?:ה)?)[\s.!]*$/))) {
     const w = m[1].toLowerCase();
@@ -188,5 +190,7 @@ export function parse(text, convo = {}) {
     return convo.lastSteps.map((s) => (s.args?.data?.temperature !== undefined
       ? { ...s, args: { ...s.args, data: { ...s.args.data, temperature: Number(corr[1]) } } } : s));
   }
+  // Code is one clause: never split it on separators.
+  if (/^(?:run code|compute with code|calculate with code|חשב בקוד|הרץ קוד)[:\s]/i.test(text.trim())) return parseClause(text.trim(), convo);
   return splitClauses(text).flatMap((c) => parseClause(c, convo));
 }

@@ -101,7 +101,7 @@ export class Core {
     try {
       transition(task, S.PLANNING); this.emit(task);
       const resolved = [];
-      for (const st of this.learned(parse(message, convo), message)) resolved.push(...(await this.resolve(st, convo)));
+      for (const st of this.learned(parse(message, convo), message, task)) resolved.push(...(await this.resolve(st, convo)));
       emitBrain(this.store, 'request.received', { taskId: task.id, kind: 'pending-analysis', lang });
       const out = await this.plan(task, resolved, convo, message);
       this.recordVoice(task, started);
@@ -112,9 +112,16 @@ export class Core {
   }
 
   /** Learned phrases (versioned, read-only targets) apply only where the deterministic parser had no rule. */
-  learned(steps, message) {
-    if (steps.length === 1 && steps[0].tool === 'llm.answer' && !steps[0].args?.deep) return this.learn?.aliasFor(message) ?? steps;
-    return steps;
+  learned(steps, message, task = null) {
+    if (!(steps.length === 1 && steps[0].tool === 'llm.answer' && !steps[0].args?.deep)) return steps;
+    const alias = this.learn?.aliasFor(message);
+    if (alias) return alias;
+    const kg = this.kg?.routeFor(message);
+    if (kg) return kg;
+    // Neural router (only if enabled through an approved, tested deployment; read-only targets only).
+    const ml = this.ml?.route(message);
+    if (ml && task) task.ml = { route: !!ml.steps, label: ml.decision.label, prob: ml.decision.prob, margin: ml.decision.margin, reason: ml.decision.reason, modelVersion: ml.version ?? null };
+    return ml?.steps ?? steps;
   }
 
   /** Analysis -> clarification or plan -> permissions -> run. */

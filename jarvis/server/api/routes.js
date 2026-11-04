@@ -235,6 +235,35 @@ export function createApi(s, token, opts = {}) {
     return analyzeRequest(String(req.body.text ?? ''), parse(String(req.body.text ?? ''), {}), s.tools);
   });
 
+  // --- dedicated database (SQLite in server mode; browser storage in the web app) ---
+  const noDb = () => ({ engine: s.store.onSave ? 'browser storage (claude.ai database or localStorage)' : 'in-memory / JSON file', sql: false });
+  r('GET', '/api/db/status', () => (s.db ? { ...s.db.status(), sql: true } : noDb()));
+  r('GET', '/api/db/integrity', () => (s.db ? s.db.integrity() : { result: 'n/a', note: 'no SQL database in this mode' }));
+  r('POST', '/api/db/backup', (req) => { if (!s.db) throw Object.assign(new Error('backups need the server database'), { status: 409 }); const b = s.db.backup(); s.audit.log(req.actor, 'db.backup', b); return b; });
+  r('POST', '/api/db/query', (req) => { if (!s.db) throw Object.assign(new Error('the SQL console needs the server database'), { status: 409 }); const out = s.db.query(req.body.sql, { limit: req.body.limit }); s.audit.log(req.actor, 'db.query', { rows: out.count }); return out; });
+
+  // --- ML layer: neural intent router, categorizer, forecasting, anomalies, clustering ---
+  const M = '/api/ml';
+  r('GET', `${M}/status`, () => s.ml.status());
+  r('GET', `${M}/models`, (req) => s.ml.models(req.query.get('name') ?? undefined));
+  r('GET', `${M}/models/:id`, (req, p) => { const { weights, support, nb, ...m } = s.ml.get(p.id); return { ...m, intact: s.ml.intact(s.ml.get(p.id)), parameters: weights ? weights.W.reduce((a, w) => a + w.length, 0) + weights.b.reduce((a, b) => a + b.length, 0) : null }; });
+  r('POST', `${M}/train/intent`, (req) => s.ml.trainIntent(req.actor, { hidden: req.body.hidden, epochs: req.body.epochs }).then(({ weights, support, ...m }) => m));
+  r('POST', `${M}/train/categorizer`, (req) => { const { nb, ...m } = s.ml.trainCategorizer(req.actor); return m; });
+  r('POST', `${M}/models/:id/promote`, (req, p) => s.ml.promote(p.id, req.actor));
+  r('POST', `${M}/models/:id/propose-routing`, (req, p) => s.learn.proposeMlRouting(p.id, { threshold: req.body.threshold ?? 0.85, margin: req.body.margin ?? 0.5 }, req.actor));
+  r('POST', `${M}/predict`, (req) => s.ml.predict(String(req.body.text ?? ''), { modelId: req.body.modelId }));
+  r('GET', `${M}/categories`, () => s.ml.categorySuggestions());
+  r('POST', `${M}/categories/:txId/apply`, (req, p) => s.ml.applyCategory(p.txId, req.actor));
+  r('GET', `${M}/forecast`, (req) => s.ml.forecast({ horizon: Number(req.query.get('horizon') ?? 3) }));
+  r('GET', `${M}/anomalies`, () => s.ml.anomalies());
+  r('GET', `${M}/clusters`, () => s.ml.requestClusters());
+
+  // --- personal knowledge graph ---
+  r('GET', '/api/knowledge/graph', (req) => { if (!s.store.all('kg_nodes').length) s.kg.rebuild(); return s.kg.graph({ limit: Number(req.query.get('limit') ?? 150) }); });
+  r('POST', '/api/knowledge/graph/rebuild', () => s.kg.rebuild());
+  r('GET', '/api/knowledge/graph/about', (req) => s.kg.about(req.query.get('name')) ?? { node: null, facts: [] });
+  r('GET', '/api/knowledge/graph/path', (req) => s.kg.path(req.query.get('a'), req.query.get('b')));
+
   // --- AUTONOMOUS LEARNING & SELF-IMPROVEMENT API v1 ---
   const L = '/api/v1/learning';
   const owner = (req) => (req.actor === 'user' ? 'user' : req.actor);
