@@ -363,6 +363,24 @@ main{overflow-wrap:break-word}
 .pgLib{list-style:none;padding:0;margin:6px 0;display:grid;gap:6px}
 .pgLib li{display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap;border:1px solid var(--line);border-radius:10px;padding:6px 10px;background:var(--surface)}
 #pgForm [hidden]{display:none}
+
+/* error decoder, endless quiz, ecosystem */
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.edSamples{align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+#edIn{width:100%;font-family:var(--mono, ui-monospace, monospace)}
+.edCard .code{margin-top:6px}
+.qgBar,.ecBar{align-items:end;gap:10px;flex-wrap:wrap}
+.qgBar label,.ecBar label{display:grid;gap:4px;font-weight:700;font-size:.88rem;min-width:0}
+.qgStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0}
+.qgStats div{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:8px;text-align:center;display:grid}
+.qgStats b{font-size:1.5rem}
+.qgStats span{color:var(--muted);font-size:.85rem}
+.qgCard{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:12px 14px;margin-bottom:10px;min-height:120px}
+.qgCard .q{margin:0}
+.qgCard .q > b{display:block;margin:6px 0}
+.ecCard .ltr a{word-break:break-all}
+.pill.ecOff{background:var(--accent);color:var(--accent-ink)}
+.ecCard .tick{margin-top:6px}
 </style>
 
 <div class="app" dir="rtl" lang="he">
@@ -2132,6 +2150,34 @@ fly deploy</pre></div></li>
   <div class="quiz" data-q="promptgen"></div>
 </section>
 
+<section class="mod" id="ecosystem" data-level="ארגז הכלים של המומחה" data-title="חבילות והרחבות מ-GitHub">
+  <div class="eyebrow"></div>
+  <h1>חבילות והרחבות מ-GitHub שמשדרגות את Claude Code</h1>
+  <p class="lead">קטלוג של Plugins, Skills, שרתי MCP, כלים ו-SDK מ-GitHub. כל פקודת התקנה נבדקה מול ה-README של הריפו בנובמבר 2026. בוחרים מה מתאים לכם ומקבלים סקריפט התקנה אחד וקובץ ‎.mcp.json לשיתוף עם הצוות. לפני שמתקינים משהו שלא מ-Anthropic, עוברים על רשימת הבטיחות בסוף הפרק.</p>
+  <div class="row ecBar">
+    <label>חיפוש<input type="text" id="ecQ" placeholder="playwright, skills, עלות…"></label>
+    <label>ערכה מומלצת<select id="ecKit"><option value="">בחרו ערכה…</option></select></label>
+    <button class="btn sm" type="button" id="ecNone">ניקוי הבחירה</button>
+  </div>
+  <div class="tabs" id="ecCats"></div>
+  <div class="tricks" id="ecList"></div>
+  <h2>ההתקנה שלכם <span class="hint" id="ecSelN"></span></h2>
+  <div class="tabs" data-tabs="eco"><button class="on" type="button">סקריפט התקנה</button><button type="button">‎.mcp.json לצוות</button></div>
+  <div class="pane on" data-pane="eco"><div class="code" data-lang="bash" data-file="install-extensions.sh" id="ecScript"><pre></pre></div></div>
+  <div class="pane" data-pane="eco"><div class="code" data-lang="json" data-file=".mcp.json" id="ecMcp"><pre></pre></div><p class="hint">‏.mcp.json בשורש הריפו משתף את השרתים עם כל הצוות. ‏<code>${VAR}</code> נלקח ממשתני הסביבה, כך שאין סודות בקובץ. כל אחד מאשר את השרתים בפעם הראשונה.</p></div>
+  <div class="row" style="margin-top:8px"><button class="btn" type="button" id="ecDl">הורדת הסקריפט</button><button class="btn" type="button" id="ecDlMcp">הורדת ‎.mcp.json</button></div>
+  <h2>לפני שמתקינים הרחבה שלא מ-Anthropic</h2>
+  <ol>
+    <li><b>קוראים את הקוד של ה-Hooks</b>: Plugin יכול להוסיף Hooks שרצים אוטומטית על המחשב שלכם, עם ההרשאות שלכם.</li>
+    <li><b>בודקים מי מתחזק</b>: כמה כוכבים, מתי ה-commit האחרון, והאם יש issues פתוחים על אבטחה.</li>
+    <li><b>שרת MCP מקבל רק מה שצריך</b>: טוקן לקריאה בלבד, משתמש DB ייעודי, תיקייה מוגבלת ב-filesystem.</li>
+    <li><b>תוכן מבחוץ הוא לא הוראות</b>: דף אינטרנט, Issue או מסמך שהשרת מביא יכולים להכיל prompt injection. לא נותנים לאותו סשן גם לקרוא תוכן זר וגם לבצע פעולות רגישות בלי אישור.</li>
+    <li><b>נועלים גרסה</b> בפרויקטים חשובים במקום <code>@latest</code>, ומעדכנים בכוונה.</li>
+    <li><b>בודקים מה נוסף</b>: אחרי התקנה מריצים <code>/plugin</code>, <code>/mcp</code>, <code>/hooks</code> ו-<code>/agents</code> ורואים בדיוק מה נכנס.</li>
+  </ol>
+  <div class="quiz" data-q="ecosystem"></div>
+</section>
+
 <section class="mod" id="gallery" data-level="ארגז הכלים של המומחה" data-title="גלריית התאמה אישית">
   <div class="eyebrow"></div>
   <h1>גלריית התאמה אישית: שורות סטטוס, סגנונות פלט ו-Hooks מיוחדים</h1>
@@ -2429,6 +2475,35 @@ Do not change test expectations to make them pass.</textarea></label>
   <div class="pane" data-pane="az"><div class="code" data-lang="markdown" id="azCmds"><pre></pre></div></div>
   <div class="row" style="margin-top:10px"><button class="btn" type="button" id="azAi" hidden>שיפור עם המורה</button></div>
   <div id="azAiOut" class="box tutor-answer" hidden></div>
+</section>
+
+<section class="mod" id="errdoc" data-level="סדנת תרגול" data-title="מפענח שגיאות">
+  <div class="eyebrow"></div>
+  <h1>מפענח שגיאות של Claude Code</h1>
+  <p class="lead">מדביקים שגיאה מהטרמינל, מ-CI או מ-Claude עצמו, ומקבלים מה היא אומרת, מה הסיבה הנפוצה ואיך מתקנים, עם פקודות מוכנות. המאגר מכיר מעל 25 שגיאות נפוצות: התקנה, התחברות, מגבלות, MCP, Hooks, הרשאות ב-headless, GitHub Actions ותקלות פיתוח. כשהמורה ה-AI זמין, הוא מוסיף אבחון מעמיק.</p>
+  <div class="row edSamples" id="edSamples"></div>
+  <label class="sr-only" for="edIn">השגיאה</label>
+  <textarea id="edIn" class="ltr" rows="5" placeholder="Paste the error here, for example: MCP server &quot;github&quot; failed to connect"></textarea>
+  <div class="row" style="margin-top:8px"><button class="btn pri" type="button" id="edRun">פענוח</button><button class="btn" type="button" id="edAi" hidden>אבחון מעמיק עם המורה</button><span class="hint" id="edCount"></span></div>
+  <div id="edOut" aria-live="polite"></div>
+  <div id="edAiOut" class="box tutor-answer" hidden></div>
+  <h2>כל השגיאות במאגר</h2>
+  <div class="tabs" id="edCats"></div>
+  <div id="edAll" class="edAll"></div>
+</section>
+
+<section class="mod" id="quizgen" data-level="סדנת תרגול" data-title="בוחן אינסופי">
+  <div class="eyebrow"></div>
+  <h1>בוחן אינסופי</h1>
+  <p class="lead">שאלה אחר שאלה מכל הקורס, עם הסבר מיד אחרי כל תשובה וקישור לפרק. אפשר לבחור רמה, לתרגל רק את הטעויות שלכם, או לבקש מהמורה ה-AI שאלות חדשות לגמרי על כל נושא. רצף של 10 תשובות נכונות משלים את הפרק.</p>
+  <div class="row qgBar">
+    <label>מקור השאלות<select id="qgSrc"></select></label>
+    <label id="qgTopicL" hidden>נושא לשאלות חדשות<input type="text" id="qgTopic" value="Hooks ו-Subagents"></label>
+    <button class="btn" type="button" id="qgGen" hidden>יצירת 5 שאלות חדשות</button>
+  </div>
+  <div class="qgStats"><div><b id="qgStreak">0</b><span>רצף</span></div><div><b id="qgBest">0</b><span>שיא</span></div><div><b id="qgOk">0</b><span>נכונות</span></div><div><b id="qgTotal">0</b><span>נענו</span></div></div>
+  <div id="qgCard" class="qgCard" aria-live="polite"></div>
+  <div class="row"><button class="btn pri" type="button" id="qgNext">שאלה הבאה</button><span class="hint" id="qgNote"></span></div>
 </section>
 
 <section class="mod" id="exam" data-level="מבחן גמר" data-title="מבחן גמר ותעודה">
@@ -2771,6 +2846,11 @@ const Q = {
     ["מה עושה ‎--json-schema ב-claude -p?", ["מתרגם טקסט ל-JSON","מאמת שהפלט עומד בסכמה ומחזיר אותו בשדה structured_output","יוצר סכמה למסד הנתונים","מכבה את הכלים"], 1, "פלט מאומת, בלי לפרסר טקסט."],
     ["לפי מה Claude מחליט להפעיל Skill או Subagent?", ["אקראית","לפי ה-description: מה הוא עושה ומתי להשתמש בו","לפי שם הקובץ בלבד","לפי אורך הקובץ"], 1, "תיאור מדויק = הפעלה בזמן הנכון."],
     ["כמה דוגמאות כדאי לתת בפרומפט?", ["אחת בלבד","3 עד 5 מגוונות, כולל מקרה קצה","אף אחת","כמה שיותר, גם אם הן זהות"], 1, "דוגמה אחת מועתקת עיוורת; כמה מגוונות מלמדות את הדפוס."]
+  ],
+  ecosystem: [
+    ["איך מתקינים Plugin מ-marketplace?", ["npm install","‏/plugin install <name>@<marketplace>","מעתיקים קבצים ידנית","‏claude mcp add"], 1, "קודם מוסיפים את ה-marketplace (אם הוא לא הרשמי), ואז מתקינים לפי שם@marketplace."],
+    ["למה לקרוא את הקוד של Plugin מהקהילה לפני התקנה?", ["כדי ללמוד JavaScript","Plugin יכול להוסיף Hooks שרצים אוטומטית עם ההרשאות שלכם","זה לא נחוץ","כדי לתת לו כוכב"], 1, "Hooks רצים על המחשב שלכם בלי שתאשרו כל פעם."],
+    ["איך משתפים שרתי MCP עם כל הצוות בלי לחשוף סודות?", ["שולחים טוקנים בצ'אט","‏.mcp.json בריפו עם ${VAR} למשתני סביבה","מצלמים את המסך","כל אחד ממציא הגדרה"], 1, "הקובץ ב-git, הסודות בסביבה של כל מפתח."]
   ],
   promptpro: [
     ["מתי משתמשים בפרה-מורטם?", ["אחרי שהכול נשבר","לפני שינוי גדול, כדי לצפות כשלים מראש","אף פעם","רק בבדיקות"], 1, "מדמיינים כישלון ומונעים אותו מראש."],
@@ -3664,7 +3744,7 @@ function mergeBundles(local, remote){
       const msg = {not_granted:"המורה לא אושר בחלון האישור, ולכן הוא מוסתר בביקור הזה.", sampling_disabled:"המורה לא זמין בחשבון הזה.", rate_limited:"יותר מדי שאלות בזמן קצר, או שהמכסה נגמרה. נסו שוב בעוד כמה דקות.", session_expired:"צריך להתחבר מחדש ל-Claude.", refused:"לא אוכל לענות על זה. נסו לנסח אחרת.", prompt_too_large:"השאלה ארוכה מדי. התחילו שיחה חדשה."}[e && e.code];
       if(e && e.code === "cancelled"){ out.innerHTML = e.text ? md(e.text) + '<div class="hint">נעצר</div>' : '<span class="hint">נעצר</span>'; }
       else { out.innerHTML = (e && e.text ? md(e.text) + "<br>" : "") + '<span class="hint">' + esc(msg || "משהו השתבש. נסו שוב.") + '</span>'; }
-      if(e && ["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed"].includes(e.code)){ sample = null; window.tutorSample = null; setTimeout(() => { const pa = document.getElementById("plAi"); if(pa) pa.hidden = true; const pga = document.getElementById("pgAi"); if(pga) pga.hidden = true; $("#tutor").hidden = true; $("#tutorFab").hidden = true; document.body.classList.remove("has-tutor"); $("#chkAi").hidden = true; }, 3500); }
+      if(e && ["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed"].includes(e.code)){ sample = null; window.tutorSample = null; setTimeout(() => { const pa = document.getElementById("plAi"); if(pa) pa.hidden = true; const pga = document.getElementById("pgAi"); if(pga) pga.hidden = true; const eda = document.getElementById("edAi"); if(eda) eda.hidden = true; $("#tutor").hidden = true; $("#tutorFab").hidden = true; document.body.classList.remove("has-tutor"); $("#chkAi").hidden = true; }, 3500); }
     }finally{ $("#tutorSend").disabled = false; $("#tutorStop").hidden = true; }
   }
   window.askTutor = (q) => { if(!sample) return; open(); ask(q); };
@@ -3692,7 +3772,7 @@ function mergeBundles(local, remote){
     try{ sample = await window.claude.use("sample"); }catch(e){ sample = null; }
     if(!sample) return;
     $("#tutorFab").hidden = false; $("#chkAi").hidden = false; document.body.classList.add("has-tutor");
-    window.tutorSample = sample; window.tutorMd = md; const pa = document.getElementById("plAi"); if(pa) pa.hidden = false; const pga = document.getElementById("pgAi"); if(pga) pga.hidden = false;
+    window.tutorSample = sample; window.tutorMd = md; const pa = document.getElementById("plAi"); if(pa) pa.hidden = false; const pga = document.getElementById("pgAi"); if(pga) pga.hidden = false; const eda = document.getElementById("edAi"); if(eda) eda.hidden = false; if(window.__qgShowAi) window.__qgShowAi();
   })();
 })();
 
@@ -4915,9 +4995,9 @@ checkBadges(true);
 // ================= sync v3: every key, per-key timestamps, resets and deletions sync =================
 // Progress that only grows (XP, badges, flashcard boxes, records) is merged as a union / max.
 // Everything a person edits or can undo (notes, checklists, settings, look) follows the newest write.
-const SYNC_KEYS = ["state","cards","sim","best","badges","daily","srbest","surprises","tricks","proj","ba","notes","track","mistakes","place","look","packSel","theme","lastReal","name","retro","ag","pglib","pgDraft","mtime"];
+const SYNC_KEYS = ["state","cards","sim","best","badges","daily","srbest","surprises","tricks","proj","ba","notes","track","mistakes","place","look","packSel","theme","lastReal","name","retro","ag","pglib","pgDraft","ecoSel","edSeen","qbest","mtime"];
 isSyncKey = k => SYNC_KEYS.includes(k) || /^ch\d+$/.test(k);
-const GROW_UNION = ["cards","badges","daily"], GROW_MAX = ["sim","best","srbest","surprises"];
+const GROW_UNION = ["cards","badges","daily"], GROW_MAX = ["sim","best","srbest","surprises","qbest"];
 function readMtime(){ try{ return JSON.parse(localStorage.getItem("cca-mtime") || "{}"); }catch(e){ return {}; } }
 onStoreChange = (orig => function(k){
   if(k !== "mtime" && isSyncKey(k)){ const mt = readMtime(); mt[k] = Date.now(); try{ localStorage.setItem("cca-mtime", JSON.stringify(mt)); }catch(e){} }
@@ -5554,6 +5634,209 @@ drawSecrets();
 BADGES.push(["guide","🚀","מרעיון לאוויר","השלמתם את כל 16 השלבים במדריך המלא", () => !!state.awarded["ag-all"]], ["prompter","🎯","מהנדסי פרומפטים","בניתם פרומפט עם ציון 90 ומעלה", () => !!state.awarded["pg-90"]]);
 ["fe","be","ops"].forEach(k => { if(TRACKS[k] && !TRACKS[k].m.includes("appguide")) TRACKS[k].m.push("appguide"); });
 Object.keys(TRACKS).forEach(k => { if(!TRACKS[k].m.includes("promptgen")) TRACKS[k].m.push("promptgen"); });
+// ================= GitHub ecosystem catalog (verified against each README, Nov 2026) =================
+const ECO = [
+  {id:"official", c:"Plugins ו-Skills", n:"Claude Plugins Official", r:"anthropics/claude-plugins-official", o:1, st:"46k", d:"הספרייה הרשמית של Anthropic ל-Plugins איכותיים. מחפשים ומתקינים מתוך Claude Code.", w:"נקודת ההתחלה לכל Plugin.", cmd:["/plugin   # Discover: browse the official directory","/plugin install <plugin-name>@claude-plugins-official"]},
+  {id:"skills", c:"Plugins ו-Skills", n:"Anthropic Agent Skills", r:"anthropics/skills", o:1, st:"187k", d:"ה-Skills הרשמיים: יצירה ועריכה של Word, PDF, PowerPoint ו-Excel, ועוד Skills לדוגמה בעיצוב, פיתוח ותקשורת.", w:"Claude צריך להפיק מסמכים, מצגות או גיליונות אמיתיים.", cmd:["/plugin marketplace add anthropics/skills","/plugin install document-skills@anthropic-agent-skills","/plugin install example-skills@anthropic-agent-skills"]},
+  {id:"superpowers", c:"Plugins ו-Skills", n:"Superpowers", r:"obra/superpowers", o:0, st:"312k", d:"ספריית Skills לעבודה מובנית: סיעור מוחות, תוכנית, TDD, דיבאג שיטתי וריוויו. Claude מפעיל אותם לבד בשלב המתאים.", w:"רוצים ש-Claude יעבוד במתודולוגיה קבועה ולא יקפוץ ישר לקוד.", cmd:["/plugin install superpowers@claude-plugins-official"]},
+  {id:"wshobson", c:"Plugins ו-Skills", n:"Agents & Workflows", r:"wshobson/agents", o:0, st:"42k", d:"אוסף גדול של Subagents ו-Plugins לפי תחום: Python, frontend, DevOps, אבטחה, נתונים ועוד. מתקינים רק את התחומים שצריך.", w:"צוות סוכנים מומחים בלי לכתוב אותם מאפס.", cmd:["/plugin marketplace add wshobson/agents","/plugin install python-development@claude-code-workflows"]},
+  {id:"playwright", c:"שרתי MCP", n:"Playwright MCP", r:"microsoft/playwright-mcp", o:0, st:"39k", d:"Claude פותח דפדפן אמיתי: לוחץ, ממלא טפסים, קורא את הדף ומצלם. מושלם לבדיקות E2E ולתיקוני UI.", w:"פיתוח ממשק, שחזור באגים בדפדפן ובדיקות.", cmd:["claude mcp add playwright npx @playwright/mcp@latest"], mcp:{command:"npx", args:["@playwright/mcp@latest"]}},
+  {id:"devtools", c:"שרתי MCP", n:"Chrome DevTools MCP", r:"ChromeDevTools/chrome-devtools-mcp", o:0, st:"55k", d:"גישה לכלי הפיתוח של Chrome: Console, רשת, ביצועים ו-traces. Claude רואה למה הדף איטי או נשבר.", w:"דיבאג ביצועים ושגיאות בצד הלקוח.", cmd:["/plugin marketplace add ChromeDevTools/chrome-devtools-mcp","/plugin install chrome-devtools-mcp@chrome-devtools-plugins"], mcp:{command:"npx", args:["-y","chrome-devtools-mcp@latest"]}},
+  {id:"github", c:"שרתי MCP", n:"GitHub MCP Server", r:"github/github-mcp-server", o:0, st:"34k", d:"השרת הרשמי של GitHub: Issues, PRs, Actions, קוד וריליסים. Claude מנהל את כל זרימת העבודה בלי לצאת מהטרמינל.", w:"עבודה יומיומית מול GitHub, מיון Issues וסקירת PRs.", cmd:["claude mcp add github -e GITHUB_PERSONAL_ACCESS_TOKEN=$GITHUB_PAT -- docker run -i --rm -e GITHUB_PERSONAL_ACCESS_TOKEN ghcr.io/github/github-mcp-server"], mcp:{type:"http", url:"https://api.githubcopilot.com/mcp/", headers:{Authorization:"Bearer ${GITHUB_PAT}"}}},
+  {id:"context7", c:"שרתי MCP", n:"Context7", r:"upstash/context7", o:0, st:"64k", d:"תיעוד עדכני של ספריות לפי גרסה, ישירות להקשר. פחות קוד שנכתב לפי API ישן.", w:"עבודה עם ספריות שמשתנות מהר (Next.js, ORMs, SDKs).", cmd:["npx ctx7 setup --claude"], mcp:{type:"http", url:"https://mcp.context7.com/mcp", headers:{Authorization:"Bearer ${CONTEXT7_API_KEY}"}}},
+  {id:"sentry", c:"שרתי MCP", n:"Sentry MCP", r:"getsentry/sentry-mcp", o:0, st:"1k", d:"Claude קורא שגיאות אמיתיות מ-production עם stack trace, מוצא את הסיבה בקוד ומתקן.", w:"יש לכם Sentry ואתם רוצים לתקן באגים מהדיווח עצמו.", cmd:["claude mcp add --transport http sentry https://mcp.sentry.dev/mcp"], mcp:{type:"http", url:"https://mcp.sentry.dev/mcp"}},
+  {id:"supabase", c:"שרתי MCP", n:"Supabase MCP", r:"supabase/mcp", o:0, st:"3k", d:"ניהול פרויקט Supabase: טבלאות, migrations, שאילתות ולוגים.", w:"האפליקציה שלכם על Supabase. מומלץ לחבר לפרויקט פיתוח, לא ל-production.", cmd:["claude mcp add --transport http supabase https://mcp.supabase.com/mcp"], mcp:{type:"http", url:"https://mcp.supabase.com/mcp"}},
+  {id:"fetch", c:"שרתי MCP", n:"Fetch (רשמי של MCP)", r:"modelcontextprotocol/servers", o:1, st:"92k", d:"שרת ייחוס: מביא דפי אינטרנט וממיר ל-Markdown נקי.", w:"קריאת תיעוד או דפים בלי דפדפן.", cmd:["claude mcp add fetch -- uvx mcp-server-fetch"], mcp:{command:"uvx", args:["mcp-server-fetch"]}},
+  {id:"git", c:"שרתי MCP", n:"Git (רשמי של MCP)", r:"modelcontextprotocol/servers", o:1, st:"92k", d:"שרת ייחוס לפעולות git מובנות: היסטוריה, diff, ענפים.", w:"עבודה מובנית עם היסטוריית git, גם מכלים אחרים.", cmd:["claude mcp add git -- uvx mcp-server-git"], mcp:{command:"uvx", args:["mcp-server-git"]}},
+  {id:"memory", c:"שרתי MCP", n:"Memory (רשמי של MCP)", r:"modelcontextprotocol/servers", o:1, st:"92k", d:"זיכרון כגרף ידע שנשמר בין סשנים: ישויות, קשרים ותצפיות.", w:"רוצים ש-Claude יזכור עובדות על הפרויקט מעבר ל-CLAUDE.md.", cmd:["claude mcp add memory -- npx -y @modelcontextprotocol/server-memory"], mcp:{command:"npx", args:["-y","@modelcontextprotocol/server-memory"]}},
+  {id:"inspector", c:"כלים", n:"MCP Inspector", r:"modelcontextprotocol/inspector", o:1, st:"11k", d:"ממשק לבדיקת שרת MCP: רואים כלים, מריצים אותם ידנית ובודקים תשובות.", w:"בונים שרת MCP משלכם (פרק \"בונים שרת MCP\").", cmd:["npx @modelcontextprotocol/inspector"]},
+  {id:"ccusage", c:"כלים", n:"ccusage", r:"ryoppippi/ccusage", o:0, st:"19k", d:"דוחות שימוש ועלות מהלוגים המקומיים של Claude Code: לפי יום, חודש, סשן וחלון של 5 שעות.", w:"רוצים לדעת כמה אתם צורכים ואיפה.", cmd:["npx ccusage@latest","npx ccusage@latest daily"]},
+  {id:"ccstatusline", c:"כלים", n:"ccstatusline", r:"sirmalloc/ccstatusline", o:0, st:"13k", d:"שורת סטטוס עשירה עם עורך אינטראקטיבי: מודל, ענף git, ניצול הקשר, עלות ועוד.", w:"רוצים לראות הכול במבט אחד בלי לכתוב סקריפט.", cmd:["npx -y ccstatusline@latest"]},
+  {id:"action", c:"כלים", n:"Claude Code GitHub Action", r:"anthropics/claude-code-action", o:1, st:"10k", d:"Claude עונה ל-@claude ב-Issues וב-PRs, מממש משימות ועושה ריוויו אוטומטי.", w:"רוצים ש-Claude יעבוד גם ב-GitHub, לא רק בטרמינל.", cmd:["claude","/install-github-app"]},
+  {id:"sdkpy", c:"SDK ולמידה", n:"Claude Agent SDK (Python)", r:"anthropics/claude-agent-sdk-python", o:1, st:"8k", d:"אותו מנוע של Claude Code כספרייה: בונים סוכנים, בוטים וצינורות משלכם.", w:"פרקים \"Agent SDK\" ו\"בוט משלכם\".", cmd:["pip install claude-agent-sdk"]},
+  {id:"sdkts", c:"SDK ולמידה", n:"Claude Agent SDK (TypeScript)", r:"anthropics/claude-agent-sdk-typescript", o:1, st:"2k", d:"אותו SDK ל-Node ו-TypeScript.", w:"סוכנים בתוך אפליקציות Node.", cmd:["npm install @anthropic-ai/claude-agent-sdk"]},
+  {id:"cookbooks", c:"SDK ולמידה", n:"Claude Cookbooks", r:"anthropics/claude-cookbooks", o:1, st:"54k", d:"מחברות ומתכונים רשמיים: tool use, RAG, סוכנים, פלט מובנה ועוד.", w:"לומדים לבנות עם Claude מדוגמאות עובדות.", cmd:["git clone https://github.com/anthropics/claude-cookbooks"]},
+  {id:"awesome", c:"SDK ולמידה", n:"Awesome Claude Code", r:"hesreallyhim/awesome-claude-code", o:0, st:"57k", d:"רשימה מתוחזקת של כלים, פקודות, Hooks, Skills ומשאבים מהקהילה.", w:"מחפשים השראה ורעיונות חדשים.", cmd:["# browse: https://github.com/hesreallyhim/awesome-claude-code"]},
+  {id:"cc", c:"SDK ולמידה", n:"Claude Code (הריפו הרשמי)", r:"anthropics/claude-code", o:1, st:"155k", d:"הריפו של Claude Code: CHANGELOG, דיווח באגים, Plugins לדוגמה והגדרת devcontainer.", w:"רוצים לדעת מה חדש בכל גרסה או לדווח על באג.", cmd:["# changelog and issues: https://github.com/anthropics/claude-code"]}
+];
+const ECO_KITS = [
+  ["מתחילים: הבסיס הרשמי", ["official","skills","context7","ccusage"]],
+  ["פיתוח Web", ["official","playwright","devtools","context7","github"]],
+  ["Full-stack ו-production", ["official","github","sentry","supabase","playwright","action"]],
+  ["מתודולוגיה וצוות סוכנים", ["superpowers","wshobson","official"]],
+  ["בונים סוכנים ו-MCP", ["sdkpy","sdkts","inspector","cookbooks","fetch"]],
+  ["מסמכים ותוכן", ["skills","fetch","memory"]]
+];
+(function(){
+  const cats = ["הכול", ...new Set(ECO.map(e => e.c))];
+  let cat = "הכול";
+  const sel = () => store.get("ecoSel", []);
+  $("#ecKit").innerHTML += ECO_KITS.map((k, i) => '<option value="' + i + '">' + esc(k[0]) + '</option>').join("");
+  $("#ecCats").innerHTML = cats.map((c, i) => '<button type="button"' + (i ? "" : ' class="on"') + '>' + esc(c) + '</button>').join("");
+  function list(){
+    const q = $("#ecQ").value.trim().toLowerCase(), S = sel();
+    const items = ECO.filter(e => (cat === "הכול" || e.c === cat) && (!q || (e.n + " " + e.r + " " + e.d + " " + e.w + " " + e.c).toLowerCase().includes(q)));
+    $("#ecList").innerHTML = items.length ? items.map(e => '<div class="trick ecCard' + (S.includes(e.id) ? " got" : "") + '"><span class="pill">' + esc(e.c) + '</span> <span class="pill ' + (e.o ? "ecOff" : "ecCom") + '">' + (e.o ? "רשמי" : "קהילה") + '</span> <span class="hint">★ ' + e.st + '</span><h3>' + esc(e.n) + '</h3><p class="ltr hint"><a href="https://github.com/' + e.r + '" target="_blank" rel="noopener">github.com/' + esc(e.r) + '</a></p><p>' + esc(e.d) + '</p><p class="hint">מתי: ' + esc(e.w) + '</p><div class="code" data-lang="bash"><pre>' + esc(e.cmd.join("\n")) + '</pre></div><label class="tick"><input type="checkbox" data-eco="' + e.id + '"' + (S.includes(e.id) ? " checked" : "") + '> להוסיף להתקנה שלי</label></div>').join("") : '<p class="box">לא נמצאו הרחבות. נסו מילה אחרת.</p>';
+    $$("#ecList .code").forEach(decorate);
+  }
+  function out(){
+    const S = sel(), chosen = ECO.filter(e => S.includes(e.id));
+    $("#ecSelN").textContent = chosen.length ? "(" + chosen.length + " נבחרו)" : "";
+    const script = "#!/usr/bin/env bash\n# Claude Code extensions · generated by Claude Code Academy\n# Lines that start with / run inside a Claude Code session; the rest run in the terminal.\nset -e\n\n" +
+      (chosen.length ? chosen.map(e => "# " + e.n + " · github.com/" + e.r + (e.o ? " (official)" : " (community: review before installing)") + "\n" + e.cmd.join("\n")).join("\n\n") : "# Select extensions above to build your install script") + "\n";
+    setCode("#ecScript", script);
+    const servers = {}; chosen.filter(e => e.mcp).forEach(e => servers[e.id] = e.mcp);
+    setCode("#ecMcp", JSON.stringify({mcpServers: servers}, null, 2));
+    return {script, mcp: JSON.stringify({mcpServers: servers}, null, 2), n: chosen.length};
+  }
+  const put = S => { store.set("ecoSel", S); list(); out(); if(S.length >= 3) award("eco-3", 15, "ערכת הרחבות"); };
+  $("#ecList").addEventListener("change", e => { const id = e.target.dataset.eco; if(!id) return; const S = sel().filter(x => x !== id); if(e.target.checked) S.push(id); put(S); });
+  $("#ecCats").addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; cat = b.textContent; $$("#ecCats button").forEach(x => x.classList.toggle("on", x === b)); list(); });
+  $("#ecQ").addEventListener("input", list);
+  $("#ecKit").addEventListener("change", () => { const k = ECO_KITS[+$("#ecKit").value]; if(!k) return; put([...new Set(sel().concat(k[1]))]); toast("נוספו " + k[1].length + " הרחבות"); $("#ecKit").value = ""; });
+  $("#ecNone").onclick = () => put([]);
+  $("#ecDl").onclick = () => { const r = out(); if(!r.n){ toast("בחרו קודם הרחבות"); return; } saveFile("install-extensions.sh", r.script); };
+  $("#ecDlMcp").onclick = () => { const r = out(); if(!JSON.parse(r.mcp).mcpServers || !Object.keys(JSON.parse(r.mcp).mcpServers).length){ toast("לא נבחרו שרתי MCP"); return; } saveFile(".mcp.json", r.mcp); };
+  list(); out();
+  REFRESH.push(() => { list(); out(); });
+  window.__ECO = ECO;
+})();
+
+// ================= error decoder =================
+const ERRS = [
+  ["התקנה","claude: command not found",/command not found:? claude|claude: command not found|'claude' is not recognized/i,"Claude Code לא נמצא ב-PATH.","ההתקנה המקורית שמה את claude ב-~/.local/bin, והתיקייה הזו לא נמצאת ב-PATH של הטרמינל. פותחים טרמינל חדש, ואם זה לא עוזר, מוסיפים את התיקייה ל-PATH.","echo 'export PATH=\"$HOME/.local/bin:$PATH\"' >> ~/.zshrc && source ~/.zshrc\nclaude doctor"],
+  ["התקנה","npm EACCES בהתקנה גלובלית",/EACCES[\s\S]*(npm|node_modules)|npm ERR! code EACCES/i,"npm מנסה לכתוב לתיקייה מערכתית בלי הרשאה.","לא מתקינים עם sudo. ההתקנה המקורית לא צריכה npm בכלל.","curl -fsSL https://claude.ai/install.sh | bash\nclaude doctor"],
+  ["התקנה","שתי התקנות מתנגשות",/multiple installations|another installation|version mismatch/i,"יש גם התקנה מקורית וגם התקנה ישנה מ-npm.","מסירים את הגרסה מ-npm ומשאירים את המקורית.","npm uninstall -g @anthropic-ai/claude-code\nclaude doctor"],
+  ["התחברות","401 / מפתח לא תקין",/\b401\b|invalid (x-)?api[ -]key|authentication_error|OAuth token (has )?expired/i,"Claude Code לא מצליח להזדהות.","לעתים קרובות משתנה ANTHROPIC_API_KEY ישן בסביבה גובר על המנוי שלכם. בודקים ב-/status מאיפה מגיעה ההזדהות, ומתחברים מחדש.","/status\nunset ANTHROPIC_API_KEY\n/login"],
+  ["התחברות","403 / אין הרשאה לארגון",/\b403\b|permission_error|not allowed for this organization/i,"החשבון מחובר, אבל אין לו הרשאה לפעולה או למודל.","בודקים שהחשבון הנכון מחובר ושהמודל זמין בתוכנית. בארגון, מנהל צריך לאשר.","/status\n/model\n/logout\n/login"],
+  ["מגבלות","429 / הגעתם למגבלה",/\b429\b|rate_limit_error|usage limit|limit reached|rate limit/i,"עברתם את מגבלת השימוש או את קצב הבקשות.","בודקים מתי המגבלה מתאפסת. בינתיים: מודל קל יותר למשימות פשוטות, ופחות סוכנים במקביל. בסקריפטים: המתנה ו-retry.","/usage\n/model sonnet"],
+  ["מגבלות","529 / עומס",/\b529\b|overloaded_error|overloaded/i,"השרתים עמוסים זמנית. זו לא תקלה אצלכם.","מנסים שוב בעוד דקה. בסקריפטים מגדירים מודל חלופי.","claude -p \"...\" --model opus --fallback-model sonnet"],
+  ["הקשר","הפרומפט ארוך מדי",/prompt is too long|context (window|length) (exceeded|limit)|maximum context/i,"השיחה, הקבצים והפלטים כבר לא נכנסים לחלון ההקשר.","מסכמים עם הוראה מה לשמור, או מתחילים נקי. קבצים ענקיים קוראים בחלקים, וחקירות רחבות מעבירים ל-Subagent.","/context\n/compact keep decisions, changed files and failing tests\n/clear"],
+  ["MCP","שרת MCP לא מתחבר",/MCP server .*(failed|error)|failed to connect|MCP error|Connection closed/i,"Claude Code לא הצליח להפעיל את השרת או להתחבר אליו.","מריצים את פקודת השרת ידנית כדי לראות את השגיאה האמיתית. בשרת מרוחק בודקים כתובת והתחברות OAuth ב-/mcp. ב-Windows, npx עוטפים ב-cmd /c.","claude mcp list\nclaude mcp get <name>\nclaude --debug\n/mcp"],
+  ["MCP","npx או uvx לא נמצאו",/spawn (npx|uvx|node|python3?) ENOENT|(npx|uvx): command not found/i,"השרת צריך Node.js או uv, וזה לא מותקן או לא ב-PATH.","מתקינים את מה שחסר ומפעילים מחדש את Claude Code.","node -v || echo 'install Node.js 20+'\ncurl -LsSf https://astral.sh/uv/install.sh | sh"],
+  ["MCP","כלי MCP דורש אישור כל פעם",/mcp__\w+__\w+/i,"כלי MCP מבקש אישור בכל קריאה.","מוסיפים את הכלי (או את כל השרת) ל-allow בהגדרות הפרויקט.","{ \"permissions\": { \"allow\": [\"mcp__github__get_issue\", \"mcp__sentry\"] } }"],
+  ["Hooks","Hook נכשל",/hook (error|failed)|PreToolUse:\w+ hook|PostToolUse:\w+ hook|Stop hook (error|failed)/i,"הסקריפט של ה-Hook החזיר שגיאה או לא רץ בכלל.","מריצים את הסקריפט ידנית עם JSON לדוגמה. בודקים הרשאת הרצה, jq מותקן ונתיב מלא עם $CLAUDE_PROJECT_DIR. קוד 2 חוסם בכוונה, וכל קוד אחר הוא שגיאה.","chmod +x .claude/hooks/*.sh\necho '{\"tool_input\":{\"command\":\"ls\"}}' | .claude/hooks/guard.sh; echo \"exit $?\"\n/hooks"],
+  ["Hooks","jq לא מותקן",/jq: (command )?not found/i,"רוב הדוגמאות ל-Hooks משתמשות ב-jq כדי לקרוא את ה-JSON.","מתקינים jq.","brew install jq     # macOS\nsudo apt install jq # Linux"],
+  ["Hooks","פעולה נחסמה על ידי Hook",/blocked by (a )?hook|hook blocked/i,"Hook שלכם החזיר קוד 2 או deny. זה בדרך כלל בכוונה.","קוראים את הסיבה שה-Hook כתב. אם החסימה שגויה, מתקנים את התנאי בסקריפט.","/hooks"],
+  ["Hooks","Permission denied על סקריפט",/permission denied.*\.(sh|py)|\.(sh|py).*permission denied|EACCES.*\.sh/i,"לקובץ אין הרשאת הרצה.","נותנים הרשאת הרצה ומוודאים שיש shebang בשורה הראשונה.","chmod +x .claude/hooks/*.sh\nhead -1 .claude/hooks/guard.sh   # #!/usr/bin/env bash"],
+  ["Headless","הכלי לא אושר במצב -p",/requested permissions? to use|not allowed to use|requires approval|permission to use \w+ (was )?denied/i,"במצב -p אין מי שיאשר, ולכן כלי שלא אושר מראש נדחה.","מאשרים מראש בדיוק את הכלים שצריך, בדגל או בהגדרות.","claude -p \"run the tests and fix failures\" \\\n  --allowedTools \"Read,Edit,Bash(npm test *)\""],
+  ["Headless","הגיע ל-max turns",/max(imum)? turns|error_max_turns/i,"הריצה נעצרה כי הגיעה למספר הסבבים המקסימלי.","מגדילים את המגבלה או מצמצמים את המשימה. כדאי לבדוק את הפלט: לפעמים Claude נתקע בלולאה.","claude -p \"...\" --max-turns 30 --output-format json | jq '.subtype, .num_turns'"],
+  ["Headless","אין structured_output",/structured_output.*(null|missing)|jq: error.*structured_output/i,"עם --json-schema, השדה חסר כשלא התקבל פלט תקין.","בודקים subtype ו-result בפלט המלא. מפשטים את הסכמה ומבקשים בפרומפט בדיוק את השדות.","claude -p \"...\" --output-format json --json-schema \"$(cat schema.json)\" | jq '{subtype, result, structured_output}'"],
+  ["GitHub","Resource not accessible by integration",/Resource not accessible by integration/i,"ל-workflow אין הרשאות לכתוב תגובה, ענף או PR.","מוסיפים בלוק permissions ל-job.","permissions:\n  contents: write\n  pull-requests: write\n  issues: write\n  id-token: write"],
+  ["GitHub","Claude לא עונה ל-@claude",/@claude.*(no response|not respond|nothing happens)|claude-code-action/i,"האפליקציה לא מותקנת, הסוד חסר, או שה-workflow לא מאזין לאירוע.","מריצים שוב את ההתקנה מתוך Claude Code, ובודקים שה-workflow מאזין ל-issue_comment ול-pull_request_review_comment.","/install-github-app"],
+  ["פקודות","פקודה מותאמת לא נמצאת",/unknown (slash )?command|command not found: \/|Unknown skill/i,"הקובץ לא במקום הנכון או שהשם שונה.","‏.claude/commands/NAME.md או .claude/skills/NAME/SKILL.md. שם הקובץ הוא שם הפקודה. אחרי שינוי פותחים סשן חדש.","ls .claude/commands .claude/skills\n/help"],
+  ["הגדרות","settings.json לא תקין",/invalid settings|settings.*(parse|syntax)|Unexpected token.*JSON|JSON\.parse/i,"שגיאת תחביר ב-JSON: פסיק מיותר, מירכאות חסרות או הערה.","מאמתים את הקובץ. בפרק \"בודק הגדרות\" אפשר להדביק אותו ולקבל הסבר.","jq . .claude/settings.json"],
+  ["רשת","תעודת SSL של proxy ארגוני",/self[- ]signed certificate|UNABLE_TO_GET_ISSUER_CERT|unable to verify the first certificate|CERT_/i,"proxy ארגוני מחליף תעודות, ו-Node לא מכיר את התעודה שלו.","מגדירים ל-Node את תעודת הארגון. לא מכבים בדיקת SSL.","export NODE_EXTRA_CA_CERTS=/path/to/corporate-ca.pem\nclaude doctor"],
+  ["פיתוח","הפורט תפוס",/EADDRINUSE|address already in use/i,"שרת אחר (אולי מסשן קודם) כבר מאזין לפורט.","מוצאים את התהליך ועוצרים אותו, או מריצים על פורט אחר.","lsof -i :3000\nkill <PID>"],
+  ["פיתוח","מודול לא נמצא",/Cannot find module|ERR_MODULE_NOT_FOUND|ModuleNotFoundError/i,"תלות לא מותקנת או נתיב import שגוי.","מתקינים תלויות. אם זה נמשך, נותנים ל-Claude את השגיאה המלאה ואת קובץ ה-import.","npm install     # Node\nuv sync         # Python"],
+  ["פיתוח","החיבור נדחה",/ECONNREFUSED|connection refused/i,"השירות (מסד נתונים, API) לא רץ או מאזין בכתובת אחרת.","מפעילים את השירות ובודקים את כתובת החיבור ב-.env.","docker compose up -d\ngrep DATABASE_URL .env"],
+  ["פיתוח","Docker לא רץ",/Cannot connect to the Docker daemon/i,"מנוע Docker לא פועל.","מפעילים את Docker Desktop או את השירות.","sudo systemctl start docker   # Linux"],
+  ["פיתוח","אין מקום בדיסק",/ENOSPC|no space left on device/i,"הדיסק מלא, או שנגמרו ל-Linux ה-watchers של הקבצים.","מפנים קבצים גדולים ומטמונים. אם זה watchers, מגדילים את המגבלה.","du -sh node_modules .next dist 2>/dev/null\nsudo sysctl fs.inotify.max_user_watches=524288"],
+  ["פיתוח","קונפליקט ב-git",/CONFLICT \(content\)|Automatic merge failed|<<<<<<< /,"שני ענפים שינו את אותן שורות.","מבקשים מ-Claude לפתור ולהסביר כל החלטה, ומריצים בדיקות לפני ה-commit.","Resolve the merge conflicts. For each one, explain what both sides intended and why you chose the result. Then run the tests."],
+  ["פיתוח","שגיאות TypeScript",/error TS\d+/,"בדיקת הטיפוסים נכשלה.","נותנים ל-Claude את כל הפלט ומבקשים תיקון אמיתי, בלי any ובלי @ts-ignore.","npx tsc --noEmit 2>&1 | claude -p \"fix these type errors properly; no any, no ts-ignore\" --allowedTools \"Read,Edit\""]
+];
+(function(){
+  const cats = [...new Set(ERRS.map(e => e[0]))];
+  const card = e => '<div class="trick edCard"><span class="pill">' + esc(e[0]) + '</span><h3>' + esc(e[1]) + '</h3><p><b>' + esc(e[3]) + '</b></p><p>' + esc(e[4]) + '</p><div class="code" data-lang="' + (/^\{|^permissions:/.test(e[5]) ? (e[5][0] === "{" ? "json" : "yaml") : /^[A-Z][a-z]/.test(e[5]) ? "text" : "bash") + '"><pre>' + esc(e[5]) + '</pre></div></div>';
+  $("#edCount").textContent = ERRS.length + " שגיאות במאגר";
+  const SAMPLES = [["MCP","MCP server \"github\" failed to connect: spawn npx ENOENT"],["401","API Error: 401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"}}"],["Hook","PreToolUse:Bash hook error: .claude/hooks/guard.sh: Permission denied"],["CI","HttpError: Resource not accessible by integration"],["הקשר","Prompt is too long"]];
+  $("#edSamples").innerHTML = '<span class="hint">דוגמאות:</span>' + SAMPLES.map((s, i) => '<button class="btn sm" type="button" data-eds="' + i + '">' + esc(s[0]) + '</button>').join("");
+  function run(){
+    const t = $("#edIn").value.trim(); if(!t){ $("#edOut").innerHTML = ""; return; }
+    const hit = ERRS.filter(e => e[2].test(t));
+    $("#edOut").innerHTML = hit.length ? '<p class="hint">' + hit.length + ' התאמות:</p><div class="tricks">' + hit.map(card).join("") + '</div>'
+      : '<p class="box">לא מצאתי התאמה במאגר. ' + (window.tutorSample ? "לחצו על \"אבחון מעמיק\" והמורה ינתח את השגיאה." : "נסו להדביק את השורות הראשונות של השגיאה, או חפשו לפי קטגוריה למטה.") + '</p>';
+    $$("#edOut .code").forEach(decorate);
+    if(hit.length){ award("ed-first", 10, "פענחתם שגיאה"); markDone("errdoc"); const seen = new Set(store.get("edSeen", [])); hit.forEach(h => seen.add(h[1])); store.set("edSeen", [...seen]); if(seen.size >= 5) award("ed-5", 20, "5 שגיאות שונות"); }
+  }
+  $("#edRun").onclick = run;
+  $("#edIn").addEventListener("keydown", e => { if(e.key === "Enter" && (e.ctrlKey || e.metaKey)) run(); });
+  $("#edSamples").addEventListener("click", e => { const i = e.target.dataset.eds; if(i == null) return; $("#edIn").value = SAMPLES[+i][1]; run(); });
+  $("#edAi").onclick = () => { const t = $("#edIn").value.trim(); if(!t || !window.tutorSample) return; tutorOnce("אתה מומחה Claude Code ופיתוח תוכנה. המשתמש קיבל את השגיאה הבאה. הסבר בעברית: מה השגיאה אומרת, 2 עד 3 סיבות אפשריות לפי הסבירות, ואיך בודקים ומתקנים כל אחת, עם פקודות בבלוקי קוד. אם חסר מידע כדי לאבחן, אמור בדיוק מה להריץ כדי לקבל אותו.\n\n```\n" + t.slice(0, 6000) + "\n```", $("#edAiOut")); };
+  $("#edCats").innerHTML = cats.map((c, i) => '<button type="button"' + (i ? "" : ' class="on"') + '>' + esc(c) + '</button>').join("");
+  const drawCat = c => { $("#edAll").innerHTML = '<div class="tricks">' + ERRS.filter(e => e[0] === c).map(card).join("") + '</div>'; $$("#edAll .code").forEach(decorate); };
+  $("#edCats").addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; $$("#edCats button").forEach(x => x.classList.toggle("on", x === b)); drawCat(b.textContent); });
+  drawCat(cats[0]);
+  window.__ERRS = ERRS;
+})();
+
+// ================= endless quiz =================
+(function(){
+  const levels = [...new Set(mods.map(m => m.dataset.level))];
+  const pool = src => {
+    const all = [];
+    Object.keys(Q).forEach(id => { const m = document.getElementById(id); if(!m) return; if(src.startsWith("lvl:") && m.dataset.level !== src.slice(4)) return; Q[id].forEach((x, i) => all.push({id, i, x})); });
+    if(src === "mistakes"){ const M = store.get("mistakes", {}); return all.filter(o => M[o.id + ":" + o.i]); }
+    return all;
+  };
+  const S = {streak:0, ok:0, total:0, cur:null, ai:[], answered:false, last:[]};
+  const sel = $("#qgSrc");
+  function opts(){
+    sel.innerHTML = '<option value="all">כל הקורס (' + pool("all").length + ')</option><option value="mistakes">הטעויות שלי (' + pool("mistakes").length + ')</option>' + levels.filter(l => pool("lvl:" + l).length).map(l => '<option value="lvl:' + esc(l) + '">' + esc(l) + ' (' + pool("lvl:" + l).length + ')</option>').join("") + (window.tutorSample ? '<option value="ai">שאלות חדשות מה-AI</option>' : "");
+  }
+  function stats(){ $("#qgStreak").textContent = S.streak; $("#qgBest").textContent = store.get("qbest", 0); $("#qgOk").textContent = S.ok; $("#qgTotal").textContent = S.total; }
+  function next(){
+    const src = sel.value; S.answered = false;
+    $("#qgTopicL").hidden = $("#qgGen").hidden = src !== "ai";
+    let item;
+    if(src === "ai"){
+      if(!S.ai.length){ S.cur = null; $("#qgCard").innerHTML = '<p class="box">כתבו נושא ולחצו "יצירת 5 שאלות חדשות". המורה יכתוב שאלות שלא קיימות בקורס.</p>'; return; }
+      item = S.ai.shift();
+    } else {
+      const P = pool(src);
+      if(!P.length){ S.cur = null; $("#qgCard").innerHTML = '<p class="box">' + (src === "mistakes" ? "אין טעויות פתוחות 🎉 בחרו מקור אחר." : "אין שאלות במקור הזה.") + '</p>'; return; }
+      const fresh = P.filter(o => !S.last.includes(o.id + ":" + o.i));
+      const o = (fresh.length ? fresh : P)[Math.floor(Math.random() * (fresh.length ? fresh : P).length)];
+      S.last = S.last.concat(o.id + ":" + o.i).slice(-30);
+      item = {q:o.x[0], o:o.x[1], a:o.x[2], why:o.x[3], id:o.id, i:o.i};
+    }
+    const order = item.o.map((t, j) => j).sort(() => Math.random() - .5);
+    S.cur = Object.assign({}, item, {order});
+    const m = item.id && document.getElementById(item.id);
+    $("#qgCard").innerHTML = '<div class="q"><span class="pill">' + (item.id ? esc(m.dataset.title) : "שאלה מה-AI") + '</span><b>' + esc(item.q) + '</b><div class="opts">' +
+      order.map(j => '<label><input type="radio" name="qg" value="' + j + '"><span>' + esc(item.o[j]) + '</span></label>').join("") + '</div><div class="why"></div></div>';
+    $("#qgNote").textContent = "";
+    window.__qgCur = S.cur;
+  }
+  $("#qgCard").addEventListener("change", e => {
+    if(!S.cur || S.answered || !e.target.matches("input")) return;
+    S.answered = true; const pick = +e.target.value, it = S.cur, good = pick === it.a;
+    S.total++; if(good){ S.ok++; S.streak++; } else S.streak = 0;
+    $$("#qgCard label").forEach(l => { const v = +l.querySelector("input").value; l.classList.toggle("r", v === it.a); l.classList.toggle("w", v === pick && !good); l.querySelector("input").disabled = true; });
+    const w = $("#qgCard .why"); w.style.display = "block";
+    w.innerHTML = (good ? "✓ נכון. " : "✗ לא נכון. ") + esc(it.why || "") + (it.id ? ' <a href="#' + it.id + '">לפרק ←</a>' : "");
+    if(it.id){ const M = store.get("mistakes", {}), k = it.id + ":" + it.i; if(good) delete M[k]; else M[k] = (M[k] || 0) + 1; store.set("mistakes", M); }
+    if(S.streak > store.get("qbest", 0)) store.set("qbest", S.streak);
+    if(good) award("qg-" + (it.id ? it.id + ":" + it.i : "ai-" + it.q.slice(0, 40)), 2);
+    if(S.streak >= 10){ markDone("quizgen"); award("qg-10", 30, "רצף של 10!"); }
+    if(S.streak === 25) award("qg-25", 50, "רצף של 25 🔥");
+    stats(); $("#qgNote").textContent = S.streak >= 3 ? "🔥 רצף " + S.streak : "";
+    opts(); sel.value = sel.querySelector('option[value="' + CSS.escape(curSrc) + '"]') ? curSrc : "all";
+  });
+  let curSrc = "all";
+  sel.addEventListener("change", () => { curSrc = sel.value; next(); });
+  $("#qgNext").onclick = next;
+  $("#qgGen").onclick = async () => {
+    const sample = window.tutorSample; if(!sample || !sample.json) return;
+    const topic = $("#qgTopic").value.trim() || "Claude Code";
+    $("#qgGen").disabled = true; $("#qgCard").innerHTML = '<p class="hint">המורה כותב שאלות…</p>';
+    try{
+      const r = await sample.json("כתוב 5 שאלות אמריקאיות חדשות בעברית על Claude Code בנושא: " + topic + ". רמה: מתקדמת ומעשית (פקודות, הגדרות, החלטות בעבודה אמיתית), עובדות מדויקות לפי התיעוד הרשמי בלבד. לכל שאלה 4 תשובות, אחת נכונה, והסחות סבירות. החזר רק מערך JSON בצורה הזו:\n[{\"q\":\"שאלה\",\"o\":[\"א\",\"ב\",\"ג\",\"ד\"],\"a\":0,\"why\":\"הסבר קצר\"}]", {modelTier:"default"});
+      const ok = Array.isArray(r) ? r.filter(x => x && typeof x.q === "string" && Array.isArray(x.o) && x.o.length === 4 && x.o.every(y => typeof y === "string") && Number.isInteger(x.a) && x.a >= 0 && x.a < 4) : [];
+      if(!ok.length) throw {code:"invalid_json"};
+      S.ai = ok.map(x => ({q:x.q, o:x.o, a:x.a, why:String(x.why || "")}));
+      award("qg-ai", 10, "שאלות חדשות מה-AI"); next();
+    }catch(e){ $("#qgCard").innerHTML = '<p class="box">' + esc(e && e.code === "not_granted" ? "המורה לא אושר בביקור הזה." : e && e.code === "rate_limited" ? "הגעתם למגבלת השימוש. נסו שוב מאוחר יותר." : "לא הצלחתי ליצור שאלות כרגע. נסו נושא אחר או נסו שוב.") + '</p>'; }
+    $("#qgGen").disabled = false;
+  };
+  opts(); stats(); next();
+  REFRESH.push(() => { stats(); const v = sel.value; opts(); sel.value = v; });
+  window.__qgShowAi = () => { opts(); };
+})();
+
+["fe","be","ops"].forEach(k => { if(TRACKS[k] && !TRACKS[k].m.includes("ecosystem")) TRACKS[k].m.push("ecosystem"); });
+Object.keys(TRACKS).forEach(k => ["errdoc","quizgen"].forEach(id => { if(!TRACKS[k].m.includes(id)) TRACKS[k].m.push(id); }));
+BADGES.push(["streak10","🔥","רצף לוהט","10 תשובות נכונות ברצף בבוחן האינסופי", () => !!state.awarded["qg-10"]], ["debugger","🩺","מפענחי שגיאות","פענחתם 5 שגיאות שונות", () => !!state.awarded["ed-5"]], ["eco","🧩","מרחיבים","בניתם ערכת הרחבות", () => !!state.awarded["eco-3"]]);
 checkBadges(true);
 
 renderStats();

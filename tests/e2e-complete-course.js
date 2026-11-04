@@ -54,6 +54,9 @@ const U = 'file://' + path.resolve(__dirname, '..') + '/index.html';
   await go('checker'); await p.click('[data-sample="settings"]');
   await go('promptlab'); await p.click('[data-pl="2"]');
   await go('analyzer'); await p.click('#azDemo');
+  await go('errdoc'); await p.click('[data-eds="0"]');
+  await go('quizgen');
+  for (let i = 0; i < 10; i++) { await p.evaluate(() => { const c = window.__qgCur; document.querySelector('#qgCard input[value="' + c.a + '"]').click(); }); await p.click('#qgNext'); }
 
   // 3. final exam with the right answers
   await go('exam'); await p.click('#examStart');
