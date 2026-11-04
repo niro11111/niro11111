@@ -36,7 +36,7 @@ async function handleTask(task, channel) {
     const list = await api('/api/approvals').catch(() => []);
     approval = list.find((a) => a.id === task.approvalId) ?? { id: task.approvalId };
   }
-  push({ role: 'jarvis', text: task.response ?? task.error ?? task.state, meta: `${task.state}${steps ? ` · ${steps}` : ''}`, approval, outputs: task.outputs, taskId: task.id, learned: task.learned });
+  push({ role: 'jarvis', text: task.response ?? task.error ?? task.state, meta: `${task.state}${task.analysis ? ` · ${task.analysis.kind} · ${task.analysis.strategy}` : ''}${steps ? ` · ${steps}` : ''}`, approval, outputs: task.outputs, taskId: task.id, learned: task.learned });
   if (local.get('dictation', false)) setTimeout(() => document.querySelector('.composer input[dir=auto]')?.focus(), 50);
   setCoreState(task.state === 'FAILED' ? 'error' : approval ? 'approval' : 'idle');
   if ((channel === 'voice' || local.get('speakAll', false)) && task.response) speak(task.response);

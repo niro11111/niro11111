@@ -1,0 +1,66 @@
+# JARVIS BRAIN: capability coverage
+
+Generated 2026-11-04 by `npm run brain:report`.
+
+- **Implemented and tested**: 38
+- **Implemented but not fully tested**: 1
+- **Partially implemented**: 4
+- **Planned**: 5
+- **Blocked by external dependency**: 4
+- **Unsupported**: 1
+
+| Section | Capability | Status | Evidence |
+|---|---|---|---|
+| §3 Orchestrator | Request lifecycle: language → intent → context → plan → permissions → execute → verify → respond | Implemented and tested | core/orchestrator.js · tests/core, brain2 |
+| §3 Orchestrator | Clarification questions for missing details, then resume the same task | Implemented and tested | brain/analyze.js CLARIFY · tests/brain2 · eval clarify-reminder |
+| §3 Orchestrator | Simple requests skip planning overhead (deterministic path, no model) | Implemented and tested | core/intent.js · chat.smalltalk |
+| §4 Intent | Kind, entities, dates, amounts, urgency, risk, missing info, confidence estimate (he/en/mixed) | Implemented and tested | brain/analyze.js · tests/brain2 |
+| §4 Intent | Model-based intent extraction for open requests | Implemented but not fully tested | llm.answer with tools (live model not available in CI) |
+| §5 Context | Relevance-scored retrieval across memory, notes, documents, tasks, calendar, habits, episodes, with provenance and freshness | Implemented and tested | brain/context.js · tests/brain |
+| §5 Context | Domain filtering (financial/health kept out of general context) | Implemented and tested | memory domains · tests/brain |
+| §5 Context | Separation between family members (multi-user households) | Planned | single-owner install today |
+| §6 Reasoning | Strategy selection (direct, retrieval, computation, comparative, scenario, multi-agent, decomposition, iterative verification, tool-assisted) | Implemented and tested | brain/analyze.js STRATEGY |
+| §6 Reasoning | Deterministic computation for money, dates, units, statistics | Implemented and tested | wealth/calc.js, tools/utility.js · eval exact-math |
+| §6 Reasoning | Iterative verification (draft → critique → revision) | Implemented and tested | ai/engines.js deepThink · tests/brain |
+| §6 Reasoning | Code-assisted computation (sandboxed code execution) | Planned | needs a code-execution sandbox service |
+| §7 Models | Provider-independent gateway, tiers by complexity/latency/privacy, user preferences | Implemented and tested | core/router.js |
+| §7 Models | Fallback chain, provider health with circuit breaker, rate-limit retry, usage and cost tracking | Implemented and tested | core/router.js · observability · tests/brain2 |
+| §7 Models | Speech-to-text / text-to-speech providers on the server | Blocked by external dependency | browser and phone speech used; server STT/TTS needs a provider key |
+| §7 Models | Image generation, video, embeddings provider | Planned | local embeddings used today |
+| §8 Agents | 18 agents with purpose, tools, data scope, I/O contract, timeout, retry policy, risk ceiling | Implemented and tested | agents/registry.js · eval risk-ceiling |
+| §8 Agents | Agents cannot grant permissions to themselves or others | Implemented and tested | policy + riskLimit + mission validatePlan |
+| §8 Agents | Parallel subtasks, dependencies, combined results | Implemented and tested | brain/missions.js · tests/brain2 |
+| §8 Agents | Conflict detection between agents (council disagreements, decision robustness) | Partially implemented | ai.council synthesis, decision sensitivity |
+| §9 Missions | DAG missions: success criteria, constraints, agents, risk, statuses, verification status | Implemented and tested | brain/missions.js |
+| §9 Missions | Approval checkpoints, pause/resume, cancel, timeouts, safe retries, partial completion, recovery after restart | Implemented and tested | brain/missions.js · tests/brain2 · eval mission-interrupted |
+| §9 Missions | Never continue past a failed or denied prerequisite | Implemented and tested | missions.ready() → blocked |
+| §10 Capabilities | Registry with id, domain, schemas, permissions, dependencies, adapter, verification, version, availability, health | Implemented and tested | brain/capabilities.js |
+| §10 Capabilities | Semantic capability search | Implemented and tested | capabilities.search |
+| §10 Capabilities | Controlled extensions: 6 checks + owner approval; unknown tools never run | Implemented and tested | capabilities.register/approve · tests/brain2 |
+| §11 Tools | Validate, authorize (user + agent), classify risk, execute with timeout, record evidence, verify | Implemented and tested | Core.run / runFromModel |
+| §11 Tools | Idempotency keys; no repeat of consequential operations | Implemented and tested | runFromModel idempotencyKey · eval mission-interrupted |
+| §11 Tools | Browser automation / computer control | Partially implemented | desktop bridge (apps, URLs, files, screenshots); no DOM automation |
+| §12 Memory | Short-term, working (mission state), long-term, episodic, procedural (workflows), knowledge (documents) | Implemented and tested | memory, missions, episodes, automations, documents |
+| §12 Memory | Hybrid search, dedupe, provenance, confidence, expiry, correction, export, deletion | Implemented and tested | memory/memory.js |
+| §12 Memory | Semantic memory: entities and relationships (knowledge graph) | Partially implemented | typed person/project memories; no relationship graph yet |
+| §13 Personalization | Learn preferences (review queue), feedback adaptation, inspect and correct | Implemented and tested | brain/learning.js |
+| §13 Personalization | Never change permissions, financial rules or security silently | Implemented and tested | learning only touches personality, on user click |
+| §14 Multimodal | Text, voice (browser/phone), images (vision), documents (text formats), structured data (CSV stats) | Implemented and tested | /api/input · brain/multimodal.js |
+| §14 Multimodal | PDF/DOCX/XLSX, OCR, audio files, video, camera | Blocked by external dependency | needs extraction/transcription services |
+| §15 Accuracy | Internal sources with record ids and timestamps; research citations with retrieval date | Implemented and tested | brain/context.js withSources · research.web |
+| §15 Accuracy | Claim-level fact checking across conflicting external sources | Planned |  |
+| §16 Failures | Classify transient/permanent/policy/input/external, retry only when safe, alternatives, record | Implemented and tested | brain/failures.js · eval device-offline, missing-record |
+| §17 Evaluation | Built-in regression suite (15 cases, 11 categories) on a sandbox brain; metrics incl. permission violations and false success | Implemented and tested | brain/evaluation.js · tests/brain2 |
+| §17 Evaluation | Live accuracy / hallucination rate on real model answers | Partially implemented | user feedback + false-success metric; no labelled answer set |
+| §18 Safety | Autonomy levels 1–4 (default 3), action-specific, time-limited, parameter-bound approvals | Implemented and tested | security/policy.js, Core.decide |
+| §19 Finance | Finance adapter: budgets, cash flow, categories, goals, scenarios, Monte Carlo, reports; never transacts | Implemented and tested | wealth/* |
+| §19 Finance | Connection to the real Family Wealth OS | Blocked by external dependency | needs the FWOS API or export |
+| §20 Devices | Device registry, scoped tokens, sync, device-adapted responses (watch = short) | Implemented and tested | devices/*, personality |
+| §20 Devices | Native watch apps | Blocked by external dependency | source in apps/; needs Xcode / Android SDK to build |
+| §21 Conversation | Follow-ups, pronouns, corrections, clarifications, language switching, honest small talk | Implemented and tested | intent.js, analyze.js |
+| §22 Proactive | Event-driven suggestions, watchers, quiet hours, priorities | Implemented and tested | proactive/engine.js, brain/watchers.js, notify |
+| §23 Stack | NestJS / PostgreSQL / Prisma / Redis / queues | Unsupported | kept the tested modular Node + JSON store (see EVOLUTION.md §5) |
+| §24 Entities | Typed collections for providers, agents, capabilities, memory, missions, executions, approvals, evidence, evaluations, usage, audit | Implemented and tested | see docs/BRAIN.md entity map |
+| §25 API & events | Versioned API /api/v1/brain and typed event contracts v1 | Implemented and tested | api/routes.js · brain/events.js · tests/brain2 |
+| §26 Security | Prompt-injection, permission, duplicate, tool-isolation tests | Implemented and tested | tests/*, eval suite |
+| §26 Security | Load tests | Planned |  |

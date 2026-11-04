@@ -24,6 +24,9 @@ import { expoPushSender } from './notify/expo-push.js';
 import { AIEngines } from './ai/engines.js';
 import { Learning } from './brain/learning.js';
 import { Watchers } from './brain/watchers.js';
+import { Missions } from './brain/missions.js';
+import { Capabilities } from './brain/capabilities.js';
+import { AGENTS } from './agents/registry.js';
 
 export async function createApp(opts = {}) {
   const { file = null, router = null, home = null, seed = true } = opts;
@@ -55,6 +58,12 @@ export async function createApp(opts = {}) {
   s.ai = new AIEngines(s);
   s.learning = new Learning(s);
   s.core.learning = s.learning; // CORE was built before these services existed
+  s.missions = new Missions(s);
+  s.core.onApprovalDecided = (id) => s.missions.onApprovalDecided(id);
+  s.capabilities = new Capabilities(s);
+  s.agentsFor = (tool) => AGENTS.filter((a) => a.tools.includes(tool)).map((a) => a.id);
+  s.capabilities.restore();
+  s.router.setPreferences?.(store.getMeta('modelPrefs', {}));
   s.watchers = new Watchers(s);
   s.automations = new Automations({ ...s, ctx: { householdId, actor: 'automation' } });
   return s;
@@ -75,6 +84,7 @@ export function startScheduler(s, { everyMs = 30_000 } = {}) {
       s.memory.purgeExpired();
       await s.automations.tick();
       if (Date.now() - lastWatch > 5 * 60e3) { lastWatch = Date.now(); await s.watchers.tick(); }
+      await s.missions.tick();
       const prefs = s.store.getMeta('proactive', {});
       if (s.privacy.get().proactiveEnabled && Date.now() - lastProactive > 60 * 60e3) {
         lastProactive = Date.now();

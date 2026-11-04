@@ -73,7 +73,7 @@ try {
     assert.match(await page.textContent('#view'), /ספורט/);
   });
   await check('every screen renders in the standalone app', async () => {
-    for (const v of ['command', 'map', 'agents', 'brain', 'ai', 'automations', 'knowledge', 'planner', 'wealth', 'home', 'devices', 'console', 'privacy', 'preferences']) {
+    for (const v of ['command', 'map', 'agents', 'brain', 'missions', 'ai', 'automations', 'knowledge', 'planner', 'wealth', 'home', 'devices', 'console', 'privacy', 'preferences']) {
       await page.goto(`${url}#${v}`); await page.waitForTimeout(400);
       assert.ok(!(await page.$('#view .panel.err')), v);
     }
@@ -147,7 +147,7 @@ try {
     assert.ok(!memDoc.includes('"vector"'), 'derived vectors are not stored');
   });
   await check('claude.ai mode: Claude answers open questions and acts through JARVIS tools, sensitive ones wait for approval', async () => {
-    await ask(p2, 'מה שלומך?', /שלום, אני Claude/);
+    await ask(p2, 'ספר לי משהו מעניין על כוכבים', /שלום, אני Claude/);
     await ask(p2, 'בבקשה תטפל במטלה של הברז ובמנעול של הכניסה', /ממתין לאישור שלך/);
     const calls = await p2.evaluate(() => window.__toolCalls);
     assert.equal(calls[0].executed, true);

@@ -11,6 +11,10 @@ import { workflowFromText } from '../automation/nl.js';
 import { AUTONOMY } from '../security/policy.js';
 import { detectLang } from '../lib/i18n.js';
 import { evaluate } from '../tools/utility.js';
+import { processInput } from '../brain/multimodal.js';
+import { brainEvents, EVENT_TYPES } from '../brain/events.js';
+import { failureStats } from '../brain/failures.js';
+import { coverageReport } from '../brain/coverage.js';
 
 export function createApi(s, token, opts = {}) {
   const routes = [];
@@ -129,25 +133,7 @@ export function createApi(s, token, opts = {}) {
   }, 'command');
 
   // --- multimodal input ---
-  r('POST', '/api/input', async (req) => {
-    const b = req.body;
-    switch (b.kind) {
-      case 'text': return s.core.handle(String(b.text ?? ''), { householdId: req.householdId, conversationId: b.conversationId, deviceId: req.device?.id ?? null });
-      case 'image': {
-        if (!/^image\/(png|jpeg|webp|gif)$/.test(b.mediaType ?? '')) throw Object.assign(new Error('mediaType must be image/png|jpeg|webp|gif'), { status: 415 });
-        if ((b.data ?? '').length > 7e6) throw Object.assign(new Error('image too large (5 MB max)'), { status: 413 });
-        const lang = detectLang(b.prompt ?? '') === 'he' || s.personality.get().language === 'he' ? 'he' : 'en';
-        try {
-          const out = await s.tools['vision.describe'].run({ image: b.data, mediaType: b.mediaType, prompt: b.prompt }, { actor: req.actor, lang, channel: 'text' });
-          s.audit.log(req.actor, 'tool.vision.describe', { bytes: b.data.length });
-          return { kind: 'image', state: 'COMPLETED', response: out.summary };
-        } catch (e) { return { kind: 'image', state: 'FAILED', response: e.message }; }
-      }
-      case 'document': return { kind: 'document', document: (({ memoryIds, ...d }) => d)(s.documents.add({ name: b.name, text: b.text, workspace: b.workspace })) };
-      case 'audio': return { kind: 'audio', state: 'FAILED', response: 'Server-side speech recognition is not configured. Use the browser/phone microphone, which transcribes on the device.' };
-      default: throw Object.assign(new Error('kind must be text|image|document|audio'), { status: 400 });
-    }
-  });
+  r('POST', '/api/input', (req) => processInput(s, req.body, { actor: req.actor, householdId: req.householdId, device: req.device?.id ?? null }));
 
   // --- Family Wealth OS record keeping (the household's own books; nothing moves money) ---
   const minor = (v, field) => { const n = Math.round(Number(v) * 100); if (!Number.isFinite(n)) throw Object.assign(new Error(`${field} must be a number`), { status: 400 }); return n; };
@@ -213,6 +199,42 @@ export function createApi(s, token, opts = {}) {
   r('POST', '/api/ai/decide', (req) => s.ai.decide({ question: req.body.question, lang: lang(req) }));
   r('GET', '/api/wealth/goal-odds', async (req) => (await s.tools['wealth.goal_odds'].run({}, { ...ctx(req), lang: 'en' })).data);
 
+  // --- JARVIS BRAIN API v1 (versioned contract) ---
+  const V = '/api/v1/brain';
+  r('POST', `${V}/requests`, (req) => s.core.handle(String(req.body.text ?? '').slice(0, 20000), { conversationId: req.body.conversationId, channel: req.body.channel ?? 'text', householdId: req.householdId, deviceId: req.device?.id ?? null }), 'command');
+  r('GET', `${V}/requests/:id`, (req, p) => s.store.get('tasks_exec', p.id));
+  r('POST', `${V}/missions`, async (req) => (req.body.tasks ? s.missions.run(s.missions.create(req.body, { ...ctx(req), lang: lang(req) }).id) : s.missions.startFromGoal(String(req.body.goal ?? ''), { ...ctx(req), lang: lang(req) })));
+  r('GET', `${V}/missions`, () => s.missions.list().slice(0, 50));
+  r('GET', `${V}/missions/:id`, (req, p) => s.missions.get(p.id));
+  r('POST', `${V}/missions/:id/pause`, (req, p) => s.missions.pause(p.id));
+  r('POST', `${V}/missions/:id/resume`, (req, p) => s.missions.resume(p.id));
+  r('POST', `${V}/missions/:id/cancel`, (req, p) => s.missions.cancel(p.id));
+  r('POST', `${V}/approvals/:id/approve`, (req, p) => s.core.decide(p.id, 'approve', req.actor), 'approvals');
+  r('POST', `${V}/approvals/:id/reject`, (req, p) => s.core.decide(p.id, 'reject', req.actor), 'approvals');
+  r('GET', `${V}/capabilities`, (req) => (req.query.get('q') ? s.capabilities.search(req.query.get('q'), 10) : s.capabilities.list()));
+  r('POST', `${V}/capabilities`, (req) => s.capabilities.register(req.body));
+  r('GET', `${V}/capabilities/registrations`, () => s.store.all('capability_registrations').slice().reverse());
+  r('POST', `${V}/capabilities/registrations/:id/approve`, (req, p) => s.capabilities.approve(p.id));
+  r('DELETE', `${V}/capabilities/:id`, (req, p) => ({ disabled: s.capabilities.disable(p.id) }));
+  r('POST', `${V}/agents`, (req) => (req.body.description && !req.body.instructions ? s.ai.designAgent({ description: req.body.description, lang: lang(req) }) : s.ai.createAgent(req.body)));
+  r('GET', `${V}/agents`, () => [...AGENTS.map((a) => ({ ...a, kind: 'built-in' })), ...s.store.all('custom_agents').map((a) => ({ ...a, kind: 'custom' }))]);
+  r('GET', `${V}/memory`, (req) => (req.query.get('q') ? s.memory.search(req.query.get('q'), { k: 20 }) : s.memory.list()));
+  r('PATCH', `${V}/memory/:id`, (req, p) => s.memory.correct(p.id, req.body));
+  r('GET', `${V}/executions`, (req) => s.store.all('tool_executions', (x) => !req.query.get('missionId') || x.missionId === req.query.get('missionId')).slice(-100).reverse());
+  r('GET', `${V}/evidence/:taskId`, (req, p) => ({ task: s.store.get('tasks_exec', p.taskId), executions: s.store.all('tool_executions', (x) => x.taskId === p.taskId), failures: s.store.all('failures', (x) => x.taskId === p.taskId) }));
+  r('POST', `${V}/evaluations`, async () => (await import('../brain/evaluation.js')).runEvaluation(s.store));
+  r('GET', `${V}/evaluations`, () => s.store.all('evaluations').slice(-10).reverse().map(({ results, ...e }) => e));
+  r('GET', `${V}/evaluations/:id`, (req, p) => s.store.get('evaluations', p.id));
+  r('GET', `${V}/coverage`, () => coverageReport());
+  r('GET', `${V}/failures`, () => failureStats(s.store));
+  r('GET', `${V}/events`, (req) => ({ contract: { version: 1, types: EVENT_TYPES }, events: brainEvents(s.store, Number(req.query.get('n') ?? 100)) }));
+  r('GET', `${V}/gateway`, () => s.router.gateway());
+  r('PUT', `${V}/gateway/preferences`, (req) => { const p = s.router.setPreferences(req.body); s.store.setMeta('modelPrefs', p); s.audit.log(req.actor, 'models.preferences', p); return p; });
+  r('POST', `${V}/analyze`, async (req) => {
+    const { parse } = await import('../core/intent.js'); const { analyzeRequest } = await import('../brain/analyze.js');
+    return analyzeRequest(String(req.body.text ?? ''), parse(String(req.body.text ?? ''), {}), s.tools);
+  });
+
   // --- notes & habits ---
   r('GET', '/api/notes', (req) => (req.query.get('q') ? s.productivity.searchNotes(req.query.get('q')) : s.productivity.listNotes()));
   r('POST', '/api/notes', (req) => s.productivity.addNote(req.body));
@@ -221,6 +243,7 @@ export function createApi(s, token, opts = {}) {
   r('POST', '/api/habits/log', (req) => s.productivity.logHabit(req.body.name));
   r('DELETE', '/api/habits/:id', (req, p) => ({ deleted: s.store.remove('habits', p.id) }));
   r('POST', '/api/calc', (req) => ({ value: evaluate(String(req.body.expression ?? '')) }));
+
 
   // --- shopping ---
   r('GET', '/api/shopping', () => s.store.all('shopping'));

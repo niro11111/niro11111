@@ -8,6 +8,15 @@ import { riskOf } from '../tools/index.js';
 import { now } from '../lib/store.js';
 import { bus } from '../lib/events.js';
 import { detectLang, t } from '../lib/i18n.js';
+import { analyzeRequest, clarifyQuestion, fillValue, riskRank } from '../brain/analyze.js';
+import { emitBrain } from '../brain/events.js';
+import { analyzeFailure, recordFailure } from '../brain/failures.js';
+
+function withTimeout(p, ms, label) {
+  let timer;
+  const guard = new Promise((_, rej) => { timer = setTimeout(() => rej(new Error(`${label} timed out after ${Math.round(ms / 1000)}s`)), ms); });
+  return Promise.race([p, guard]).finally(() => clearTimeout(timer));
+}
 
 const AREA_WORDS = [
   [/downstairs|למטה|קומה תחתונה/, (d) => d.floor === 'downstairs'],
@@ -36,7 +45,7 @@ export class Core {
     return this.conversations.get(id);
   }
 
-  emit(task) { bus.emit('event', { type: 'task', data: publicTask(task) }); }
+  emit(task) { if (!this.store.silent) bus.emit('event', { type: 'task', data: publicTask(task) }); }
   save(task) { this.store.update('tasks_exec', task.id, task); this.emit(task); }
 
   /** Expands abstract home steps ("lights downstairs") into concrete device steps. */
@@ -65,69 +74,108 @@ export class Core {
 
   async handle(message, { conversationId = 'default', actor = 'user', channel = 'text', householdId, deviceId = null } = {}) {
     const convo = this.convo(conversationId);
-    const lang = this.lang(message);
     const started = Date.now();
+    // A pending clarification: this message is probably the answer to our question.
+    if (convo.pending && actor === convo.pending.actor) {
+      const p = convo.pending;
+      const fresh = parse(message, convo);
+      const looksNew = fresh.some((st) => !['llm.answer', 'chat.smalltalk'].includes(st.tool));
+      const task = this.store.get('tasks_exec', p.taskId);
+      if (!looksNew && task && task.state === S.AWAITING_INPUT) {
+        const tool = this.tools[p.tool];
+        const value = fillValue(p.field, tool.input?.[p.field], message);
+        if (value === null) { task.response = clarifyQuestion(p.tool, p.field, task.lang); this.save(task); return publicTask(task); }
+        const steps = p.steps.map((st) => (st.tool === p.tool ? { ...st, args: { ...st.args, [p.field]: value } } : st));
+        convo.pending = null;
+        transition(task, S.PLANNING, `clarified ${p.field}`);
+        try { const out = await this.plan(task, steps, convo, `${task.objective} · ${message}`); this.recordVoice(task, started); return out; } catch (e) { return this.fail(task, e); }
+      }
+      if (task && task.state === S.AWAITING_INPUT) { transition(task, S.CANCELLED, 'superseded by a new request'); this.save(task); }
+      convo.pending = null;
+    }
+    const lang = this.lang(message);
     const task = this.store.insert('tasks_exec', {
       objective: message, state: S.PENDING, history: [], channel, conversationId, actor, householdId, deviceId, lang,
       plan: null, results: [], approvalId: null, response: null, startedAt: now(),
     });
     try {
       transition(task, S.PLANNING); this.emit(task);
-      // Context: only general/family/work memories are used as conversational context.
-      const memories = this.memory.search(message, { k: 4 });
       const resolved = [];
-      for (const s of parse(message, convo)) resolved.push(...(await this.resolve(s, convo)));
-      const steps = resolved.map((s, i) => {
-        const tool = this.tools[s.tool];
-        if (!tool) throw new Error(`unknown tool ${s.tool}`);
-        const agent = agentById(s.agent);
-        if (!agent) throw new Error(`unknown agent ${s.agent}`);
-        const args = s.tool === 'llm.answer' ? { ...s.args, memories, history: convo.history.slice(-8) } : s.args;
-        const errors = validate(tool.input, args);
-        if (errors.length) throw new Error(`invalid input for ${s.tool}: ${errors.join(', ')}`);
-        const risk = riskOf(tool, args);
-        const step = { n: i + 1, agent: s.agent, tool: s.tool, args, risk, permission: this.policy.effective({ name: tool.name, risk, alwaysConfirm: tool.alwaysConfirm }, agent), status: 'pending' };
-        step.hash = actionHash(step);
-        return step;
-      });
-      const byAgent = {};
-      for (const s of steps) byAgent[s.agent] = (byAgent[s.agent] ?? 0) + 1;
-      for (const [a, n] of Object.entries(byAgent)) {
-        const budget = this.policy.stepBudget(agentById(a));
-        if (n > budget) throw new Error(`agent ${a} exceeded its step limit (${n} > ${budget})`);
-      }
-      const agents = [...new Set(steps.map((s) => s.agent))];
-      task.plan = {
-        objective: message,
-        autonomy: this.policy.autonomy(),
-        coordinator: agents.length > 1 ? 'executive' : agents[0],
-        delegation: agents.length > 1 ? agents.map((a) => ({ to: a, steps: steps.filter((s) => s.agent === a).map((s) => s.n) })) : [],
-        context: { memories: memories.map((m) => ({ id: m.id, content: m.content, provenance: m.provenance, score: m.score })) },
-        agents,
-        tools: [...new Set(steps.map((s) => s.tool))],
-        steps,
-        dependencies: steps.map((s, i) => ({ step: s.n, after: i ? [i] : [] })),
-        permissions: steps.map((s) => ({ step: s.n, risk: s.risk, decision: s.permission })),
-        successCriteria: 'Every executed step returns without error and passes its state verification.',
-        verification: 'Tool-specific verify() re-reads the real state (store, device, provider).',
-        recovery: 'Stop at the first failure, keep completed steps, report exactly what did and did not happen. Destructive steps are never retried automatically.',
-      };
-      const denied = steps.filter((s) => s.permission === 'deny');
-      if (denied.length) {
-        for (const s of denied) this.audit.log(actor, 'permission.denied', { tool: s.tool, agent: s.agent }, 'denied');
-        throw new Error(t(lang, 'denied', { list: denied.map((s) => s.tool).join(', ') }));
-      }
-      this.audit.log(actor, 'task.planned', { taskId: task.id, tools: task.plan.tools, autonomy: task.plan.autonomy });
-      // Learning: explicit preferences in what the user says are queued for review (never auto-verified).
-      if (actor === 'user' && !steps.some((st) => st.tool === 'memory.remember')) { const l = this.learning?.observe(message); if (l && !l.duplicate) task.learned = { id: l.id, content: l.content }; }
-      convo.lastSteps = steps.map(({ agent, tool, args }) => ({ agent, tool, args: stripCtx(args) }));
-      convo.history.push({ role: 'user', content: message });
-      const out = await this.run(task);
+      for (const st of parse(message, convo)) resolved.push(...(await this.resolve(st, convo)));
+      emitBrain(this.store, 'request.received', { taskId: task.id, kind: 'pending-analysis', lang });
+      const out = await this.plan(task, resolved, convo, message);
       this.recordVoice(task, started);
       return out;
     } catch (e) {
       return this.fail(task, e);
     }
+  }
+
+  /** Analysis -> clarification or plan -> permissions -> run. */
+  async plan(task, resolved, convo, message) {
+    const { actor, lang } = task;
+    const analysis = analyzeRequest(message, resolved, this.tools);
+    task.analysis = analysis;
+    if (analysis.missing.length) {
+      const m0 = analysis.missing[0];
+      convo.pending = { taskId: task.id, steps: resolved, tool: m0.tool, field: m0.field, actor };
+      transition(task, S.AWAITING_INPUT, `missing ${m0.tool}.${m0.field}`);
+      task.response = clarifyQuestion(m0.tool, m0.field, lang);
+      this.save(task);
+      return publicTask(task);
+    }
+    // Context: only general/family/work memories are used as conversational context.
+    const memories = this.memory.search(message, { k: 4 });
+    const steps = resolved.map((st, i) => {
+      const tool = this.tools[st.tool];
+      if (!tool) throw new Error(`unknown tool ${st.tool}`);
+      const agent = agentById(st.agent);
+      if (!agent) throw new Error(`unknown agent ${st.agent}`);
+      const args = st.tool === 'llm.answer' ? { ...st.args, memories, history: convo.history.slice(-8) } : st.args;
+      const errors = validate(tool.input, args);
+      if (errors.length) throw new Error(`invalid input for ${st.tool}: ${errors.join(', ')}`);
+      const risk = riskOf(tool, args);
+      let permission = this.policy.effective({ name: tool.name, risk, alwaysConfirm: tool.alwaysConfirm }, agent);
+      // An agent can never act above its own risk ceiling, whatever the policy says.
+      if (riskRank(risk) > riskRank(agent.riskLimit ?? 'external') && permission !== 'deny') permission = 'deny';
+      const step = { n: i + 1, agent: st.agent, tool: st.tool, args, risk, permission, status: 'pending' };
+      step.hash = actionHash(step);
+      return step;
+    });
+    const byAgent = {};
+    for (const st of steps) byAgent[st.agent] = (byAgent[st.agent] ?? 0) + 1;
+    for (const [a, n] of Object.entries(byAgent)) {
+      const budget = this.policy.stepBudget(agentById(a));
+      if (n > budget) throw new Error(`agent ${a} exceeded its step limit (${n} > ${budget})`);
+    }
+    const agents = [...new Set(steps.map((st) => st.agent))];
+    task.plan = {
+      objective: message,
+      kind: analysis.kind, strategy: analysis.strategy, complexity: analysis.complexity, risk: analysis.risk, confidence: analysis.confidence,
+      autonomy: this.policy.autonomy(),
+      coordinator: agents.length > 1 ? 'executive' : agents[0],
+      delegation: agents.length > 1 ? agents.map((a) => ({ to: a, steps: steps.filter((st) => st.agent === a).map((st) => st.n) })) : [],
+      context: { memories: memories.map((m) => ({ id: m.id, content: m.content, provenance: m.provenance, score: m.score })) },
+      agents,
+      tools: [...new Set(steps.map((st) => st.tool))],
+      steps,
+      dependencies: steps.map((st, i) => ({ step: st.n, after: i ? [i] : [] })),
+      permissions: steps.map((st) => ({ step: st.n, risk: st.risk, decision: st.permission })),
+      successCriteria: 'Every executed step returns without error and passes its state verification.',
+      verification: 'Tool-specific verify() re-reads the real state (store, device, provider).',
+      recovery: 'Stop at the first failure, keep completed steps, report exactly what did and did not happen. Destructive steps are never retried automatically.',
+    };
+    const denied = steps.filter((st) => st.permission === 'deny');
+    if (denied.length) {
+      for (const st of denied) this.audit.log(actor, 'permission.denied', { tool: st.tool, agent: st.agent }, 'denied');
+      throw new Error(t(lang, 'denied', { list: denied.map((st) => st.tool).join(', ') }));
+    }
+    this.audit.log(actor, 'task.planned', { taskId: task.id, tools: task.plan.tools, autonomy: task.plan.autonomy, strategy: analysis.strategy });
+    // Learning: explicit preferences in what the user says are queued for review (never auto-verified).
+    if (actor === 'user' && !steps.some((st) => st.tool === 'memory.remember')) { const l = this.learning?.observe(message); if (l && !l.duplicate) task.learned = { id: l.id, content: l.content }; }
+    convo.lastSteps = steps.map(({ agent, tool, args }) => ({ agent, tool, args: stripCtx(args) }));
+    convo.history.push({ role: 'user', content: message });
+    return this.run(task);
   }
 
   recordVoice(task, started) {
@@ -162,11 +210,15 @@ export class Core {
         this.save(task);
         await this.notifications.send({ title: lang === 'he' ? 'נדרש אישור' : 'Approval required', body: ap.summary, priority: 'high', event: 'approval', approvalId: ap.id });
         this.audit.log(task.actor, 'approval.requested', { taskId: task.id, tool: step.tool, risk: step.risk, actionHash: step.hash });
+        emitBrain(this.store, 'approval.required', { approvalId: ap.id, tool: step.tool });
         return publicTask(task);
       }
       const tool = this.tools[step.tool];
       try {
-        const out = await tool.run(step.args, this.ctxFor(task));
+        emitBrain(this.store, 'tool.invoked', { tool: step.tool, risk: step.risk, decision: step.permission });
+        const out = await withTimeout(tool.run(step.args, this.ctxFor(task)), agentById(step.agent)?.timeoutMs ?? 30000, step.tool);
+        emitBrain(this.store, 'tool.completed', { tool: step.tool, ok: true });
+        this.evidence({ taskId: task.id, tool: step.tool, agent: step.agent, args: stripCtx(step.args), risk: step.risk, decision: step.permission, summary: out.summary, executed: true });
         step.status = 'done';
         step.summary = out.summary;
         step.data = out.data;
@@ -185,6 +237,7 @@ export class Core {
       const tool = this.tools[step.tool];
       const ok = tool.verify ? await tool.verify({ data: step.data }, step.args) : true;
       step.verified = !!ok;
+      emitBrain(this.store, 'verification.completed', { tool: step.tool, verified: step.verified });
       if (!ok) return this.fail(task, new Error(`verification failed for step ${step.n} (${step.tool})`));
     }
     transition(task, S.COMPLETED);
@@ -221,11 +274,14 @@ export class Core {
       transition(task, S.CANCELLED, 'rejected by user');
       task.response = t(lang, 'cancelled', { d: ap.summary });
       this.save(task);
+      await this.onApprovalDecided?.(ap.id); // a waiting mission learns the step was rejected
       return publicTask(task);
     }
     step.approved = true;
     transition(task, S.EXECUTING, 'approved');
-    return this.run(task);
+    const out = await this.run(task);
+    await this.onApprovalDecided?.(ap.id); // the approved action has finished: a waiting mission may continue
+    return out;
   }
 
   expireApprovals(at = Date.now()) {
@@ -251,24 +307,35 @@ export class Core {
     }));
   }
 
-  async runFromModel(name, input, ctx) {
+  async runFromModel(name, input, ctx, agentId = null) {
     const tool = this.tools[name];
+    if (!tool) throw new Error(`unknown tool ${name}`);
     const args = { ...input };
-    const lang = ctx.lang ?? 'en';
     if (name === 'home.control' && !args.entityId) throw new Error('call home_devices first and pass entityId');
     const errors = validate(tool.input, args);
     if (errors.length) throw new Error(errors.join(', '));
+    // Idempotency: an operation that already ran under this key is never repeated.
+    if (ctx.idempotencyKey) {
+      const prev = this.store.all('tool_executions', (x) => x.idempotencyKey === ctx.idempotencyKey && x.executed)[0];
+      if (prev) return { executed: true, duplicate: true, summary: prev.summary };
+    }
     const risk = riskOf(tool, args);
-    const decision = this.policy.effective({ name, risk, alwaysConfirm: tool.alwaysConfirm }, null);
-    this.audit.log(`model:${ctx.actor}`, 'model.tool_call', { tool: name, risk, decision });
+    const agent = agentId ? agentById(agentId) : null;
+    let decision = this.policy.effective({ name, risk, alwaysConfirm: tool.alwaysConfirm }, agent);
+    if (agent && riskRank(risk) > riskRank(agent.riskLimit ?? 'external')) decision = 'deny';
+    this.audit.log(`model:${ctx.actor}`, 'model.tool_call', { tool: name, risk, decision, agent: agentId });
+    emitBrain(this.store, 'tool.invoked', { tool: name, risk, decision });
     if (decision === 'deny') throw new Error("not permitted by the user's permission policy");
     if (decision === 'advise') return { executed: false, note: 'Advisory mode is on: describe what you would do, do not claim it was done.' };
     if (decision === 'approve') {
       const t = await this.proposeStep(name, args, ctx);
       return { executed: false, awaitingApproval: true, approvalId: t.approvalId, note: 'Not done yet. The user must approve it in JARVIS (Approvals). Tell them that.' };
     }
-    const out = await tool.run(args, ctx);
+    const out = await withTimeout(tool.run(args, ctx), agent?.timeoutMs ?? 60000, name);
     const ok = tool.verify ? await tool.verify({ data: out.data }, args) : true;
+    emitBrain(this.store, 'tool.completed', { tool: name, ok: true });
+    emitBrain(this.store, 'verification.completed', { tool: name, verified: !!ok });
+    this.evidence({ tool: name, agent: agentId, args, risk, decision, summary: out.summary, executed: true, verified: tool.verify ? !!ok : null, idempotencyKey: ctx.idempotencyKey ?? null, missionId: ctx.missionId ?? null });
     if (!ok) throw new Error('the action ran but verification failed');
     return { executed: true, verified: !!tool.verify, summary: String(out.summary ?? '').slice(0, 3000) };
   }
@@ -297,8 +364,17 @@ export class Core {
     return publicTask(task);
   }
 
+  /** Structured execution evidence (ToolExecution / ExecutionEvidence). */
+  evidence(rec) {
+    return this.store.insert('tool_executions', { ...rec, summary: String(rec.summary ?? '').slice(0, 600), at: now() });
+  }
+
   fail(task, e) {
     const lang = task.lang ?? 'en';
+    const failedStep = task.plan?.steps.find((st) => st.status === 'failed');
+    const fa = analyzeFailure(e, { risk: failedStep?.risk ?? 'read', tool: failedStep?.tool ?? null });
+    task.failure = fa;
+    recordFailure(this.store, fa, { taskId: task.id });
     if (!TERMINAL.has(task.state)) {
       if (task.state === S.PENDING) transition(task, S.PLANNING);
       transition(task, S.FAILED, e.message);
@@ -306,7 +382,7 @@ export class Core {
     const done = task.plan?.steps.filter((s) => s.status === 'done') ?? [];
     task.error = e.message;
     task.finishedAt = now();
-    task.response = `${t(lang, 'failed', { e: e.message })}${done.length ? `\n${t(lang, 'done_before')}\n${done.map((s) => `- ${s.summary}`).join('\n')}` : ''}`;
+    task.response = `${t(lang, 'failed', { e: e.message })}${done.length ? `\n${t(lang, 'done_before')}\n${done.map((s) => `- ${s.summary}`).join('\n')}` : ''}${fa.kind !== 'input' || !/required/.test(e.message) ? `\n${lang === 'he' ? '💡 ' + fa.recommendationHe : '💡 ' + fa.recommendation}` : ''}`;
     this.save(task);
     return publicTask(task);
   }

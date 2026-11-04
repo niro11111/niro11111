@@ -15,6 +15,7 @@ function fakeClaude(log = []) {
     if (/advisory council/.test(system)) return { text: `- view of ${system.match(/"([^"]+)"/)[1]}` };
     if (/chair the council/.test(system)) return { text: 'Recommendation: wait a year.' };
     if (/turn a goal into/.test(system)) return { text: JSON.stringify({ summary: 'Prepare the week', steps: [{ title: 'Add a task', tool: 'tasks.create', args: { title: 'Plan meals' } }, { title: 'Unlock for the cleaner', tool: 'home.control', args: { entityId: 'lock.front_door', action: 'unlock' } }, { title: 'Sleep early', tool: null }, { title: 'Hack', tool: 'not.a.tool', args: {} }] }) };
+    if (/mission planner/.test(system)) return { text: JSON.stringify({ objective: 'Prepare the week', successCriteria: 'ready', tasks: [{ id: 't1', title: 'Add a task', agent: 'assistant', tool: 'tasks.create', args: { title: 'Plan meals' } }, { id: 't2', title: 'Unlock for the cleaner', agent: 'smarthome', tool: 'home.control', args: { entityId: 'lock.front_door', action: 'unlock' } }, { id: 't3', title: 'Sleep early', agent: 'assistant', tool: null }, { id: 't4', title: 'Hack', agent: 'assistant', tool: 'not.a.tool', args: {} }, { id: 't5', title: 'After unlock', agent: 'assistant', tool: 'tasks.create', args: { title: 'Thank the cleaner' }, dependsOn: ['t2'] }] }) };
     if (/Design a JARVIS specialist agent/.test(system)) return { text: '{"name":"Chef","handle":"chef","description":"Plans meals","instructions":"Suggest dinners and add groceries.","tools":["shopping.add","shopping.list","home.control","rm.rf"]}' };
     if (/You are "Chef"/.test(system)) {
       const add = tools.find((t) => t.name === 'shopping_add');
@@ -65,15 +66,28 @@ test('council: one call per expert, then a synthesis', async () => {
   assert.equal(log.filter((l) => /advisory council/.test(l.system)).length, 3);
 });
 
-test('plan & execute: runs allowed steps, parks sensitive ones for approval, ignores unknown tools', async () => {
+test('plan & execute (missions): runs allowed tasks, parks sensitive ones, rejects unknown tools, continues after approval', async () => {
   const s = await boot();
   const t = await ask(s, 'תכנן ובצע: להתכונן לשבוע עמוס');
   assert.equal(t.state, 'COMPLETED');
-  const p = s.store.all('plans')[0];
-  assert.deepEqual(p.steps.map((x) => x.status), ['done', 'awaiting_approval', 'advice', 'advice']);
+  const m = s.store.all('missions')[0];
+  assert.equal(m.status, 'waiting_approval');
+  assert.deepEqual(m.tasks.map((x) => x.status), ['done', 'awaiting_approval', 'done', 'invalid', 'pending']);
   assert.ok(s.productivity.listTasks().some((x) => x.title === 'Plan meals'));
   assert.equal((await s.home.devices()).find((d) => d.id === 'lock.front_door').state, 'locked');
-  assert.equal(s.store.all('approvals', (a) => a.status === 'pending').length, 1);
+  // the owner approves: the unlock runs, then the dependent task runs and the mission finishes
+  await s.core.decide(m.tasks[1].approvalId, 'approve');
+  const after = s.missions.get(m.id);
+  assert.equal(after.tasks[1].status, 'done');
+  assert.equal(after.tasks[4].status, 'done');
+  assert.equal(after.status, 'partially_completed', 'the invalid task keeps it from being complete');
+  assert.ok(s.productivity.listTasks().some((x) => x.title === 'Thank the cleaner'));
+});
+
+test('legacy plan engine still works', async () => {
+  const s = await boot();
+  const p = await s.ai.planRun({ goal: 'week', lang: 'he' });
+  assert.deepEqual(p.steps.map((x) => x.status), ['done', 'awaiting_approval', 'advice', 'advice']);
 });
 
 test('custom agents: designed from words, tools limited to the allow-list, invoked with @handle', async () => {

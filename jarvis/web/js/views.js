@@ -497,10 +497,61 @@ async function brainView(v) {
   $$('[data-wdel]', v).forEach((x) => { x.onclick = async () => { await api(`/api/brain/watchers/${x.dataset.wdel}`, { method: 'DELETE' }); brainView(v); }; });
   $('#dF').onsubmit = async (e) => { e.preventDefault(); const btn = $('#dF button'); btn.disabled = true; const lbl = btn.textContent; btn.textContent = t('working');
     try { const d = await api('/api/ai/decide', { method: 'POST', body: { question: e.target.question.value, lang: getLang() } }); $('#dOut').innerHTML = decisionHtml(d); } catch (err) { toast(err.message); } btn.disabled = false; btn.textContent = lbl; };
+  await brainExtras(v);
+}
+
+// ===================================================== Missions
+async function missionsView(v) {
+  const list = await api('/api/v1/brain/missions');
+  const ic = { done: '✓', awaiting_approval: '⏸', failed: '✕', rejected: '⛔', blocked: '⊘', invalid: '⚠', cancelled: '–', pending: '·', running: '…' };
+  const cls = { done: 'notify', awaiting_approval: 'approval', failed: 'condition', rejected: 'condition', blocked: 'condition', invalid: 'condition' };
+  v.innerHTML = `<div class="grid"><div class="c12 panel glass corner"><h2>${t('missions')}</h2><form id="mF" class="row"><input name="goal" class="grow" dir="auto" required placeholder="${t('mission_ph')}" aria-label="${t('missions')}"><button class="btn primary">${t('start_mission')}</button></form><p class="xs muted" style="margin:6px 0 0">${t('needs_ai')}</p></div>
+    ${list.map((m) => `<div class="c12 panel glass corner"><h2><span dir="auto">${esc(m.objective)}</span><span class="right row">
+      <span class="tag ${m.status === 'completed' ? 'ok' : ['failed', 'cancelled'].includes(m.status) ? 'bad' : 'warn'} xs">${t(`m_${m.status}`)}</span><span class="tag xs">risk ${esc(m.risk)}</span><span class="tag xs">${esc(m.verification)}</span>
+      ${['running', 'waiting_approval', 'planned'].includes(m.status) ? `<button class="btn sm" data-mp="${m.id}">${t('pause')}</button>` : ''}${m.status === 'paused' ? `<button class="btn ok sm" data-mr="${m.id}">${t('resume')}</button>` : ''}${!['completed', 'partially_completed', 'failed', 'cancelled'].includes(m.status) ? `<button class="btn danger sm" data-mc="${m.id}">${t('cancel_l')}</button>` : ''}</span></h2>
+      <div class="xs muted" dir="auto">${esc(m.successCriteria)}</div>
+      ${m.tasks.map((x) => `<div class="block ${cls[x.status] ?? ''}"><span class="bt">${ic[x.status] ?? '·'} ${esc(x.id)}</span><span class="grow" dir="auto">${esc(x.title)}${x.result ? `<div class="xs muted">${esc(String(x.result).split('\n')[0].slice(0, 180))}</div>` : ''}${x.issues?.length ? `<div class="xs err">${esc(x.issues.join('; '))}</div>` : ''}</span>
+        <span class="xs mono muted">${esc(x.agent)}${x.tool ? ` · ${esc(x.tool)}` : ''}${x.dependsOn.length ? ` ← ${esc(x.dependsOn.join(','))}` : ''}</span>${x.status === 'awaiting_approval' ? `<button class="btn ok sm" data-approve="${x.approvalId}">${t('approve')}</button><button class="btn danger sm" data-reject="${x.approvalId}">${t('reject')}</button>` : ''}</div>`).join('')}
+    </div>`).join('') || `<div class="c12 panel glass"><p class="empty">—</p></div>`}</div>`;
+  $('#mF').onsubmit = async (e) => { e.preventDefault(); const btn = $('#mF button'); btn.disabled = true; btn.textContent = t('working');
+    try { await api('/api/v1/brain/missions', { method: 'POST', body: { goal: e.target.goal.value, lang: getLang() } }); missionsView(v); } catch (err) { toast(err.message); btn.disabled = false; btn.textContent = t('start_mission'); } };
+  $$('[data-mp]', v).forEach((b) => { b.onclick = async () => { await api(`/api/v1/brain/missions/${b.dataset.mp}/pause`, { method: 'POST' }); missionsView(v); }; });
+  $$('[data-mr]', v).forEach((b) => { b.onclick = async () => { await api(`/api/v1/brain/missions/${b.dataset.mr}/resume`, { method: 'POST' }); missionsView(v); }; });
+  $$('[data-mc]', v).forEach((b) => { b.onclick = async () => { if (await confirmDialog(t('cancel_l'), { danger: true, okText: t('cancel_l') })) { await api(`/api/v1/brain/missions/${b.dataset.mc}/cancel`, { method: 'POST' }); missionsView(v); } }; });
+  const onTask = () => { if (location.hash === '#missions') missionsView(v); }; chatEvents.addEventListener('task', onTask); cleanups.push(() => chatEvents.removeEventListener('task', onTask));
+}
+
+// ===================================================== Brain Center: evaluation, coverage, capabilities, failures, gateway
+async function brainExtras(v) {
+  const box = document.createElement('div'); box.className = 'grid'; box.style.marginTop = '16px'; v.append(box);
+  const [evals, cov, fails, gw] = await Promise.all([api('/api/v1/brain/evaluations'), api('/api/v1/brain/coverage'), api('/api/v1/brain/failures'), api('/api/v1/brain/gateway')]);
+  const stCls = { 'implemented-tested': 'ok', 'implemented-untested': 'info', partial: 'warn', planned: '', blocked: 'bad', unsupported: 'bad' };
+  const last = evals[0];
+  box.innerHTML = `
+    <div class="c6 panel glass corner"><h2>${t('eval_title')} <button id="runEval" class="right btn primary sm">▶ ${t('run_eval')}</button></h2><div id="evalOut">${last ? `<div class="row"><span class="stat">${last.passRate}%</span><span class="small muted">${last.passed}/${last.cases} · ${last.avgMs} ms</span></div><div class="row xs" style="margin-top:6px"><span class="tag ${last.permissionViolations ? 'bad' : 'ok'} xs">${t('violations')}: ${last.permissionViolations}</span><span class="tag ${last.falseSuccess ? 'bad' : 'ok'} xs">${t('false_success')}: ${last.falseSuccess}</span></div><div class="row xs" style="margin-top:6px">${Object.entries(last.perCategory).map(([k, c]) => `<span class="tag ${c.pass === c.total ? 'ok' : 'warn'} xs">${esc(k)} ${c.pass}/${c.total}</span>`).join('')}</div><div class="xs muted" style="margin-top:6px">${esc(last.at.slice(0, 16).replace('T', ' '))}</div>` : '<p class="empty">—</p>'}</div></div>
+    <div class="c6 panel glass corner"><h2>${t('gateway_title')}</h2><div class="kv small">${Object.entries(gw.tiers).map(([k, x]) => `<span class="muted">${k}</span><span class="mono xs">${esc(x.provider)}/${esc(x.model)}</span>`).join('')}</div>
+      <div class="row" style="margin-top:8px">${gw.providers.map((p2) => { const h = gw.health[p2.provider]; return `<span class="tag ${h?.downUntil > Date.now() ? 'bad' : 'ok'} xs">${esc(p2.provider)} · ${h?.downUntil > Date.now() ? t('down') : t('healthy')}${h?.failures ? ` (${h.failures}✕)` : ''}</span>`; }).join('')}</div>
+      <h2 style="margin-top:12px">${t('prefs')}</h2><form id="gwF" class="row">${['chat', 'coding', 'research', 'finance', 'creative'].map((k) => `<label class="small">${k} <select name="${k}"><option value="">auto</option>${['fast', 'balanced', 'deep'].map((x) => `<option ${gw.preferences[k] === x ? 'selected' : ''}>${x}</option>`).join('')}</select></label>`).join('')}<button class="btn sm">${t('save')}</button></form></div>
+    <div class="c6 panel glass corner"><h2>${t('caps_title')}</h2><input id="capQ" dir="auto" placeholder="${t('caps_ph')}" style="width:100%" aria-label="${t('caps_title')}"><ul id="capList" class="list" style="margin-top:8px"></ul>
+      <details style="margin-top:10px"><summary class="small">${t('ext_title')}</summary><textarea id="extJson" dir="ltr" style="margin-top:8px">${esc(JSON.stringify({ id: 'ext.my_service', description: 'Describe what this capability does', risk: 'external', inputSchema: { query: { type: 'string', required: true } }, adapter: { type: 'http', url: 'https://example.com/api', method: 'POST' }, test: { input: { query: 'test' } } }, null, 2))}</textarea><button id="extReg" class="btn sm" style="margin-top:6px">${t('register')}</button><div id="extOut" class="small" style="margin-top:6px"></div></details></div>
+    <div class="c6 panel glass corner"><h2>${t('failures_title')} <span class="right tag xs">${fails.total}</span></h2><div class="row xs">${Object.entries(fails.byKind).map(([k, n]) => `<span class="tag xs">${esc(k)}: ${n}</span>`).join('') || '<span class="empty">—</span>'}</div>
+      <ul class="list" style="margin-top:8px">${fails.recent.map((f) => `<li class="small"><span class="tag ${f.kind === 'transient' ? 'warn' : 'bad'} xs">${esc(f.kind)}</span><span class="grow" dir="auto">${esc(f.message.slice(0, 120))}<div class="xs muted">${esc(he() ? f.recommendationHe : f.recommendation)}</div></span></li>`).join('')}</ul></div>
+    <div class="c12 panel glass corner"><h2>${t('coverage_title')} <span class="right row">${Object.entries(cov.counts).map(([k, n]) => `<span class="tag ${stCls[k]} xs">${esc(k)}: ${n}</span>`).join('')}</span></h2>
+      <div style="max-height:420px;overflow:auto"><table><tr><th>§</th><th>Capability</th><th>Status</th><th>Evidence</th></tr>${cov.rows.map((r) => `<tr><td class="xs mono">${esc(r.section)}</td><td class="small">${esc(r.capability)}</td><td><span class="tag ${stCls[r.status]} xs">${esc(r.label)}</span></td><td class="xs muted">${esc(r.evidence)}</td></tr>`).join('')}</table></div></div>`;
+  const drawCaps = (items) => { $('#capList').innerHTML = items.map((c) => `<li class="small"><span class="dot ${c.availability === 'available' ? (c.health.status === 'degraded' ? 'warn' : 'ok') : 'bad'}"></span><span class="grow"><span class="mono xs">${esc(c.id)}</span> <span class="tag xs">${esc(String(c.permissions.risk))}</span>${c.source === 'extension' ? ' <span class="tag info xs">ext</span>' : ''}<div class="xs muted">${esc(c.description)} · ${esc(c.dependencies.join(', ') || 'no deps')} · v${esc(c.version)}${c.health.successPct != null ? ` · ${c.health.successPct}% ok` : ''}</div></span></li>`).join(''); };
+  drawCaps((await api('/api/v1/brain/capabilities')).slice(0, 12));
+  let tm; $('#capQ').oninput = (e) => { clearTimeout(tm); tm = setTimeout(async () => drawCaps(e.target.value ? await api(`/api/v1/brain/capabilities?q=${encodeURIComponent(e.target.value)}`) : (await api('/api/v1/brain/capabilities')).slice(0, 12)), 250); };
+  $('#runEval').onclick = async () => { const b = $('#runEval'); b.disabled = true; b.textContent = t('working'); try { await api('/api/v1/brain/evaluations', { method: 'POST' }); } catch (err) { toast(err.message); } brainView(v); };
+  $('#gwF').onsubmit = async (e) => { e.preventDefault(); const f = Object.fromEntries([...new FormData(e.target)].filter(([, x]) => x)); await api('/api/v1/brain/gateway/preferences', { method: 'PUT', body: f }); toast(t('saved')); };
+  $('#extReg').onclick = async () => {
+    let def; try { def = JSON.parse($('#extJson').value); } catch { return toast('JSON'); }
+    try { const r = await api('/api/v1/brain/capabilities', { method: 'POST', body: def }); $('#extOut').innerHTML = `${r.checks.map((c) => `<div>${c.ok ? '✓' : '✕'} ${esc(c.name)} <span class="muted">${esc(c.note)}</span></div>`).join('')}<div><b>${esc(r.status)}</b>${r.status === 'pending_review' ? ` <button class="btn ok sm" id="extApprove">${t('approve')}</button>` : ''}</div>`;
+      $('#extApprove')?.addEventListener('click', async () => { await api(`/api/v1/brain/capabilities/registrations/${r.id}/approve`, { method: 'POST' }); toast(t('saved')); brainView(v); }); } catch (err) { toast(err.message); }
+  };
 }
 
 export const VIEWS = [
-  ['sec_core'], ['command', '◉', command], ['conversation', '◍', conversation], ['map', '⌬', map], ['agents', '⎔', agents], ['brain', '🧠', brainView], ['ai', '✦', aiStudio], ['automations', '⟳', automations], ['knowledge', '⛁', knowledge],
+  ['sec_core'], ['command', '◉', command], ['conversation', '◍', conversation], ['map', '⌬', map], ['agents', '⎔', agents], ['brain', '🧠', brainView], ['missions', '◈', missionsView], ['ai', '✦', aiStudio], ['automations', '⟳', automations], ['knowledge', '⛁', knowledge],
   ['sec_life'], ['planner', '✓', planner], ['wealth', '₪', wealth], ['home', '⌂', home],
   ['sec_system'], ['devices', '⌚', devices], ['console', '⌨', consoleView], ['privacy', '⛨', privacy], ['preferences', '⚙', settings],
 ];

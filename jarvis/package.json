@@ -12,7 +12,8 @@
     "test": "node --test tests/*.test.js",
     "test:e2e": "node tests/e2e/ui.e2e.mjs",
     "build:prototypes": "node prototypes/build.mjs",
-    "build:webapp": "node scripts/build-webapp.mjs"
+    "build:webapp": "node scripts/build-webapp.mjs",
+    "brain:report": "node scripts/brain-report.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.4.0"

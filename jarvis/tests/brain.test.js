@@ -15,7 +15,7 @@ test('RAG: answers get personal context and cite sources', async () => {
   s.productivity.addNote({ text: 'Noa piano lesson every Tuesday at 16:00' });
   const t = await ask(s, 'when is the piano lesson for Noa this week?');
   assert.equal(t.state, 'COMPLETED');
-  assert.match(seen, /\[1\] \(note\) Noa piano lesson/);
+  assert.match(seen, /\[1\] \(note; user_statement; \d{4}-\d{2}-\d{2}\) Noa piano lesson/);
   assert.match(t.response, /Sources: \[1\] note: Noa piano lesson/);
 });
 

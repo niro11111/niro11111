@@ -42,7 +42,7 @@ export class Notifications {
       }
     }
     const rec = this.store.insert('notifications', { title, body, priority, event, group, approvalId, status, deliveries, read: false, count: 1, at: now() });
-    if (status === 'delivered') bus.emit('event', { type: 'notification', data: rec });
+    if (status === 'delivered' && !this.store.silent) bus.emit('event', { type: 'notification', data: rec });
     return rec;
   }
   list({ unread = false } = {}) { return this.store.all('notifications', (n) => !unread || !n.read).slice(-100).reverse(); }
@@ -51,7 +51,7 @@ export class Notifications {
   flushDeferred(at = new Date()) {
     if (this.inQuietHours(at)) return 0;
     const d = this.store.all('notifications', (n) => n.status === 'deferred_quiet_hours');
-    for (const n of d) { this.store.update('notifications', n.id, { status: 'delivered' }); bus.emit('event', { type: 'notification', data: n }); }
+    for (const n of d) { this.store.update('notifications', n.id, { status: 'delivered' }); if (!this.store.silent) bus.emit('event', { type: 'notification', data: n }); }
     return d.length;
   }
 }

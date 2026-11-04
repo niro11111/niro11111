@@ -231,6 +231,15 @@ ${(a.memories ?? []).map((m) => `- ${m.content} [${m.provenance}]`).join('\n') |
     const r = await s.automations.run(a.workflowId, a.payload ?? {}); return { data: r, summary: `Workflow run ${r.status}` };
   } });
 
+  // ---------- conversation ----------
+  def('chat.smalltalk', { risk: RISK.READ, desc: 'Greetings and thanks (no model needed)', run: async (a, ctx) => {
+    const x = String(a.text).toLowerCase(); const he2 = ctx.lang === 'he';
+    const reply = /thank|תודה/.test(x) ? (he2 ? 'בשמחה. עוד משהו?' : 'You are welcome. Anything else?')
+      : /how are you|מה שלומך|מה נשמע|מה קורה/.test(x) ? (he2 ? 'אני תוכנה, אז אין לי מצב רוח, אבל כל המערכות פועלות. במה אפשר לעזור?' : "I'm software, so I don't have moods, but every system is running. How can I help?")
+      : (he2 ? 'שלום! במה אפשר לעזור?' : 'Hello! How can I help?');
+    return { data: {}, summary: reply };
+  } });
+
   // ---------- utilities (deterministic) ----------
   const num = (v) => new Intl.NumberFormat('en', { maximumFractionDigits: 6 }).format(v);
   def('calc.evaluate', { risk: RISK.READ, desc: 'Calculate an arithmetic expression (supports %, ^, parentheses)', run: async (a, ctx) => {
@@ -318,6 +327,16 @@ ${(a.memories ?? []).map((m) => `- ${m.content} [${m.provenance}]`).join('\n') |
   def('agents.invoke', { risk: RISK.READ, desc: 'Send a message to a custom agent', run: async (a, ctx) => {
     const r = await s.ai.invokeAgent(a.handle, a.message, ctx);
     return { data: r, summary: `@${r.agent}: ${r.text}` };
+  } });
+
+  // ---------- missions (DAG execution) ----------
+  def('mission.run', { risk: RISK.WRITE, desc: 'Plan a goal as a task graph and run it (parallel, dependencies, approvals)', run: async (a, ctx) => {
+    const m = await s.missions.startFromGoal(a.goal, ctx);
+    const icon = { done: '✓', awaiting_approval: '⏸', failed: '✕', rejected: '⛔', blocked: '⊘', invalid: '⚠', cancelled: '–', pending: '·', running: '…', skipped: '–' };
+    const he2 = ctx.lang === 'he';
+    const status = { completed: he2 ? 'הושלמה' : 'completed', partially_completed: he2 ? 'הושלמה חלקית' : 'partially completed', failed: he2 ? 'נכשלה' : 'failed', waiting_approval: he2 ? 'ממתינה לאישור' : 'waiting for approval' }[m.status] ?? m.status;
+    return { data: { id: m.id }, output: { type: 'mission', id: m.id, title: m.objective },
+      summary: `${he2 ? 'משימה' : 'Mission'}: ${m.objective} — ${status}\n${m.tasks.map((t) => `${icon[t.status] ?? '·'} ${t.title}${t.dependsOn.length ? ` (← ${t.dependsOn.join(',')})` : ''}${t.result ? ` — ${String(t.result).split('\n')[0].slice(0, 140)}` : ''}`).join('\n')}` };
   } });
 
   // ---------- brain: watchers, decisions, goal odds ----------

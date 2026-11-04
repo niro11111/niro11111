@@ -3,6 +3,7 @@
 // recognise becomes an `llm.answer` step routed to a language model.
 import { parseWhen, stripWhen } from '../productivity/timeparse.js';
 import { unitOf } from '../tools/utility.js';
+import { SMALLTALK } from '../brain/analyze.js';
 
 const has = (t, ...res) => res.some((r) => r.test(t));
 
@@ -16,6 +17,13 @@ export function parseClause(raw, convo = {}) {
   const t = text.toLowerCase();
   let m;
 
+  // --- conversation: greetings and thanks need no model and no tools ---
+  if (SMALLTALK.test(text.trim())) return [{ agent: 'assistant', tool: 'chat.smalltalk', args: { text } }];
+  // --- bare commands: the brain will ask for the missing detail ---
+  if (/^(?:remind me|תזכיר לי|תזכורת)[\s.!?]*$/i.test(text)) return [{ agent: 'assistant', tool: 'reminders.create', args: {} }];
+  if (/^(?:add (?:a )?task|new task|הוסף משימה|תוסיף משימה|משימה חדשה)[\s.!?:]*$/i.test(text)) return [{ agent: 'assistant', tool: 'tasks.create', args: {} }];
+  if (/^(?:take a note|note|רשום פתק|פתק|תרשום)[\s.!?:]*$/i.test(text)) return [{ agent: 'knowledge', tool: 'notes.add', args: {} }];
+  if (/^(?:set a timer|start a timer|timer|טיימר|הפעל טיימר)[\s.!?]*$/i.test(text)) return [{ agent: 'assistant', tool: 'timer.start', args: {} }];
   // --- reminders first ("remind me to pay the bill" is not a payment) ---
   if ((m = text.match(/(?:remind me (?:to |that |about )?|תזכיר לי (?:ל|ש)?|תזכורת:?\s*)(.+)/i))) {
     const at = parseWhen(m[1]) ?? new Date(Date.now() + 36e5).toISOString();
@@ -84,7 +92,7 @@ export function parseClause(raw, convo = {}) {
   if ((m = text.match(/^@([\p{L}\p{N}_-]+)\s+([\s\S]+)/u))) return [{ agent: 'executive', tool: 'agents.invoke', args: { handle: m[1], message: m[2] } }];
   if ((m = text.match(/^(?:צור סוכן|תיצור סוכן|סוכן חדש|create (?:an? )?agent|new agent)[:\s]+([\s\S]+)/i))) return [{ agent: 'executive', tool: 'agents.create', args: { description: m[1] } }];
   if ((m = text.match(/^(?:מועצה|מועצת מומחים|תתייעץ(?: עם מומחים)?|התייעצות|council|ask the council)[:\s]+([\s\S]+)/i))) return [{ agent: 'executive', tool: 'ai.council', args: { question: m[1] } }];
-  if ((m = text.match(/^(?:תכנן ובצע|בצע מטרה|מטרה|plan and (?:do|run|execute)|goal)[:\s]+([\s\S]+)/i))) return [{ agent: 'executive', tool: 'ai.plan_run', args: { goal: m[1] } }];
+  if ((m = text.match(/^(?:תכנן ובצע|בצע מטרה|מטרה|משימה מורכבת|מבצע|plan and (?:do|run|execute)|goal|mission)[:\s]+([\s\S]+)/i))) return [{ agent: 'executive', tool: 'mission.run', args: { goal: m[1] } }];
   if ((m = text.match(/^(?:בנה|תבנה|צור|תיצור|תכין)\s+(?:לי\s+)?(?:אפליקציה|אפליקציית|יישומון|כלי|מחשבון|משחק|דשבורד|טופס)([\s\S]*)/)) || (m = text.match(/^(?:build|make|create)\s+(?:me\s+)?(?:an?\s+)?(?:[\w-]+\s+){0,4}(?:app|tool|calculator|game|widget|dashboard|form|tracker)\b([\s\S]*)/i))) {
     return [{ agent: 'creative', tool: 'ai.build_app', args: { prompt: text } }];
   }
@@ -100,7 +108,7 @@ export function parseClause(raw, convo = {}) {
   }
   if (has(t, /weekly (report|summary|brief)|דוח שבועי|סיכום שבועי/)) return [{ agent: 'assistant', tool: 'briefing.weekly', args: {} }];
   // --- tasks ---
-  if ((m = text.match(/(?:add (?:a )?task|new task|create (?:a )?task|הוסף משימה|תוסיף משימה|תוסיפי משימה|משימה חדשה)[:\s]+(?:ל)?(.+)/i))) {
+  if ((m = text.match(/(?:add (?:a )?task|new task|create (?:a )?task|הוסף משימה|תוסיף משימה|תוסיפי משימה|משימה חדשה)[:\s]+(.+)/i))) {
     const due = parseWhen(m[1]);
     return [{ agent: 'assistant', tool: 'tasks.create', args: { title: stripWhen(m[1]), due, priority: /urgent|important|דחוף|חשוב/i.test(m[1]) ? 'high' : 'normal' } }];
   }
