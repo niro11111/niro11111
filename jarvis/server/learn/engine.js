@@ -91,14 +91,14 @@ export class LearningEngine {
   audit(n = 200) { return this.s.store.all('learning_audit').slice(-n).reverse(); }
 
   // ---------------- performance monitoring ----------------
-  performance({ days = 14, channel, agent, tool, from, to } = {}) {
-    const end = to ? Date.parse(to) + DAY : Date.now();
+  performance({ days = 14, channel, agent, tool, from, to, device, model, kind } = {}) {
+    const end = to ? Date.parse(to) + DAY : Date.parse(new Date().toISOString().slice(0, 10)) + DAY; // whole UTC days, including today
     const start = from ? Date.parse(from) : end - Number(days) * DAY;
     const inRange = (iso) => { const t = Date.parse(iso); return t >= start && t < end; };
     const tasks = this.s.store.all('tasks_exec', (t) => inRange(t.createdAt)
-      && (!channel || t.channel === channel) && (!agent || t.plan?.agents?.includes(agent)) && (!tool || t.plan?.tools?.includes(tool)));
+      && (!channel || t.channel === channel) && (!agent || t.plan?.agents?.includes(agent)) && (!tool || t.plan?.tools?.includes(tool)) && (!device || t.deviceId === device) && (!kind || t.plan?.kind === kind));
     const fb = this.s.store.all('feedback', (f) => inRange(f.at ?? f.createdAt) && (!agent || f.agents?.includes(agent)) && (!tool || f.tools?.includes(tool)));
-    const calls = (this.s.metrics?.calls ?? []).filter((c) => c.at >= start && c.at < end);
+    const calls = (this.s.metrics?.calls ?? []).filter((c) => c.at >= start && c.at < end && (!model || c.model === model || c.tier === model));
     const days_ = new Map();
     for (let d = start; d < end; d += DAY) days_.set(dayOf(new Date(d).toISOString()), { day: dayOf(new Date(d).toISOString()), tasks: 0, completed: 0, failed: 0, clarifications: 0, ms: [], verifiedSteps: 0, steps: 0, up: 0, down: 0, modelCalls: 0, modelErrors: 0, costUsd: 0 });
     const bucket = (iso) => days_.get(dayOf(iso));
@@ -116,14 +116,14 @@ export class LearningEngine {
     const allMs = tasks.map((t) => t.durationMs).filter((x) => x != null);
     const group = (keyFn) => { const m = {}; for (const t of tasks) for (const k of [].concat(keyFn(t) ?? [])) { const x = (m[k] ??= { key: k, tasks: 0, completed: 0, failed: 0 }); x.tasks++; if (t.state === 'COMPLETED') x.completed++; if (t.state === 'FAILED') x.failed++; } return Object.values(m).map((x) => ({ ...x, successPct: pct(x.completed, x.completed + x.failed) })).sort((a, b) => b.tasks - a.tasks); };
     return {
-      filters: { from: new Date(start).toISOString().slice(0, 10), to: new Date(end - 1).toISOString().slice(0, 10), channel: channel ?? null, agent: agent ?? null, tool: tool ?? null },
+      filters: { from: new Date(start).toISOString().slice(0, 10), to: new Date(end - 1).toISOString().slice(0, 10), channel: channel ?? null, agent: agent ?? null, tool: tool ?? null, device: device ?? null, model: model ?? null, kind: kind ?? null },
       totals: {
         tasks: tasks.length, successPct: pct(fin.filter((t) => t.state === 'COMPLETED').length, fin.length), avgMs: allMs.length ? Math.round(allMs.reduce((a, x) => a + x, 0) / allMs.length) : null, p95Ms: p95(allMs),
         clarificationPct: pct(tasks.filter((t) => t.history?.some((h) => h.to === 'AWAITING_INPUT')).length, tasks.length),
         satisfactionPct: pct(fb.filter((f) => f.rating > 0).length, fb.length), feedback: fb.length,
         modelCalls: calls.length, modelErrorPct: pct(calls.filter((c) => !c.ok).length, calls.length), costUsd: +calls.reduce((a, c) => a + (c.costUsd ?? 0), 0).toFixed(4),
       },
-      series, byChannel: group((t) => t.channel ?? 'text'), byAgent: group((t) => t.plan?.agents ?? []), byTool: group((t) => t.plan?.tools ?? []),
+      series, byKind: group((t) => t.plan?.kind ?? 'unknown'), byDevice: group((t) => t.deviceId ?? 'this device'), byChannel: group((t) => t.channel ?? 'text'), byAgent: group((t) => t.plan?.agents ?? []), byTool: group((t) => t.plan?.tools ?? []),
       history: this.s.store.all('perf_snapshots').slice(-90),
     };
   }
@@ -790,7 +790,7 @@ export class LearningEngine {
     return [
       { id: 'reliability', label: 'Reliability', labelHe: 'אמינות', value: T.successPct },
       { id: 'satisfaction', label: 'Satisfaction', labelHe: 'שביעות רצון', value: T.satisfactionPct },
-      { id: 'verification', label: 'Verified steps', labelHe: 'צעדים מאומתים', value: perf.series.reduce((a, d) => a + (d.verifiedSteps ?? 0), 0) && Math.round((perf.series.reduce((a, d) => a + d.verifiedSteps, 0) * 100) / Math.max(1, perf.series.reduce((a, d) => a + d.steps, 0))) },
+      { id: 'verification', label: 'Verified steps', labelHe: 'צעדים מאומתים', value: pct(perf.series.reduce((a, d) => a + d.verifiedSteps, 0), perf.series.reduce((a, d) => a + d.steps, 0)) },
       { id: 'experiments', label: 'Experiments passing', labelHe: 'ניסויים שעברו', value: ex.length ? Math.round((ex.filter((e) => e.verdict === 'pass').length * 100) / ex.length) : null },
       { id: 'security', label: 'Security incidents (7d)', labelHe: 'אירועי אבטחה (7 ימים)', value: this.s.store.all('learning_security', (e) => Date.now() - Date.parse(e.at) < 7 * DAY).length, suffix: '' },
     ];

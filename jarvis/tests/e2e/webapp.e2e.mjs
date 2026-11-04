@@ -79,21 +79,24 @@ try {
     }
     assert.deepEqual(errors, []);
   });
-  await check('self-improvement: recurring failure → proposal → sandbox test → deploy → rollback, all tabs render', async () => {
+  await check('self-improvement: recurring failure → proposal → sandbox test → approve & deploy → rollback; lab runs code in a worker; all screens render', async () => {
     await page.goto(`${url}#conversation`); await page.waitForSelector('#view .composer');
     for (const m of ['תמונת מצב כספית', 'מצב כספי', 'מה המצב הכספי שלי']) await ask(page, m, /מודל|model/);
     await page.goto(`${url}#learn`); await page.waitForSelector('#lCycle', { timeout: 15000 });
-    await page.click('#lCycle'); await page.waitForTimeout(2500);
-    await page.click('[data-ltab=C]'); await page.waitForSelector('[data-pok]', { timeout: 15000 });
-    await page.click('[data-pok]'); await page.waitForTimeout(300);
-    await page.click('.dlg-yes');
-    await page.waitForSelector('[data-drb]', { timeout: 10000 });
+    await page.click('#lCycle'); await page.waitForTimeout(800);
+    await page.click('[data-ltab=C]'); await page.waitForSelector('[data-pexp]', { timeout: 15000 });
+    await page.click('[data-pexp]'); await page.waitForSelector('[data-pok]', { timeout: 20000 });
+    await page.click('[data-pok]'); await page.click('.dlg-yes'); await page.waitForTimeout(500);
     await page.goto(`${url}#conversation`); await page.waitForSelector('#view .composer');
     await ask(page, 'תמונת מצב כספית', /הכנסות|הוצאות|תזרים|₪/);
-    await page.goto(`${url}#learn`); await page.waitForSelector('[data-ltab]'); await page.click('[data-ltab=C]'); await page.waitForSelector('[data-drb]');
+    await page.goto(`${url}#learn`); await page.waitForSelector('[data-ltab]'); await page.click('[data-ltab=F]'); await page.waitForSelector('[data-drb]');
     await page.click('[data-drb]'); await page.click('.dlg-yes'); await page.waitForFunction(() => !document.querySelector('[data-drb]'), null, { timeout: 10000 });
-    if (process.env.SHOT) { await page.click('[data-ltab=C]'); await page.waitForTimeout(500); await page.click('[data-prep]'); await page.waitForTimeout(500); await page.screenshot({ path: process.env.SHOT, fullPage: true }); }
-    for (const tb of ['A', 'B', 'D', 'E', 'F', 'G']) { await page.goto(`${url}#learn`); await page.waitForSelector('[data-ltab]'); await page.click(`[data-ltab=${tb}]`); await page.waitForTimeout(500); }
+    await page.click('[data-ltab=E]'); await page.waitForSelector('#labF');
+    await page.click('#labF button.primary'); await page.waitForSelector('[data-lver]');
+    await page.click('[data-lver]'); await page.waitForSelector('[data-linst]', { timeout: 15000 });
+    await page.click('[data-linst]'); await page.click('.dlg-yes'); await page.waitForSelector('[data-lun]', { timeout: 10000 });
+    if (process.env.SHOT) { await page.click('[data-ltab=A]'); await page.waitForTimeout(1600); await page.screenshot({ path: process.env.SHOT, fullPage: true }); }
+    for (const tb of ['A', 'B', 'C', 'D', 'E', 'F', 'G']) { await page.goto(`${url}#learn`); await page.waitForSelector('[data-ltab]'); await page.click(`[data-ltab=${tb}]`); await page.waitForTimeout(500); assert.ok(!(await page.$('#view .panel.err')), tb); }
     assert.deepEqual(errors, []);
   });
   await check('dictation mode sends automatically after a pause', async () => {

@@ -241,7 +241,7 @@ export function createApi(s, token, opts = {}) {
   r('GET', `${L}/dashboard`, () => s.learn.dashboard());
   r('GET', `${L}/mode`, () => s.learn.modes());
   r('PUT', `${L}/mode`, (req) => s.learn.setMode(req.body.mode, owner(req)));
-  r('GET', `${L}/performance`, (req) => s.learn.performance(Object.fromEntries(['days', 'channel', 'agent', 'tool', 'from', 'to'].map((k) => [k, req.query.get(k) ?? undefined]))));
+  r('GET', `${L}/performance`, (req) => s.learn.performance(Object.fromEntries(['days', 'channel', 'agent', 'tool', 'from', 'to', 'device', 'model', 'kind'].map((k) => [k, req.query.get(k) ?? undefined]))));
   r('POST', `${L}/performance/snapshot`, () => s.learn.snapshot());
   r('GET', `${L}/signals`, (req) => s.learn.signals({ windowDays: Number(req.query.get('days') ?? 14) }));
   r('POST', `${L}/analyze`, (req) => s.learn.analyze({ windowDays: Number(req.body.days ?? 14), min: Math.max(2, Number(req.body.min ?? 3)) }));
@@ -291,6 +291,7 @@ export function createApi(s, token, opts = {}) {
   r('GET', `${L}/versions/:target`, (req, p) => s.learn.versions.history(decodeURIComponent(p.target)));
   r('POST', `${L}/versions/:target/rollback`, (req, p) => s.learn.rollback({ target: decodeURIComponent(p.target), toVersion: req.body.version ?? null }, owner(req)));
   r('POST', `${L}/feedback`, (req) => s.learning.feedback(req.body));
+  r('GET', `${L}/feedback`, () => s.store.all('feedback').slice(-50).reverse());
   r('GET', `${L}/profile`, () => s.learn.profile());
   r('GET', `${L}/profile/export`, () => s.learn.exportProfile());
   r('PUT', `${L}/profile/categories/:id`, (req, p) => s.learn.setCategoryEnabled(p.id, req.body.enabled !== false, owner(req)));

@@ -1,10 +1,10 @@
 // Small dependency-free SVG charts: line/area, donut and circular gauge.
 import { esc } from './api.js';
 
-export function lineChart(series, { w = 640, h = 230, keys, colors, fmt = (v) => v, labels } = {}) {
+export function lineChart(series, { w = 640, h = 230, keys, colors, fmt = (v) => v, labels, max: fixedMax } = {}) {
   const pad = { l: 56, r: 12, t: 14, b: 26 };
   const vals = series.flatMap((d) => keys.map((k) => d[k]));
-  const max = Math.max(1, ...vals) * 1.1; const min = Math.min(0, ...vals);
+  const max = fixedMax ?? Math.max(1, ...vals) * 1.1; const min = Math.min(0, ...vals);
   const x = (i) => pad.l + (i * (w - pad.l - pad.r)) / Math.max(1, series.length - 1);
   const y = (v) => pad.t + (1 - (v - min) / (max - min)) * (h - pad.t - pad.b);
   let g = '';

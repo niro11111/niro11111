@@ -2,9 +2,9 @@
 
 Generated 2026-11-04 by `npm run brain:report`.
 
-- **Implemented and tested**: 49
+- **Implemented and tested**: 54
 - **Implemented but not fully tested**: 1
-- **Partially implemented**: 4
+- **Partially implemented**: 5
 - **Planned**: 5
 - **Blocked by external dependency**: 5
 - **Unsupported**: 1
@@ -65,14 +65,20 @@ Generated 2026-11-04 by `npm run brain:report`.
 | §26 Security | Prompt-injection, permission, duplicate, tool-isolation tests | Implemented and tested | tests/*, eval suite |
 | §26 Security | Load tests | Planned |  |
 | §L Learning | Performance monitoring with daily history and filters (channel, agent, tool, dates) | Implemented and tested | learn/engine.js performance/snapshot · tests/learning |
-| §L Learning | Error analysis: 13 failure classes, recurring patterns, evidence, "insufficient evidence" when unsupported | Implemented and tested | learn/classify.js, engine.hypothesis · tests/learning AC1-2 |
+| §L Learning | Error analysis: the spec's 13 failure classes mapped to components, logs and evidence, ranked solutions with risk, "insufficient evidence" when unsupported | Implemented and tested | learn/classify.js, engine.hypothesis · tests/learning AC1-2 |
+| §L Learning | Development Lab: isolated branches, static analysis, dependency and secret scans, signed artifacts, unit/security/performance tests, owner-approved install | Implemented and tested | learn/devlab.js, isolate.js, sign.js · tests/learning · e2e |
+| §L Learning | Signed config versions, tamper detection, drift monitoring, version comparison, rollback records | Implemented and tested | learn/versions.js · tests/learning |
+| §L Learning | Hash-bound, expiring deployment approvals separate from deployment | Implemented and tested | engine.requestApproval/approve/deploy · tests/learning |
+| §L Learning | Voice and conversational feedback, scoped financial preferences, observed preference patterns, automation suggestions | Implemented and tested | intent learning.feedback, engine.onFeedback · tests/learning |
+| §L Learning | Git-based experimental branches and container isolation for the lab | Partially implemented | branches are store workspaces; worker/vm isolation; containers need server infrastructure |
 | §L Learning | Improvement proposals → isolated sandbox experiments → baseline vs candidate comparison with regression detection | Implemented and tested | learn/experiments.js · tests/learning AC3-7 |
 | §L Learning | Approval-gated deployment, versioned prompts/aliases/routing/style/workflows, rollback, learning audit | Implemented and tested | learn/versions.js · tests/learning AC8-12 |
-| §L Learning | Optimization modes 1-4 (default 2); protected areas the engine can never change; only the owner changes the mode | Implemented and tested | learn/engine.js MODES, versions.js PROTECTED · tests/learning |
+| §L Learning | Optimization modes per spec (observe, recommend [default], experiment, approved deployment); owner-listed auto-apply types only; protected areas | Implemented and tested | learn/engine.js MODES, versions.js PROTECTED · tests/learning |
 | §L Learning | Structured feedback → preference proposals (source, confidence, observedAt, scope, expiry); never from one example | Implemented and tested | brain/learning.js, engine.onFeedback · tests/learning |
 | §L Learning | Personalization profile: inspect, correct, delete, disable categories, export | Implemented and tested | engine.profile · tests/learning |
-| §L Learning | Model benchmarks per task category and agent evaluation from live metrics | Implemented and tested | engine.modelBenchmarks/agentEvaluations (live accuracy needs labelled answers) |
-| §L Learning | Benchmarks of live model answer quality in experiments | Blocked by external dependency | sandbox has no model by design; needs a labelled answer set and a test key |
+| §L Learning | Model benchmark suites (math, Hebrew, extraction, planning, data, research, coding, safety) with automatic graders; accuracy-first routing proposals | Implemented and tested | learn/benchmarks.js · tests/learning (fake provider) |
+| §L Learning | Agent intelligence: scores, overlaps, unnecessary work, prompt ambiguity/conflicts, mission evaluation | Implemented and tested | learn/insight.js · tests/learning |
+| §L Learning | Benchmarks against live models in CI | Blocked by external dependency | needs a test API key; runs on demand in the app |
 | §L Learning | Capability R&D (unmet requests, roadmap), knowledge freshness, proactive suggestions (approve/postpone/dismiss) | Implemented and tested | engine.research/freshness/suggestions · tests/learning |
 | §L Learning | Family Wealth OS: categorization suggestions only, 2+ consistent examples, applied after approval | Implemented and tested | engine.fwosCategorization · tests/learning |
-| §L Learning | Self-improvement dashboard (screens A-G) | Implemented and tested | web/js/learnview.js · e2e webapp |
+| §L Learning | Self-improvement dashboard: Intelligence Overview, Model, Agent, Learning Center, Development Lab, Improvement History, Security Monitor | Implemented and tested | web/js/learnview.js · e2e webapp |
