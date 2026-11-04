@@ -23,13 +23,18 @@ import { riskOf } from '../tools/index.js';
 import { Versions, targetAdapter, PROTECTED } from './versions.js';
 import { clusterSignals, FAILURE_CLASSES, FEEDBACK_CATEGORIES, normalize } from './classify.js';
 import { COVERAGE } from '../brain/coverage.js';
+import { DevLab } from './devlab.js';
+import { digest } from './sign.js';
+import * as insight from './insight.js';
 
 export const MODES = {
-  1: { id: 1, name: 'Observe', nameHe: 'צפייה בלבד', desc: 'Collect metrics, detect patterns and report. No proposals are created.', descHe: 'איסוף מדדים, זיהוי דפוסים ודיווח. לא נוצרות הצעות.' },
-  2: { id: 2, name: 'Propose & test', nameHe: 'הצעה ובדיקה', desc: 'Create proposals and test them in the sandbox automatically. Every deployment needs your approval. (default)', descHe: 'יצירת הצעות ובדיקתן אוטומטית בסביבה מבודדת. כל פריסה דורשת את אישורך. (ברירת מחדל)' },
-  3: { id: 3, name: 'Auto-apply personalization', nameHe: 'החלה אוטומטית של התאמה אישית', desc: 'As mode 2, and style/length preferences that pass testing are applied automatically (you are notified and can roll back). System changes still need approval.', descHe: 'כמו מצב 2, והעדפות סגנון ואורך שעברו בדיקה מוחלות אוטומטית (עם התראה ואפשרות שחזור). שינויי מערכת עדיין דורשים אישור.' },
-  4: { id: 4, name: 'Supervised autonomy', nameHe: 'אוטונומיה בפיקוח', desc: 'As mode 3, and learned phrases for read-only capabilities that pass testing with zero regressions are applied automatically. Prompts, routing and workflows still need approval. Protected areas never change.', descHe: 'כמו מצב 3, וביטויים נלמדים ליכולות קריאה בלבד שעברו בדיקה ללא רגרסיות מוחלים אוטומטית. פרומפטים, ניתוב ותהליכים עדיין דורשים אישור. אזורים מוגנים לעולם לא משתנים.' },
+  1: { id: 1, name: 'Observe', nameHe: 'צפייה', desc: 'Monitor performance and identify opportunities. No proposals are created.', descHe: 'ניטור ביצועים וזיהוי הזדמנויות. לא נוצרות הצעות.' },
+  2: { id: 2, name: 'Recommend', nameHe: 'המלצה', desc: 'Create proposed improvements and explain their expected benefit. Tests run when you start them. (default for system modifications)', descHe: 'יצירת הצעות לשיפור עם הסבר על התועלת. בדיקות רצות כשאת/ה מפעיל/ה אותן. (ברירת מחדל לשינויי מערכת)' },
+  3: { id: 3, name: 'Experiment', nameHe: 'ניסוי', desc: 'As mode 2, and proposals are tested automatically in the isolated sandbox. Deployment still needs your approval.', descHe: 'כמו מצב 2, וההצעות נבדקות אוטומטית בסביבה המבודדת. פריסה עדיין דורשת את אישורך.' },
+  4: { id: 4, name: 'Approved deployment', nameHe: 'פריסה מאושרת', desc: 'As mode 3. Changes are deployed after your approval and successful validation; only change types you explicitly authorized as low-risk and reversible may deploy automatically after passing every test.', descHe: 'כמו מצב 3. שינויים נפרסים אחרי אישורך ובדיקה מוצלחת; רק סוגי שינוי שאישרת מראש כנמוכי סיכון והפיכים יכולים להיפרס אוטומטית אחרי שעברו כל בדיקה.' },
 };
+/** Change types that may ever be auto-applied (only if the owner lists them and only in mode 4). */
+export const AUTO_ELIGIBLE = ['personality', 'intent_alias', 'preferences'];
 
 export const PROFILE_CATEGORIES = {
   communication: { en: 'Communication style', he: 'סגנון תקשורת' },
@@ -37,6 +42,11 @@ export const PROFILE_CATEGORIES = {
   schedule: { en: 'Schedule and routines', he: 'לוח זמנים ושגרה' },
   interests: { en: 'Interests and preferences', he: 'תחומי עניין והעדפות' },
   home: { en: 'Home', he: 'בית' },
+  task_organization: { en: 'Task organization', he: 'ארגון משימות' },
+  notifications: { en: 'Notifications', he: 'התראות' },
+  applications: { en: 'Preferred applications', he: 'אפליקציות מועדפות' },
+  devices: { en: 'Device preferences', he: 'העדפות מכשירים' },
+  projects: { en: 'Project priorities', he: 'עדיפויות פרויקטים' },
   finance_categorization: { en: 'Expense categorization', he: 'סיווג הוצאות' },
 };
 
@@ -55,15 +65,16 @@ const HINTS = [
 ];
 
 export class LearningEngine {
-  constructor(s) { this.s = s; this.versions = new Versions(s); }
+  constructor(s) { this.s = s; this.versions = new Versions(s); this.devlab = new DevLab(s); }
+  security(type, detail = {}) { const e = this.s.store.insert('learning_security', { type, detail, at: now() }); this.s.audit.log('learning-engine', `learning.security.${type}`, detail, 'denied'); return e; }
 
   // ---------------- mode & audit ----------------
   mode() { return this.s.store.getMeta('learningMode', 2); }
-  modes() { return { current: this.mode(), modes: Object.values(MODES), protected: PROTECTED }; }
+  modes() { return { current: this.mode(), modes: Object.values(MODES), protected: PROTECTED, autoApply: this.autoApply(), autoEligible: AUTO_ELIGIBLE }; }
   setMode(level, actor) {
     // Only the owner can change how much autonomy the learning engine has. The engine itself
     // has no code path that calls this, so it can never widen its own boundaries.
-    if (actor !== 'user') throw err('only the owner can change the learning mode', 403);
+    if (actor !== 'user') { this.security('unauthorized.mode_change', { actor, requested: level }); throw err('only the owner can change the learning mode', 403); }
     const l = Number(level);
     if (!MODES[l]) throw err('mode must be 1-4');
     const prev = this.mode();
@@ -138,10 +149,27 @@ export class LearningEngine {
       const t = this.s.store.get('tasks_exec', f.taskId);
       out.push({ source: 'feedback', id: f.id, taskId: f.taskId, at: f.at ?? f.createdAt, message: t?.objective ?? '', note: f.note, category: f.category, tool: f.tools?.[0] ?? null, agent: f.agents?.[0] ?? null });
     }
+    for (const m of this.s.store.all('missions', (x) => recent(x.createdAt))) {
+      for (const t of (m.tasks ?? []).filter((x) => ['failed', 'blocked'].includes(x.status))) out.push({ source: 'mission', id: `${m.id}:${t.id}`, taskId: m.id, at: t.finishedAt ?? m.createdAt, message: m.objective, error: (t.issues ?? []).join('; ') || String(t.result ?? t.status), tool: t.tool ?? null, agent: t.agent ?? null });
+    }
+    for (const a of this.s.store.all('approvals', (x) => x.status === 'rejected' && recent(x.createdAt))) {
+      const t = this.s.store.get('tasks_exec', a.taskId);
+      if (t && t.actor === 'user') out.push({ source: 'approval_rejected', id: a.id, taskId: a.taskId, at: a.decidedAt ?? a.createdAt, message: t.objective, tool: t.plan?.tools?.[0] ?? null, agent: t.plan?.agents?.[0] ?? null, error: 'user rejected the proposed action' });
+    }
     for (const t of this.s.store.all('tasks_exec', (x) => x.state === 'CANCELLED' && recent(x.createdAt) && x.history?.some((h) => /superseded/.test(h.note ?? '')))) {
       out.push({ source: 'abandoned', id: t.id, taskId: t.id, at: t.createdAt, message: t.objective, tool: t.history.find((h) => /^missing /.test(h.note ?? ''))?.note.slice(8).split('.')[0] ?? null });
     }
     return out;
+  }
+
+  /** Execution logs, tool outputs and verification evidence behind one signal (for the evidence view). */
+  logs(taskId) {
+    const t = taskId && this.s.store.get('tasks_exec', taskId);
+    return {
+      task: t ? { id: t.id, objective: t.objective, state: t.state, channel: t.channel, history: t.history, analysis: t.analysis ? { kind: t.analysis.kind, strategy: t.analysis.strategy, confidence: t.analysis.confidence } : null, steps: (t.plan?.steps ?? []).map((x) => ({ n: x.n, tool: x.tool, agent: x.agent, status: x.status, verified: x.verified, summary: String(x.summary ?? '').slice(0, 300), error: x.error ?? null })) } : null,
+      executions: this.s.store.all('tool_executions', (x) => x.taskId === taskId).map((x) => ({ tool: x.tool, agent: x.agent, risk: x.risk, decision: x.decision, verified: x.verified, summary: x.summary, at: x.at })),
+      failures: this.s.store.all('failures', (x) => x.taskId === taskId),
+    };
   }
 
   /** Best READ-only, available capability for a free-text request (null if nothing fits well). */
@@ -156,35 +184,42 @@ export class LearningEngine {
   hypothesis(p, { min = 3 } = {}) {
     if (!p.recurring) return { status: 'insufficient-evidence', cause: null, note: `Only ${p.occurrences} occurrence(s) in the window; at least ${min} are needed before naming a likely cause.`, noteHe: `רק ${p.occurrences} מקרים בחלון הזמן; צריך לפחות ${min} כדי להצביע על סיבה סבירה.`, action: null };
     const n = p.occurrences;
-    if (p.cls === 'model_unavailable' || (p.cls === 'intent_misunderstood' && p.tool === 'llm.answer')) {
+    const sol = (type, risk, en, he, extra = {}) => ({ type, risk, reversible: risk !== 'high', requiresApproval: true, en, he, ...extra });
+    const G = (text, textHe, extra = {}) => ({ type: 'guidance', text, textHe, ...extra });
+    if (p.cls === 'model_selection' || (p.cls === 'intent_misinterpretation' && p.tool === 'llm.answer')) {
       const picks = p.messages.map((m) => this.bestReadTool(m)).filter(Boolean);
       const counts = {}; for (const x of picks) counts[x.tool] = (counts[x.tool] ?? 0) + 1;
       const [tool, hits] = Object.entries(counts).sort((a, b) => b[1] - a[1])[0] ?? [];
+      const noModel = !this.s.router.providers.anthropic;
       if (tool && hits >= Math.max(2, Math.ceil(n * 0.6))) {
-        return { status: 'likely', cause: `These requests have no deterministic intent rule, so they fall through to the AI model path${this.s.router.providers.anthropic ? '' : ', which is not available here'}. ${hits} of ${n} match the existing read-only capability "${tool}".`, causeHe: `לבקשות האלה אין כלל זיהוי קבוע, ולכן הן עוברות למודל ה-AI${this.s.router.providers.anthropic ? '' : ', שלא זמין כאן'}. ${hits} מתוך ${n} מתאימות ליכולת הקיימת לקריאה בלבד "${tool}".`, evidenceFor: [`${hits}/${n} requests match ${tool}`, `all ${n} were routed to llm.answer`], action: { type: 'intent_alias', tool } };
+        return { status: 'likely', cause: `These requests have no deterministic intent rule, so they fall through to the AI model path${noModel ? ', which is not available here' : ''}. ${hits} of ${n} match the existing read-only capability "${tool}".`, causeHe: `לבקשות האלה אין כלל זיהוי קבוע, ולכן הן עוברות למודל ה-AI${noModel ? ', שלא זמין כאן' : ''}. ${hits} מתוך ${n} מתאימות ליכולת הקיימת לקריאה בלבד "${tool}".`, evidenceFor: [`${hits}/${n} requests match ${tool}`, `all ${n} were routed to llm.answer`],
+          solutions: [sol('intent_alias', 'low', `Teach these phrases to open ${tool} (read-only, reversible)`, `ללמד את הביטויים לפתוח את ${tool} (קריאה בלבד, הפיך)`), sol('guidance', 'none', 'Configure an AI model', 'להגדיר מודל AI', { requiresApproval: false }), sol('new_intent_rule', 'medium', 'Developer adds a parser rule (code change, needs review)', 'מפתח מוסיף כלל לפענוח (שינוי קוד, דורש סקירה)')],
+          action: { type: 'intent_alias', tool } };
       }
-      if (p.cls === 'model_unavailable' && !this.s.router.providers.anthropic) return { status: 'likely', cause: 'No AI model is configured, and these are open questions that need one.', causeHe: 'לא מוגדר מודל AI, ואלה שאלות פתוחות שדורשות מודל.', evidenceFor: ['no model provider configured', `${n} requests needed a model`], action: { type: 'guidance', text: 'Open JARVIS in claude.ai or add an API key in Settings.', textHe: 'פתחו את JARVIS ב-claude.ai או הוסיפו מפתח API בהגדרות.' } };
+      if (noModel) return { status: 'likely', cause: 'No AI model is configured, and these are open questions that need one.', causeHe: 'לא מוגדר מודל AI, ואלה שאלות פתוחות שדורשות מודל.', evidenceFor: ['no model provider configured', `${n} requests needed a model`], solutions: [sol('guidance', 'none', 'Configure an AI model', 'להגדיר מודל AI', { requiresApproval: false })], action: G('Open JARVIS in claude.ai or add an API key in Settings.', 'פתחו את JARVIS ב-claude.ai או הוסיפו מפתח API בהגדרות.') };
       return { status: 'insufficient-evidence', cause: null, note: 'The requests do not point to one capability; more examples are needed.', noteHe: 'הבקשות לא מצביעות על יכולת אחת; צריך עוד דוגמאות.', action: null };
     }
     const notes = p.evidence.map((e) => e.error.toLowerCase());
     const share = (re) => notes.filter((x) => re.test(x)).length;
     switch (p.cls) {
-      case 'user_dissatisfied': {
-        if (!this.categoryEnabled('communication')) return { status: 'insufficient-evidence', cause: null, note: 'Communication learning is disabled in your profile.', noteHe: 'למידת סגנון תקשורת כבויה בפרופיל שלך.', action: null };
+      case 'expectation_mismatch': {
         const long = share(/too_long|long|ארוך|verbose/); const short = share(/too_short|short|קצר|מפורט/);
-        if (long >= 2 && long > short) return { status: 'likely', cause: `Answers are too long for you (${long} signals, ${short} opposite).`, causeHe: `התשובות ארוכות מדי בשבילך (${long} סימנים, ${short} הפוכים).`, evidenceFor: [`${long} feedback signals about length`], action: { type: 'personality', patch: { verbosity: 'short' } } };
-        if (short >= 2 && short > long) return { status: 'likely', cause: `Answers are too short for you (${short} signals, ${long} opposite).`, causeHe: `התשובות קצרות מדי בשבילך (${short} סימנים, ${long} הפוכים).`, evidenceFor: [`${short} feedback signals about length`], action: { type: 'personality', patch: { verbosity: 'detailed' } } };
+        const wrong = share(/wrong|incorrect|לא נכון|שגוי|טעות|המצאת|made up|accuracy/);
+        if ((long >= 2 || short >= 2) && !this.categoryEnabled('communication')) return { status: 'insufficient-evidence', cause: null, note: 'Communication learning is disabled in your profile.', noteHe: 'למידת סגנון תקשורת כבויה בפרופיל שלך.', action: null };
+        if (long >= 2 && long > short) return { status: 'likely', cause: `Answers are too long for you (${long} signals, ${short} opposite).`, causeHe: `התשובות ארוכות מדי בשבילך (${long} סימנים, ${short} הפוכים).`, evidenceFor: [`${long} feedback signals about length`], solutions: [sol('personality', 'low', 'Default to short answers (reversible)', 'ברירת מחדל לתשובות קצרות (הפיך)')], action: { type: 'personality', patch: { verbosity: 'short' } } };
+        if (short >= 2 && short > long) return { status: 'likely', cause: `Answers are too short for you (${short} signals, ${long} opposite).`, causeHe: `התשובות קצרות מדי בשבילך (${short} סימנים, ${long} הפוכים).`, evidenceFor: [`${short} feedback signals about length`], solutions: [sol('personality', 'low', 'Default to detailed answers (reversible)', 'ברירת מחדל לתשובות מפורטות (הפיך)')], action: { type: 'personality', patch: { verbosity: 'detailed' } } };
+        if (wrong >= Math.max(2, Math.ceil(n * 0.6))) return { status: 'likely', cause: `${wrong} answers were reported as wrong. The feedback does not say which part, so the true cause is not confirmed; a stricter grounding instruction is a reasonable, reversible mitigation.`, causeHe: `${wrong} תשובות דווחו כשגויות. המשוב לא מציין איזה חלק, ולכן הסיבה האמיתית לא אושרה; הנחיית עיגון מחמירה היא צעד סביר והפיך.`, evidenceFor: [`${wrong}/${n} feedback signals: wrong`], solutions: [sol('prompt_overlay', 'medium', 'Add a grounding instruction to the prompt overlay', 'הוספת הנחיית עיגון לפרומפט'), sol('routing', 'medium', 'Route these requests to a deeper model (needs model benchmarks first)', 'לנתב לבקשות מודל עמוק יותר (דורש מדדי מודלים קודם)')], action: { type: 'prompt_overlay', text: 'When answering about the user\'s own data, rely only on the records provided and name the record you used. If the records do not contain the answer, say you are not sure instead of estimating.' } };
         return { status: 'insufficient-evidence', cause: null, note: 'Negative feedback without a consistent reason.', noteHe: 'משוב שלילי בלי סיבה עקבית.', action: null };
       }
-      case 'incorrect_answer':
-        return { status: 'likely', cause: `${n} answers were reported as wrong. A stricter grounding instruction is a reasonable, reversible mitigation; the true cause needs the answer content to confirm.`, causeHe: `${n} תשובות דווחו כשגויות. הנחיית עיגון מחמירה היא צעד סביר והפיך; כדי לאשר את הסיבה האמיתית צריך את תוכן התשובות.`, evidenceFor: [`${n} feedback signals: incorrect`], action: { type: 'prompt_overlay', text: 'When answering about the user\'s own data, rely only on the records provided and name the record you used. If the records do not contain the answer, say you are not sure instead of estimating.' } };
-      case 'external_unavailable': return { status: 'likely', cause: `${p.target ?? p.tool} was unavailable in ${n} attempts.`, causeHe: `${p.target ?? p.tool} לא היה זמין ב-${n} ניסיונות.`, evidenceFor: [`${n} offline errors for the same target`], action: { type: 'guidance', text: 'Check the device or service power and connection.', textHe: 'בדקו חשמל וחיבור של המכשיר או השירות.' } };
-      case 'permission_denied': return { status: 'likely', cause: `Your permission settings blocked ${p.tool ?? 'an action'} ${n} times.`, causeHe: `הגדרות ההרשאות חסמו את ${p.tool ?? 'הפעולה'} ${n} פעמים.`, evidenceFor: [`${n} policy blocks`], action: { type: 'guidance', protected: true, text: 'Permissions are protected: the learning engine will not change them. Review them yourself in Privacy if this is intended.', textHe: 'הרשאות מוגנות: מנוע הלמידה לא ישנה אותן. אם זה רצוי, בדקו אותן בעצמכם בפרטיות.' } };
-      case 'missing_information': return { status: 'likely', cause: `Clarification questions for ${p.tool ?? 'requests'} were abandoned ${n} times.`, causeHe: `שאלות הבהרה עבור ${p.tool ?? 'בקשות'} ננטשו ${n} פעמים.`, evidenceFor: [`${n} abandoned clarifications`], action: { type: 'guidance', text: 'Include the missing detail in the first request (for example the time for a reminder).', textHe: 'כדאי לכלול את הפרט החסר כבר בבקשה (למשל שעה לתזכורת).' } };
-      case 'data_not_found': return { status: 'likely', cause: `Names used in requests did not match records for ${p.tool} (${n} times).`, causeHe: `השמות בבקשות לא תאמו לרשומות עבור ${p.tool} (${n} פעמים).`, evidenceFor: [`${n} not-found errors`], action: { type: 'guidance', text: 'Check the record names or add the missing record.', textHe: 'בדקו את שמות הרשומות או הוסיפו את הרשומה החסרה.' } };
+      case 'calculation_error': return { status: 'likely', cause: `${n} results involving numbers were reported wrong. JARVIS computes money, dates and units deterministically; if the numbers came from the model, the request missed the calculator path.`, causeHe: `${n} תוצאות עם מספרים דווחו כשגויות. JARVIS מחשב כסף, תאריכים ויחידות באופן דטרמיניסטי; אם המספרים הגיעו מהמודל, הבקשה פספסה את מסלול המחשבון.`, evidenceFor: [`${n} calculation complaints`, `tools: ${p.tool ?? 'unknown'}`], solutions: [sol('prompt_overlay', 'medium', 'Instruct the model to use calc tools for every number', 'להנחות את המודל להשתמש במחשבון לכל מספר')], action: { type: 'prompt_overlay', text: 'Never compute numbers in your head: use the calc, date and convert tools for every calculation and show the formula.' } };
+      case 'external_api': return { status: 'likely', cause: `${p.target ?? p.tool} was unavailable in ${n} attempts.`, causeHe: `${p.target ?? p.tool} לא היה זמין ב-${n} ניסיונות.`, evidenceFor: [`${n} offline/HTTP errors for the same target`], solutions: [sol('guidance', 'none', 'Check the device or service', 'לבדוק את המכשיר או השירות', { requiresApproval: false })], action: G('Check the device or service power and connection.', 'בדקו חשמל וחיבור של המכשיר או השירות.') };
+      case 'permission_denied': return { status: 'likely', cause: `Your permission settings blocked ${p.tool ?? 'an action'} ${n} times.`, causeHe: `הגדרות ההרשאות חסמו את ${p.tool ?? 'הפעולה'} ${n} פעמים.`, evidenceFor: [`${n} policy blocks`], solutions: [sol('guidance', 'none', 'Review permissions yourself (protected area)', 'לבדוק הרשאות בעצמך (אזור מוגן)', { requiresApproval: false })], action: G('Permissions are protected: the learning engine will not change them. Review them yourself in Privacy if this is intended.', 'הרשאות מוגנות: מנוע הלמידה לא ישנה אותן. אם זה רצוי, בדקו אותן בעצמכם בפרטיות.', { protected: true }) };
+      case 'missing_context': return { status: 'likely', cause: `Clarification questions for ${p.tool ?? 'requests'} were abandoned ${n} times.`, causeHe: `שאלות הבהרה עבור ${p.tool ?? 'בקשות'} ננטשו ${n} פעמים.`, evidenceFor: [`${n} abandoned clarifications`], solutions: [sol('guidance', 'none', 'Include the missing detail up front', 'לכלול את הפרט החסר מראש', { requiresApproval: false })], action: G('Include the missing detail in the first request (for example the time for a reminder).', 'כדאי לכלול את הפרט החסר כבר בבקשה (למשל שעה לתזכורת).') };
+      case 'data_inconsistency': return { status: 'likely', cause: `Names used in requests did not match records for ${p.tool} (${n} times).`, causeHe: `השמות בבקשות לא תאמו לרשומות עבור ${p.tool} (${n} פעמים).`, evidenceFor: [`${n} not-found/mismatch errors`], solutions: [sol('guidance', 'none', 'Fix record names or add the record', 'לתקן שמות רשומות או להוסיף רשומה', { requiresApproval: false })], action: G('Check the record names or add the missing record.', 'בדקו את שמות הרשומות או הוסיפו את הרשומה החסרה.') };
+      case 'agent_coordination': return { status: 'likely', cause: `${n} multi-step or mission tasks were blocked by dependencies or step limits.`, causeHe: `${n} משימות מרובות שלבים נחסמו בגלל תלויות או מגבלת צעדים.`, evidenceFor: [`${n} coordination errors`], solutions: [sol('guidance', 'none', 'Split the goal into smaller missions', 'לפצל את המטרה למשימות קטנות יותר', { requiresApproval: false })], action: G('Split large goals into smaller missions; step limits are a safety boundary and are not raised automatically.', 'פצלו מטרות גדולות למשימות קטנות; מגבלות צעדים הן גבול בטיחות ולא מועלות אוטומטית.') };
       default: {
         const same = new Set(p.evidence.map((e) => e.error)).size === 1;
-        return same ? { status: 'likely', cause: `The same error repeats ${n} times: "${p.evidence[0].error}".`, causeHe: `אותה שגיאה חוזרת ${n} פעמים: "${p.evidence[0].error}".`, evidenceFor: ['identical error messages'], action: { type: 'guidance', text: 'Recorded for a developer fix.', textHe: 'נרשם לתיקון על ידי מפתח.' } }
+        return same ? { status: 'likely', cause: `The same error repeats ${n} times: "${p.evidence[0].error}".`, causeHe: `אותה שגיאה חוזרת ${n} פעמים: "${p.evidence[0].error}".`, evidenceFor: ['identical error messages'], solutions: [sol('developer_fix', 'medium', 'Developer fix through the Development Lab', 'תיקון של מפתח דרך מעבדת הפיתוח')], action: G('Recorded for a developer fix.', 'נרשם לתיקון על ידי מפתח.') }
           : { status: 'insufficient-evidence', cause: null, note: 'Errors differ; no single cause is supported by the evidence.', noteHe: 'השגיאות שונות; הראיות לא תומכות בסיבה אחת.', action: null };
       }
     }
@@ -251,9 +286,10 @@ export class LearningEngine {
   }
 
   createProposal({ target, candidate, change, changeHe, rationale, rationaleHe, evidence = [], replays = [], risk = 'low', signature = null, patternId = null, type = 'manual', createdBy = 'user' }) {
-    const adapter = targetAdapter(target); // protected targets are refused here, before anything is stored
+    let adapter;
+    try { adapter = targetAdapter(target); } catch (e) { if (e.protected) this.security('change.blocked.protected', { target, by: createdBy }); throw e; } // protected targets are refused before anything is stored
     const errs = adapter.validate(this.s, candidate);
-    if (errs.length) throw err(`invalid proposal: ${errs.join('; ')}`);
+    if (errs.length) { if (errs.some((x) => /forbidden|read-only|arguments/.test(x))) this.security('change.blocked.unsafe', { target, reasons: errs, by: createdBy }); throw err(`invalid proposal: ${errs.join('; ')}`); }
     const p = this.s.store.insert('improvement_proposals', {
       type, target, targetLabel: adapter.label, systemChange: adapter.system, candidate, current: structuredClone(adapter.get(this.s) ?? null),
       change: change ?? `Change ${target}`, changeHe: changeHe ?? change ?? `שינוי ${target}`, rationale: rationale ?? '', rationaleHe: rationaleHe ?? rationale ?? '', evidence, replays, risk, signature, patternId,
@@ -280,7 +316,7 @@ export class LearningEngine {
     this.s.store.update('improvement_proposals', id, { status, experimentId: exp.id, verdict: result.verdict });
     this.event('experiment.completed', { experimentId: exp.id, proposalId: id, verdict: result.verdict });
     this.log('experiment.completed', { experimentId: exp.id, proposalId: id, verdict: result.verdict, regressions: result.report?.regressions ?? [], improvements: result.report?.improvements ?? [] }, actor);
-    await this.maybeAutoDeploy(this.proposal(id));
+    if (status === 'tested') { const auto = await this.maybeAutoDeploy(this.proposal(id)); if (!auto) this.requestApproval(id); }
     return exp;
   }
   experiments() { return this.s.store.all('experiments').slice().reverse().map(({ report, ...e }) => ({ ...e, regressions: report?.regressions ?? [], improvements: report?.improvements ?? [] })); }
@@ -288,45 +324,80 @@ export class LearningEngine {
 
   async maybeAutoDeploy(p) {
     if (p.status !== 'tested') return null;
+    // Only in mode 4, and only for change types the owner explicitly listed as auto-applicable
+    // (low-risk, reversible). Everything else waits for an explicit approval.
     const m = this.mode();
-    const auto = (m >= 3 && p.type === 'personality') || (m >= 4 && p.type === 'intent_alias');
-    if (!auto) return null;
-    return this.deploy(p.id, `learning-engine (mode ${m})`, { auto: true });
+    if (m < 4 || !this.autoApply().includes(p.type) || !AUTO_ELIGIBLE.includes(p.type)) return null;
+    return this.deploy(p.id, `learning-engine (mode ${m}, auto-apply authorized by owner)`, { auto: true });
+  }
+  autoApply() { return this.s.store.getMeta('learningAutoApply', []); }
+  setAutoApply(types, actor) {
+    if (actor !== 'user') { this.security('unauthorized.auto_apply', { actor }); throw err('only the owner can authorize automatic changes', 403); }
+    const list = [...new Set((types ?? []).filter((x) => AUTO_ELIGIBLE.includes(x)))];
+    this.s.store.setMeta('learningAutoApply', list);
+    this.log('auto_apply.changed', { types: list }, actor);
+    return { autoApply: list, eligible: AUTO_ELIGIBLE };
   }
 
+  // ---------------- deployment approval workflow ----------------
+  /** A tested proposal gets an approval request bound to the exact candidate (hash) and expiry. */
+  requestApproval(id, actor = 'learning-engine') {
+    const p = this.proposal(id);
+    if (p.status !== 'tested') throw err(p.status === 'failed-test' ? 'this proposal failed its tests and cannot be deployed' : 'run the experiment before requesting approval');
+    const pending = this.s.store.all('deployment_approvals', (x) => x.proposalId === id && x.status === 'pending')[0];
+    if (pending) return pending;
+    const exp = this.s.store.get('experiments', p.experimentId);
+    const a = this.s.store.insert('deployment_approvals', { proposalId: id, target: p.target, change: p.change, candidateHash: digest(p.candidate), experimentId: p.experimentId, verdict: exp?.verdict, regressions: exp?.report?.regressions ?? [], status: 'pending', requestedBy: actor, requestedAt: now(), expiresAt: new Date(Date.now() + 7 * DAY).toISOString() });
+    this.log('approval.requested', { approvalId: a.id, proposalId: id }, actor);
+    return a;
+  }
+  approvals(status) { return this.s.store.all('deployment_approvals', (x) => !status || x.status === status).slice().reverse(); }
+
+  /** Owner approval. Deployment is a separate, explicit step (deploy). */
   approve(id, actor) {
-    if (actor !== 'user') throw err('only the owner can approve a deployment', 403);
+    if (actor !== 'user') { this.security('unauthorized.approve', { actor, proposalId: id }); throw err('only the owner can approve a deployment', 403); }
     const p = this.proposal(id);
     if (p.status !== 'tested') throw err(p.status === 'failed-test' ? 'this proposal failed its tests and cannot be deployed' : 'run the experiment before approving');
-    this.s.store.update('improvement_proposals', id, { status: 'approved', approvedBy: actor, approvedAt: now() });
-    this.log('proposal.approved', { proposalId: id }, actor);
-    return this.deploy(id, actor);
+    const a = this.requestApproval(id, actor);
+    this.s.store.update('deployment_approvals', a.id, { status: 'approved', approvedBy: actor, approvedAt: now() });
+    this.s.store.update('improvement_proposals', id, { status: 'approved', approvedBy: actor, approvedAt: now(), approvalId: a.id });
+    this.log('proposal.approved', { proposalId: id, approvalId: a.id }, actor);
+    return { proposal: this.proposal(id), approval: this.s.store.get('deployment_approvals', a.id) };
   }
   reject(id, actor, reason = '') {
     const p = this.proposal(id);
     if (['deployed', 'rolled_back'].includes(p.status)) throw err(`proposal is ${p.status}; roll it back instead`);
     this.s.store.update('improvement_proposals', id, { status: 'rejected', rejectedBy: actor, reason: String(reason).slice(0, 300) });
+    for (const a of this.s.store.all('deployment_approvals', (x) => x.proposalId === id && x.status === 'pending')) this.s.store.update('deployment_approvals', a.id, { status: 'rejected', rejectedBy: actor });
     if (p.patternId) this.s.store.update('failure_patterns', p.patternId, { status: 'dismissed' });
     this.log('proposal.rejected', { proposalId: id, reason }, actor);
     return this.proposal(id);
   }
 
-  /** Deploy only an authorized, tested proposal: approved by the owner, or allowed by the owner's chosen mode. */
+  /** Deploy only an authorized change: owner-approved (hash-bound, unexpired) or auto-applicable by the owner's rules. */
   deploy(id, by, { auto = false } = {}) {
     const p = this.proposal(id);
-    const authorized = p.status === 'approved' || (auto && p.status === 'tested');
-    if (!authorized) throw err('not authorized: a tested proposal needs approval before deployment', 403);
     const exp = p.experimentId && this.s.store.get('experiments', p.experimentId);
-    if (!exp || exp.verdict !== 'pass') throw err('deployment needs a passing experiment', 403);
-    const { from, to } = this.versions.commit(p.target, p.candidate, { by, reason: p.change, proposalId: id, experimentId: exp.id });
-    const d = this.s.store.insert('deployments', { proposalId: id, target: p.target, fromVersion: from.version, toVersion: to.version, by, auto, at: now(), status: 'active', signature: p.signature });
+    const approval = p.approvalId && this.s.store.get('deployment_approvals', p.approvalId);
+    if (!auto) {
+      if (by !== 'user') { this.security('unauthorized.deploy', { actor: by, proposalId: id }); throw err('only the owner can deploy', 403); }
+      if (p.status !== 'approved' || approval?.status !== 'approved') { this.security('deploy.blocked.unapproved', { proposalId: id }); throw err('not authorized: a tested proposal needs approval before deployment', 403); }
+      if (approval.candidateHash !== digest(p.candidate)) { this.security('deploy.blocked.changed_after_approval', { proposalId: id }); throw err('the change was modified after approval; approve it again', 409); }
+      if (Date.parse(approval.expiresAt) < Date.now()) throw err('the approval expired; approve it again', 409);
+    } else if (p.status !== 'tested') throw err('not authorized', 403);
+    if (!exp || exp.verdict !== 'pass') { this.security('deploy.blocked.no_validation', { proposalId: id }); throw err('deployment needs a passing experiment', 403); }
+    const { from, to } = this.versions.commit(p.target, p.candidate, { by, reason: p.change, proposalId: id, experimentId: exp.id, approval: approval ? { id: approval.id, by: approval.approvedBy, at: approval.approvedAt } : { auto: true }, evaluation: { verdict: exp.verdict, baseline: exp.baseline, candidate: exp.candidate, regressions: exp.report?.regressions ?? [] } });
+    const d = this.s.store.insert('deployments', { proposalId: id, target: p.target, fromVersion: from.version, toVersion: to.version, by, auto, approvalId: approval?.id ?? null, at: now(), status: 'active', signature: p.signature });
+    if (approval) this.s.store.update('deployment_approvals', approval.id, { status: 'deployed', deploymentId: d.id });
     this.s.store.update('improvement_proposals', id, { status: 'deployed', deploymentId: d.id, deployedAt: d.at });
     if (p.patternId) this.s.store.update('failure_patterns', p.patternId, { status: 'resolved', resolvedAt: d.at });
     this.event('deployment', { deploymentId: d.id, proposalId: id, target: p.target });
     this.log('deployed', { deploymentId: d.id, proposalId: id, target: p.target, fromVersion: from.version, toVersion: to.version, auto }, by);
-    if (auto) this.s.notifications?.send({ title: `JARVIS learned: ${p.change}`, body: 'Applied automatically under your learning mode. You can roll it back in Self-Improvement.', priority: 'normal', event: 'learning.auto_deploy' });
+    if (auto) this.s.notifications?.send({ title: `JARVIS learned: ${p.change}`, body: 'Applied automatically under the rules you authorized. You can roll it back in Self-Improvement.', priority: 'normal', event: 'learning.auto_deploy' });
     return { deployment: d, version: to };
   }
+  /** Convenience for the owner: approve then deploy in one action. */
+  approveAndDeploy(id, actor) { this.approve(id, actor); return this.deploy(id, actor); }
   deployments() {
     return this.s.store.all('deployments').slice().reverse().map((d) => {
       // Post-deployment monitoring: does the problem still occur after the change?
@@ -334,17 +405,19 @@ export class LearningEngine {
       return { ...d, occurrencesSinceDeploy: after };
     });
   }
-  rollback({ deploymentId, target, toVersion } = {}, actor = 'user') {
-    if (actor !== 'user') throw err('only the owner can roll back', 403);
+  rollback({ deploymentId, target, toVersion, reason = 'rollback' } = {}, actor = 'user') {
+    if (actor !== 'user') { this.security('unauthorized.rollback', { actor }); throw err('only the owner can roll back', 403); }
     let t = target;
     let d = null;
     if (deploymentId) { d = this.s.store.get('deployments', deploymentId); if (!d) throw err('no such deployment', 404); t = d.target; }
     if (!t) throw err('deploymentId or target required');
-    const r = this.versions.rollback(t, d && toVersion == null ? d.fromVersion : toVersion, { by: actor });
+    let r;
+    try { r = this.versions.rollback(t, d && toVersion == null ? d.fromVersion : toVersion, { by: actor, reason }); } catch (e) { if (e.tampered) this.security('version.tampered', { target: t }); throw e; }
     if (d) {
       this.s.store.update('deployments', d.id, { status: 'rolled_back', rolledBackAt: now() });
       this.s.store.update('improvement_proposals', d.proposalId, { status: 'rolled_back' });
     }
+    this.s.store.insert('rollback_records', { deploymentId: d?.id ?? null, target: t, fromVersion: r.from.version, restoredVersion: r.restored, newVersion: r.to.version, by: actor, reason, at: now() });
     this.event('rollback', { target: t, restored: r.restored });
     this.log('rolled_back', { target: t, deploymentId: d?.id ?? null, restoredVersion: r.restored, newVersion: r.to.version }, actor);
     return r;
@@ -371,48 +444,90 @@ export class LearningEngine {
 
   /** Structured feedback → preference proposals once signals are consistent (never from one example). */
   onFeedback(fb) {
-    this.event('feedback', { feedbackId: fb.id, rating: fb.rating, category: fb.category ?? null });
-    if (fb.rating > 0 || !this.categoryEnabled('communication')) return null;
+    this.event('feedback', { feedbackId: fb.id, rating: fb.rating, category: fb.category ?? null, channel: fb.channel ?? null, source: fb.source ?? 'rating' });
+    if (fb.rating > 0) return null;
+    const finance = (fb.tools ?? []).some((t) => /^wealth\./.test(t));
+    // A correction about a financial answer applies to that answer only: it is never generalized.
+    if (finance && fb.correction && !['too_long', 'too_short', 'format'].includes(fb.category)) {
+      this.event('feedback.scoped', { feedbackId: fb.id, scope: `task:${fb.taskId}`, generalize: false });
+      return null;
+    }
     const recent = this.s.store.all('feedback', (f) => f.rating < 0 && Date.now() - Date.parse(f.at ?? f.createdAt) < 30 * DAY);
-    const cnt = (c) => recent.filter((f) => f.category === c).length;
-    const rules = [['too_long', 'too_short', 'communication', 'verbosity', 'short'], ['too_short', 'too_long', 'communication', 'verbosity', 'detailed'], ['language', null, 'language', 'language', fb.lang === 'en' ? 'he' : 'en']];
-    for (const [c, opposite, category, key, value] of rules) {
-      if (fb.category !== c) continue;
-      const n = cnt(c); const o = opposite ? cnt(opposite) : 0;
+    const isFin = (f) => (f.tools ?? []).some((t) => /^wealth\./.test(t));
+    const pool = finance ? recent.filter(isFin) : recent.filter((f) => !isFin(f));
+    const cnt = (c) => pool.filter((f) => f.category === c).length;
+    const fmt = /table|טבלה/i.test(fb.note) ? 'table' : /bullet|list|רשימה|נקודות/i.test(fb.note) ? 'bullets' : /prose|פסקה|טקסט רציף/i.test(fb.note) ? 'prose' : null;
+    const rules = finance
+      ? [['too_long', 'too_short', 'communication', 'finance_report_style', 'concise', 'Family Wealth OS reports'], ['too_short', 'too_long', 'communication', 'finance_report_style', 'detailed', 'Family Wealth OS reports']]
+      : [['too_long', 'too_short', 'communication', 'verbosity', 'short', 'all channels'], ['too_short', 'too_long', 'communication', 'verbosity', 'detailed', 'all channels'], ['language', null, 'language', 'language', fb.lang === 'en' ? 'he' : 'en', 'all channels'], ['format', null, 'communication', 'format', fmt, 'answers']];
+    for (const [c, opposite, category, key, value, scope] of rules) {
+      if (fb.category !== c || !value) continue;
+      const n = c === 'format' ? pool.filter((f) => f.category === 'format' && new RegExp(value === 'table' ? 'table|טבלה' : value === 'bullets' ? 'bullet|list|רשימה|נקודות' : 'prose|פסקה', 'i').test(f.note)).length : cnt(c);
+      const o = opposite ? cnt(opposite) : 0;
       if (n < 2 || o >= n) return null; // one example, or conflicting signals: do not learn
       if (!this.categoryEnabled(category)) return null;
       const exists = this.s.store.all('profile_items', (x) => x.key === key && x.value === value && ['proposed', 'active'].includes(x.status))[0];
       if (exists) return exists;
-      const item = this.s.store.insert('profile_items', { category, key, value, source: 'feedback', confidence: +(n / (n + o + 1)).toFixed(2), observedAt: now(), scope: 'all channels', expiresAt: new Date(Date.now() + 180 * DAY).toISOString(), status: 'proposed', evidence: recent.filter((f) => f.category === c).slice(-5).map((f) => ({ feedbackId: f.id, taskId: f.taskId, note: f.note })) });
-      this.log('profile.proposed', { itemId: item.id, key, value, signals: n }, 'learning-engine');
+      const item = this.s.store.insert('profile_items', { category, key, value, source: 'feedback', confidence: +(n / (n + o + 1)).toFixed(2), observedAt: now(), scope, expiresAt: new Date(Date.now() + 180 * DAY).toISOString(), status: 'proposed', evidence: pool.filter((f) => f.category === c).slice(-5).map((f) => ({ feedbackId: f.id, taskId: f.taskId, note: f.note })) });
+      this.log('profile.proposed', { itemId: item.id, key, value, signals: n, scope }, 'learning-engine');
       return item;
     }
     return null;
   }
 
+  /** Repeated, non-sensitive behavior patterns become PROPOSED profile items (never active without approval). */
+  refreshObserved() {
+    const made = [];
+    for (const o of insight.observedPatterns(this.s)) {
+      if (!this.categoryEnabled(o.category)) continue;
+      if (this.s.store.all('profile_items', (x) => x.key === o.key && x.value === o.value).length) continue;
+      made.push(this.s.store.insert('profile_items', { category: o.category, key: o.key, value: o.value, source: 'observed behavior', confidence: o.confidence, observedAt: now(), scope: 'general', expiresAt: new Date(Date.now() + 90 * DAY).toISOString(), status: 'proposed', evidence: [{ note: o.evidence }] }));
+    }
+    if (made.length) this.log('profile.observed', { items: made.map((x) => x.key) });
+    return made;
+  }
+
   profile() {
     const disabled = new Set(this.s.store.getMeta('profileDisabled', []));
     const items = this.s.store.all('profile_items', (x) => x.status !== 'rejected');
-    const mem = this.s.memory.list().filter((m) => m.type === 'preference').map((m) => ({ id: m.id, category: /שעה|בוקר|ערב|morning|evening|schedule|routine/i.test(m.content) ? 'schedule' : /אור|בית|home|light|temperature/i.test(m.content) ? 'home' : 'interests', key: 'preference', value: m.content, source: m.provenance === 'user_statement' ? 'you said' : 'inferred (awaiting review)', confidence: m.confidence ?? null, observedAt: m.createdAt, scope: m.domain ?? 'general', expiresAt: m.expiresAt ?? null, status: m.provenance === 'inferred' ? 'proposed' : 'active', memory: true }));
+    // Health, financial and family memories are never used for unrelated personalization.
+    const mem = this.s.memory.list().filter((m) => m.type === 'preference' && !['financial', 'health', 'family'].includes(m.domain)).map((m) => ({ id: m.id, category: /שעה|בוקר|ערב|morning|evening|schedule|routine/i.test(m.content) ? 'schedule' : /אור|בית|home|light|temperature/i.test(m.content) ? 'home' : /התראה|notification|notify/i.test(m.content) ? 'notifications' : 'interests', key: 'preference', value: m.content, source: m.provenance === 'user_statement' ? 'you said' : 'inferred (awaiting review)', confidence: m.confidence ?? null, observedAt: m.createdAt, scope: m.domain ?? 'general', expiresAt: m.expiresAt ?? null, status: m.provenance === 'inferred' ? 'proposed' : 'active', memory: true }));
     const p = this.s.personality.get();
-    const live = [{ id: 'personality.verbosity', category: 'communication', key: 'verbosity', value: p.verbosity, source: 'settings', status: 'active', live: true }, { id: 'personality.style', category: 'communication', key: 'style', value: p.style, source: 'settings', status: 'active', live: true }, { id: 'personality.language', category: 'language', key: 'language', value: p.language, source: 'settings', status: 'active', live: true }];
+    const pv = this.s.store.getMeta('privacy', {});
+    const live = [
+      { id: 'personality.verbosity', category: 'communication', key: 'verbosity', value: p.verbosity, source: 'settings', status: 'active', live: true },
+      { id: 'personality.style', category: 'communication', key: 'style', value: p.style, source: 'settings', status: 'active', live: true },
+      { id: 'personality.format', category: 'communication', key: 'format', value: p.format ?? 'auto', source: 'settings', status: 'active', live: true },
+      { id: 'personality.language', category: 'language', key: 'language', value: p.language, source: 'settings', status: 'active', live: true },
+      ...(pv.quietHours ? [{ id: 'privacy.quietHours', category: 'notifications', key: 'quiet_hours', value: JSON.stringify(pv.quietHours), source: 'settings', status: 'active', live: true }] : []),
+      ...this.s.store.getMeta('scopedPreferences', []).map((x, i) => ({ id: `scoped.${i}`, category: 'communication', key: 'scoped', value: x.instruction, scope: x.scope, source: 'your approval', status: 'active', live: true })),
+    ];
     const fin = this.s.store.all('learning_events', (e) => e.type === 'fwos.categorized').slice(-20).map((e) => ({ id: e.id, category: 'finance_categorization', key: e.merchant, value: e.categoryName, source: 'your approval', status: 'active', observedAt: e.at }));
     const all = [...live, ...items, ...mem, ...fin];
-    return { categories: Object.entries(PROFILE_CATEGORIES).map(([id, label]) => ({ id, label, enabled: !disabled.has(id), items: all.filter((x) => x.category === id) })) };
+    return { categories: Object.entries(PROFILE_CATEGORIES).map(([id, label]) => ({ id, label, enabled: !disabled.has(id), items: all.filter((x) => x.category === id) })), sensitive: 'Health, financial and family data are not used for personalization.' };
   }
   approveProfileItem(id, actor) {
     const it = this.s.store.get('profile_items', id);
     if (!it || it.status !== 'proposed') throw err('no such proposed item', 404);
-    if (['verbosity', 'language', 'style'].includes(it.key)) this.versions.commit('personality', { ...targetAdapter('personality').get(this.s), [it.key]: it.value }, { by: actor, reason: `profile: ${it.key} → ${it.value}` });
+    this.applyProfileValue(it, it.value, actor);
     this.s.store.update('profile_items', id, { status: 'active', approvedAt: now() });
     this.log('profile.approved', { itemId: id, key: it.key, value: it.value }, actor);
     return this.profile();
+  }
+  /** Approved profile values that shape behavior go through versioned targets (so they can be rolled back). */
+  applyProfileValue(it, value, actor) {
+    if (['verbosity', 'language', 'style', 'format'].includes(it.key)) return this.versions.commit('personality', { ...targetAdapter('personality').get(this.s), [it.key]: value }, { by: actor, reason: `profile: ${it.key} → ${value}` });
+    if (it.key === 'finance_report_style') {
+      const cur = this.s.store.getMeta('scopedPreferences', []).filter((x) => x.scope !== it.scope);
+      return this.versions.commit('preferences.scoped', [...cur, { scope: it.scope, instruction: value === 'concise' ? 'keep summaries concise: key numbers first, at most 5 lines' : 'give detailed summaries with the breakdown' }], { by: actor, reason: `scoped preference for ${it.scope}` });
+    }
+    return null; // informational preference (routines, apps, devices): recorded, no behavior change
   }
   correctProfileItem(id, value, actor) {
     const it = this.s.store.get('profile_items', id);
     if (!it) throw err('no such item', 404);
     this.s.store.update('profile_items', id, { value, source: 'corrected by you', confidence: 1 });
-    if (it.status === 'active' && ['verbosity', 'language', 'style'].includes(it.key)) this.versions.commit('personality', { ...targetAdapter('personality').get(this.s), [it.key]: value }, { by: actor, reason: `profile corrected: ${it.key} → ${value}` });
+    if (it.status === 'active') this.applyProfileValue(it, value, actor);
     this.log('profile.corrected', { itemId: id, key: it.key }, actor);
     return this.profile();
   }
@@ -505,7 +620,13 @@ export class LearningEngine {
     const degraded = this.s.capabilities.list().filter((c) => c.health?.status === 'degraded');
     checks.push({ id: 'capabilities.health', area: 'Capability health', status: degraded.length ? 'stale' : 'fresh', count: degraded.length, detail: degraded.length ? degraded.map((c) => c.id).slice(0, 6).join(', ') : 'all healthy', action: 'Check the failing capabilities.', actionHe: 'בדקו את היכולות שנכשלות.' });
     checks.push({ id: 'models.knowledge', area: 'AI model knowledge', status: 'info', detail: 'Model knowledge has a training cutoff; current facts come from research with retrieval dates.', action: 'Use "research" for anything time-sensitive.', actionHe: 'השתמשו ב"מחקר" לכל דבר תלוי זמן.' });
-    return { at: now(), checks, stale: checks.filter((c) => ['stale', 'missing', 'expiring'].includes(c.status)).length };
+    const q = insight.knowledgeQuality(this.s);
+    checks.push({ id: 'knowledge.duplicates', area: 'Duplicate knowledge', status: q.duplicates.length ? 'stale' : 'fresh', count: q.duplicates.length, detail: `${q.duplicates.length} near-duplicate memories`, refs: q.duplicates.slice(0, 10).map((d) => `${d.a}~${d.b}`), action: 'Merge or delete the duplicates in Knowledge.', actionHe: 'מזגו או מחקו כפילויות בידע.' });
+    checks.push({ id: 'knowledge.conflicts', area: 'Conflicting records', status: q.conflicts.length ? 'stale' : 'fresh', count: q.conflicts.length, detail: q.conflicts.length ? q.conflicts.slice(0, 2).map((c) => `"${c.aText}" vs "${c.bText}"`).join(' · ') : 'none found', action: 'Decide which statement is correct; JARVIS never picks one silently.', actionHe: 'החליטו איזו טענה נכונה; JARVIS לא בוחר בשקט.' });
+    checks.push({ id: 'documents.incomplete', area: 'Incomplete documents', status: q.incomplete.length ? 'stale' : 'fresh', count: q.incomplete.length, detail: `${q.incomplete.length} documents with no readable text`, action: 'Re-upload them in a text format.', actionHe: 'העלו אותם שוב בפורמט טקסט.' });
+    checks.push({ id: 'knowledge.links', area: 'Source links', status: q.links.length ? 'info' : 'fresh', count: q.links.length, detail: q.links.length ? `${q.links.length} links (checked only when you ask)` : 'no external links', action: 'Run a link check.', actionHe: 'הריצו בדיקת קישורים.' });
+    const out = { at: now(), checks, stale: checks.filter((c) => ['stale', 'missing', 'expiring'].includes(c.status)).length };
+    return out;
   }
 
   // ---------------- Family Wealth OS learning: categorization suggestions only ----------------
@@ -538,17 +659,85 @@ export class LearningEngine {
   }
 
   // ---------------- proactive improvement suggestions ----------------
-  suggestions({ all = false } = {}) {
+  // ---------------- model intelligence ----------------
+  /** Runs the benchmark suites on every configured tier (synthetic prompts only) and stores the results. */
+  async evaluateModels({ tiers = ['fast', 'balanced', 'deep'], categories } = {}) {
+    const { benchmarkTier, recommendRouting } = await import('./benchmarks.js');
+    const results = [];
+    for (const t of tiers) results.push(await benchmarkTier(this.s.router, t, { categories, metricsSink: (c) => this.s.metrics?.modelCall(c) }));
+    const recommendations = recommendRouting(results);
+    const rec = this.s.store.insert('model_benchmarks', { kind: 'suite', at: now(), results: results.map(({ rows, ...r }) => ({ ...r, cases: rows?.length ?? 0 })), recommendations, note: 'Synthetic prompts with automatic graders; no user data was sent.' });
+    this.log('models.evaluated', { benchmarkId: rec.id, measured: results.filter((r) => r.status === 'measured').map((r) => r.tier) });
+    return rec;
+  }
+  /** Turns a measured routing recommendation into a normal, testable, approval-gated proposal. */
+  proposeRouting(benchmarkId, actor = 'learning-engine') {
+    const b = benchmarkId ? this.s.store.get('model_benchmarks', benchmarkId) : this.s.store.all('model_benchmarks', (x) => x.kind === 'suite').at(-1);
+    if (!b) throw err('run a model evaluation first', 404);
+    const recs = (b.recommendations ?? []).filter((r) => r.status === 'recommendation');
+    if (!recs.length) throw err('the benchmark has no measured recommendation (needs two measured tiers)', 409);
+    const cur = this.s.store.getMeta('modelPrefs', {});
+    const candidate = { ...cur, ...Object.fromEntries(recs.map((r) => [r.category, r.tier])) };
+    if (JSON.stringify(candidate) === JSON.stringify(cur)) throw err('routing already matches the measurements', 409);
+    return this.createProposal({ target: 'routing.preferences', candidate, type: 'routing', risk: 'medium', change: `Route by measured accuracy: ${recs.map((r) => `${r.category} → ${r.tier}`).join(', ')}`, changeHe: `ניתוב לפי דיוק שנמדד: ${recs.map((r) => `${r.category} → ${r.tier}`).join(', ')}`, rationale: recs.map((r) => `${r.category}: ${r.basis}`).join(' · '), evidence: [{ source: 'benchmark', ref: b.id, at: b.at }], createdBy: actor });
+  }
+  modelIntelligence() {
+    const live = this.modelBenchmarks();
+    const suites = this.s.store.all('model_benchmarks', (x) => x.kind === 'suite').slice(-5).reverse();
+    const gw = this.s.router.gateway?.() ?? {};
+    return { live, suites, tiers: gw.tiers ?? this.s.router.tiers, health: gw.health ?? {}, preferences: this.s.store.getMeta('modelPrefs', {}), policy: 'Routing changes only through a tested, approved proposal. A newer or more expensive model is never assumed better.' };
+  }
+  agentIntelligence() {
+    const evals = this.agentEvaluations();
+    const dup = insight.unnecessaryWork(this.s);
+    for (const e of evals) if (dup[e.agent] >= 3) e.unnecessaryWork = `${dup[e.agent]} repeated identical tool calls`;
+    return { evaluations: evals, ...insight.agentIntelligence(this.s, evals), missions: insight.evaluateMissions(this.s).slice(0, 20), prompts: insight.promptReport(this.s) };
+  }
+  snapshotAgents() { const out = this.agentEvaluations(); const rec = this.s.store.insert('agent_evaluations', { at: now(), agents: out }); this.log('agents.evaluated', { id: rec.id, agents: out.length }); return rec; }
+
+  // ---------------- knowledge quality ----------------
+  knowledge() { return { freshness: this.freshness(), quality: insight.knowledgeQuality(this.s) }; }
+  async checkKnowledgeLinks(actor) {
+    if (actor !== 'user') throw err('only the owner can run network checks', 403);
+    const q = insight.knowledgeQuality(this.s);
+    const res = await insight.checkLinks(q.links, this.s.fetch ?? globalThis.fetch);
+    this.s.store.insert('freshness_checks', { kind: 'links', at: now(), results: res });
+    this.log('knowledge.links_checked', { checked: res.length, broken: res.filter((x) => x.broken).length }, actor);
+    return res;
+  }
+
+  // ---------------- regression testing ----------------
+  /** Runs the full suite on the CURRENT production configuration in a sandbox and compares it with the previous run. */
+  async regression(actor = 'user') {
+    const { runRegression } = await import('./experiments.js');
+    const prev = this.s.store.all('regression_runs').at(-1) ?? null;
+    const run = await runRegression(this.s, prev);
+    const rec = this.s.store.insert('regression_runs', { ...run, by: actor, at: now() });
+    this.log('regression.completed', { runId: rec.id, passRate: run.passRate, regressions: run.comparison?.regressions ?? [] }, actor);
+    return rec;
+  }
+
+  // ---------------- proactive improvement suggestions ----------------
+  suggestions({ all = false, limit = 7 } = {}) {
     const state = this.s.store.getMeta('suggestionState', {});
     const list = [];
-    for (const p of this.proposals().filter((x) => x.status === 'tested')) list.push({ id: `proposal:${p.id}`, kind: 'proposal', ref: p.id, title: p.change, titleHe: p.changeHe, why: p.rationale, whyHe: p.rationaleHe, priority: 'high', action: 'approve to deploy' });
-    for (const p of this.patterns().filter((x) => x.recurring && ['open', 'recurring-after-fix'].includes(x.status) && x.hypothesis?.action?.type === 'guidance')) list.push({ id: `pattern:${p.signature}`, kind: 'guidance', ref: p.id, title: p.hypothesis.action.text, titleHe: p.hypothesis.action.textHe, why: p.hypothesis.cause, whyHe: p.hypothesis.causeHe, priority: p.occurrences >= 6 ? 'high' : 'normal' });
-    for (const c of this.freshness().checks.filter((x) => ['stale', 'missing', 'expiring'].includes(x.status))) list.push({ id: `fresh:${c.id}`, kind: 'freshness', ref: c.id, title: c.action, titleHe: c.actionHe, why: `${c.area}: ${c.detail}`, whyHe: `${c.area}: ${c.detail}`, priority: 'normal' });
-    for (const a of this.agentEvaluations().filter((x) => x.rating === 'needs-attention')) list.push({ id: `agent:${a.agent}`, kind: 'agent', ref: a.agent, title: `Review the ${a.agent} agent (score ${a.score})`, titleHe: `לבדוק את הסוכן ${a.agent} (ציון ${a.score})`, why: `${a.failed} of ${a.completed + a.failed} tasks failed`, whyHe: `${a.failed} מתוך ${a.completed + a.failed} משימות נכשלו`, priority: 'normal' });
-    for (const it of this.s.store.all('profile_items', (x) => x.status === 'proposed')) list.push({ id: `profile:${it.id}`, kind: 'profile', ref: it.id, title: `Set ${it.key} to "${it.value}"`, titleHe: `לקבוע ${it.key} ל-"${it.value}"`, why: `${it.evidence?.length ?? 0} consistent feedback signals (confidence ${it.confidence})`, whyHe: `${it.evidence?.length ?? 0} סימני משוב עקביים (ביטחון ${it.confidence})`, priority: 'normal', action: 'approve to apply' });
-    if (this.categoryEnabled('finance_categorization')) for (const f of this.fwosCategorization().suggestions) list.push({ id: f.id, kind: 'fwos', ref: f.id, title: `Categorize ${f.applyTo.length} "${f.merchant}" expense(s) as ${f.category}`, titleHe: `לסווג ${f.applyTo.length} הוצאות "${f.merchant}" כ-${f.category}`, why: `${f.examples.length} earlier consistent examples`, whyHe: `${f.examples.length} דוגמאות עקביות קודמות`, priority: 'low', action: 'approve to apply' });
-    const withState = list.map((x) => ({ ...x, status: state[x.id]?.status ?? 'open', until: state[x.id]?.until ?? null }));
-    return all ? withState : withState.filter((x) => x.status === 'open' || (x.status === 'postponed' && Date.parse(x.until) <= Date.now()));
+    const add = (x) => list.push({ approvalRequired: true, risk: 'low', benefit: '', benefitHe: '', ...x });
+    for (const p of this.proposals().filter((x) => x.status === 'tested')) add({ id: `proposal:${p.id}`, kind: 'proposal', ref: p.id, title: p.change, titleHe: p.changeHe, detected: p.rationale, detectedHe: p.rationaleHe, why: 'A recurring problem has a tested fix waiting.', whyHe: 'לבעיה חוזרת יש תיקון שנבדק וממתין.', benefit: 'Passed the full regression suite in the sandbox with no regressions.', benefitHe: 'עבר את כל בדיקות הרגרסיה בסביבה המבודדת ללא נסיגות.', risk: p.risk, priority: 'high', action: 'approve to deploy' });
+    for (const d of this.deployments().filter((x) => x.status === 'active' && (x.occurrencesSinceDeploy ?? 0) >= 3)) add({ id: `rollback:${d.id}`, kind: 'rollback', ref: d.id, title: `Roll back ${d.target} v${d.toVersion}`, titleHe: `לשחזר את ${d.target} v${d.toVersion}`, detected: `the problem occurred ${d.occurrencesSinceDeploy} times after deployment`, detectedHe: `הבעיה חזרה ${d.occurrencesSinceDeploy} פעמים אחרי הפריסה`, why: 'The change did not fix the problem.', whyHe: 'השינוי לא פתר את הבעיה.', benefit: `restores v${d.fromVersion}`, benefitHe: `מחזיר את v${d.fromVersion}`, priority: 'high' });
+    for (const p of this.patterns().filter((x) => x.recurring && ['open', 'recurring-after-fix'].includes(x.status) && x.hypothesis?.action?.type === 'guidance')) add({ id: `pattern:${p.signature}`, kind: 'guidance', ref: p.id, title: p.hypothesis.action.text, titleHe: p.hypothesis.action.textHe, detected: `${p.label.en} ×${p.occurrences}`, detectedHe: `${p.label.he} ×${p.occurrences}`, why: p.hypothesis.cause, whyHe: p.hypothesis.causeHe, benefit: 'fewer failed requests', benefitHe: 'פחות בקשות שנכשלות', risk: 'none', approvalRequired: false, priority: p.occurrences >= 6 ? 'high' : 'normal' });
+    for (const o of insight.automationOpportunities(this.s)) if (!this.s.store.all('workflows', (w) => w.learnedFrom === o.id).length) add({ id: o.id, kind: 'automation', ref: o.id, title: `Create an automation: ${o.tool} every day at ${String(o.hour).padStart(2, '0')}:00`, titleHe: `ליצור אוטומציה: ${o.tool} כל יום ב-${String(o.hour).padStart(2, '0')}:00`, detected: `you ran ${o.tool} manually ${o.count} times on ${o.days} days around ${o.hour}:00`, detectedHe: `הפעלת את ${o.tool} ידנית ${o.count} פעמים ב-${o.days} ימים בסביבות ${o.hour}:00`, why: 'A repeated manual routine.', whyHe: 'שגרה ידנית שחוזרת.', benefit: 'saves the daily request', benefitHe: 'חוסך את הבקשה היומית', priority: 'normal', workflow: o.workflow });
+    for (const c of this.freshness().checks.filter((x) => ['stale', 'missing', 'expiring'].includes(x.status))) add({ id: `fresh:${c.id}`, kind: 'freshness', ref: c.id, title: c.action, titleHe: c.actionHe, detected: `${c.area}: ${c.detail}`, detectedHe: `${c.area}: ${c.detail}`, why: 'Answers are only as good as current data.', whyHe: 'תשובות טובות רק כמו הנתונים העדכניים.', risk: 'none', approvalRequired: c.id === 'brain.evaluation', priority: 'low' });
+    const ai = this.agentIntelligence();
+    for (const f of ai.findings) add({ id: `agent:${f.agent}:${f.kind}`, kind: 'agent', ref: f.agent, title: `${f.agent}: ${f.recommendation}`, titleHe: `${f.agent}: ${f.recommendation}`, detected: f.detail, detectedHe: f.detail, why: `agent ${f.kind.replace(/-/g, ' ')}`, whyHe: `סוכן: ${f.kind}`, risk: f.protected ? 'protected' : 'low', priority: 'normal' });
+    for (const it of this.s.store.all('profile_items', (x) => x.status === 'proposed')) add({ id: `profile:${it.id}`, kind: 'profile', ref: it.id, title: `Set ${it.key} to "${it.value}"`, titleHe: `לקבוע ${it.key} ל-"${it.value}"`, detected: `${it.evidence?.length ?? 0} consistent signals (confidence ${it.confidence}, scope ${it.scope})`, detectedHe: `${it.evidence?.length ?? 0} סימנים עקביים (ביטחון ${it.confidence}, היקף ${it.scope})`, why: 'A repeated preference.', whyHe: 'העדפה שחוזרת.', benefit: 'answers match how you like them', benefitHe: 'תשובות שמתאימות לך', priority: 'normal', action: 'approve to apply' });
+    if (this.categoryEnabled('finance_categorization')) for (const f of this.fwosCategorization().suggestions) add({ id: f.id, kind: 'fwos', ref: f.id, title: `Categorize ${f.applyTo.length} "${f.merchant}" expense(s) as ${f.category}`, titleHe: `לסווג ${f.applyTo.length} הוצאות "${f.merchant}" כ-${f.category}`, detected: `${f.examples.length} earlier consistent examples`, detectedHe: `${f.examples.length} דוגמאות עקביות קודמות`, why: 'Uncategorized expenses distort budgets and reports.', whyHe: 'הוצאות לא מסווגות מעוותות תקציבים ודוחות.', benefit: 'more accurate reports; amounts and rules unchanged', benefitHe: 'דוחות מדויקים יותר; סכומים וכללים לא משתנים', priority: 'low', action: 'approve to apply' });
+    for (const f of insight.financeValidation(this.s).findings) add({ id: `fin:${f.kind}:${(f.refs ?? []).join(',').slice(0, 40)}`, kind: 'finance-validation', ref: f.kind, title: f.recommendation, titleHe: f.recommendation, detected: f.detail, detectedHe: f.detail, why: 'Data quality in Family Wealth OS.', whyHe: 'איכות נתונים ב-Family Wealth OS.', risk: 'none', approvalRequired: false, priority: 'low' });
+    for (const x of insight.securityMonitor(this.s, this).suspicious) add({ id: `sec:${x.kind}:${x.detail.slice(0, 30)}`, kind: 'security', ref: x.kind, title: x.kind === 'config-drift' ? 'Review a configuration change made outside versioning' : `Review: ${x.kind.replace(/-/g, ' ')}`, titleHe: x.kind === 'config-drift' ? 'לבדוק שינוי תצורה שנעשה מחוץ לניהול הגרסאות' : `לבדוק: ${x.kind}`, detected: x.detail, detectedHe: x.detail, why: 'Potential security or integrity issue.', whyHe: 'בעיית אבטחה או שלמות אפשרית.', risk: 'none', approvalRequired: false, priority: x.kind === 'tampered-version' ? 'high' : 'normal' });
+    const rank = { high: 0, normal: 1, low: 2 };
+    const withState = list.map((x) => ({ ...x, status: state[x.id]?.status ?? 'open', until: state[x.id]?.until ?? null })).sort((a, b) => rank[a.priority] - rank[b.priority]);
+    const open = withState.filter((x) => x.status === 'open' || (x.status === 'postponed' && Date.parse(x.until) <= Date.now()));
+    // Avoid excessive recommendations: show the most important few; the rest stay available on request.
+    return all ? withState : open.slice(0, limit);
   }
   async suggestionAction(id, action, actor, { until } = {}) {
     const sg = this.suggestions({ all: true }).find((x) => x.id === id);
@@ -558,9 +747,12 @@ export class LearningEngine {
     if (action === 'dismiss') state[id] = { status: 'dismissed', at: now() };
     else if (action === 'postpone') state[id] = { status: 'postponed', until: until ?? new Date(Date.now() + 7 * DAY).toISOString() };
     else if (action === 'approve') {
-      if (sg.kind === 'proposal') result = this.approve(sg.ref, actor);
+      if (actor !== 'user') throw err('only the owner can approve suggestions', 403);
+      if (sg.kind === 'proposal') result = this.approveAndDeploy(sg.ref, actor);
+      else if (sg.kind === 'rollback') result = this.rollback({ deploymentId: sg.ref, reason: 'did not fix the problem' }, actor);
       else if (sg.kind === 'profile') result = this.approveProfileItem(sg.ref, actor);
       else if (sg.kind === 'fwos') result = this.applyCategorization(sg.ref, actor);
+      else if (sg.kind === 'automation') { result = this.s.automations.create({ ...sg.workflow, learnedFrom: sg.id }); this.log('automation.created', { workflowId: result.id, from: sg.id }, actor); }
       else if (sg.ref === 'brain.evaluation') result = await (await import('../brain/evaluation.js')).runEvaluation(this.s.store);
       state[id] = { status: 'approved', at: now() };
     } else throw err('action must be dismiss, postpone or approve');
@@ -569,23 +761,50 @@ export class LearningEngine {
     return { suggestion: { ...sg, ...state[id] }, result };
   }
 
-  // ---------------- scheduler cycle & dashboard ----------------
-  /** One bounded improvement cycle: snapshot, analyze, test at most `maxExperiments` proposals. */
+  // ---------------- history, retention, cycle, dashboard ----------------
+  history(n = 200) {
+    return [...this.s.store.all('learning_events').slice(-n), ...this.s.store.all('learning_audit').slice(-n).map((a) => ({ type: a.action, actor: a.actor, ...a.detail, at: a.at }))].sort((a, b) => String(b.at).localeCompare(String(a.at))).slice(0, n);
+  }
+  /** Retention: raw learning events after 180 days, experiment case rows after 90 (summaries and the audit are kept). */
+  purge(at = Date.now()) {
+    let n = 0;
+    for (const e of this.s.store.all('learning_events', (x) => at - Date.parse(x.at) > 180 * DAY)) { this.s.store.remove('learning_events', e.id); n++; }
+    for (const e of this.s.store.all('experiments', (x) => at - Date.parse(x.at) > 90 * DAY && x.report?.rows)) { this.s.store.update('experiments', e.id, { report: { ...e.report, rows: undefined, rowsPurged: true } }); n++; }
+    for (const e of this.s.store.all('profile_items', (x) => x.expiresAt && Date.parse(x.expiresAt) < at && x.status !== 'rejected')) { this.s.store.update('profile_items', e.id, { status: 'expired' }); n++; }
+    return n;
+  }
+  /** One bounded improvement cycle: snapshot, analyze, observe patterns, test at most `maxExperiments` proposals (mode 3+). */
   async cycle({ maxExperiments = 1 } = {}) {
     this.snapshot();
     const patterns = this.analyze();
+    if (this.mode() >= 2) this.refreshObserved();
     let tested = 0;
-    if (this.mode() >= 2) for (const p of this.proposals('proposed').slice(0, maxExperiments)) { await this.experiment(p.id); tested++; }
+    if (this.mode() >= 3) for (const p of this.proposals('proposed').slice(0, maxExperiments)) { await this.experiment(p.id); tested++; }
+    this.purge();
     return { patterns: patterns.filter((p) => p.recurring).length, tested, mode: this.mode() };
+  }
+
+  scorecards(perf) {
+    const T = perf.totals;
+    const ex = this.s.store.all('experiments');
+    return [
+      { id: 'reliability', label: 'Reliability', labelHe: 'אמינות', value: T.successPct },
+      { id: 'satisfaction', label: 'Satisfaction', labelHe: 'שביעות רצון', value: T.satisfactionPct },
+      { id: 'verification', label: 'Verified steps', labelHe: 'צעדים מאומתים', value: perf.series.reduce((a, d) => a + (d.verifiedSteps ?? 0), 0) && Math.round((perf.series.reduce((a, d) => a + d.verifiedSteps, 0) * 100) / Math.max(1, perf.series.reduce((a, d) => a + d.steps, 0))) },
+      { id: 'experiments', label: 'Experiments passing', labelHe: 'ניסויים שעברו', value: ex.length ? Math.round((ex.filter((e) => e.verdict === 'pass').length * 100) / ex.length) : null },
+      { id: 'security', label: 'Security incidents (7d)', labelHe: 'אירועי אבטחה (7 ימים)', value: this.s.store.all('learning_security', (e) => Date.now() - Date.parse(e.at) < 7 * DAY).length, suffix: '' },
+    ];
   }
 
   dashboard() {
     const perf = this.performance({ days: 14 });
     return {
-      mode: this.modes(), totals: perf.totals, series: perf.series,
+      mode: this.modes(), totals: perf.totals, series: perf.series, scorecards: this.scorecards(perf),
       patterns: this.patterns().slice(0, 20), classes: FAILURE_CLASSES, feedbackCategories: FEEDBACK_CATEGORIES,
       proposals: this.proposals().slice(0, 30), experiments: this.experiments().slice(0, 15), deployments: this.deployments().slice(0, 15),
+      approvals: this.approvals().slice(0, 15), rollbacks: this.s.store.all('rollback_records').slice(-15).reverse(),
       suggestions: this.suggestions(), versions: this.versions.targets(), audit: this.audit(30),
+      activity: this.history(15), lab: this.devlab.status(),
     };
   }
 }

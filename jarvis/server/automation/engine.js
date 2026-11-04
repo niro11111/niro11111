@@ -2,7 +2,7 @@
 // tool/agent actions, notifications, approval gates, retries, cancellation and run history.
 //
 // Workflow shape:
-// { name, enabled, trigger: { type:'event', event:'wealth.transaction_imported' } | { type:'schedule', everyMinutes:60 } | { type:'manual' },
+// { name, enabled, trigger: { type:'event', event:'wealth.transaction_imported' } | { type:'schedule', everyMinutes:60 } | { type:'schedule', everyMinutes:1440, atHour:7 } | { type:'manual' },
 //   steps: [ { type:'tool', tool:'wealth.analysis', args:{}, retries:2, saveAs:'analysis' },
 //            { type:'condition', if:{ path:'analysis.calculations.anomalies.unusual.length', op:'>', value:0 }, then:[...], else:[...] },
 //            { type:'notify', title:'...', body:'{{analysis.month}}', priority:'high' },
@@ -39,6 +39,11 @@ export class Automations {
   async tick(at = Date.now()) {
     for (const wf of this.list().filter((w) => w.enabled && w.trigger?.type === 'schedule')) {
       const last = wf.lastRunAt ? Date.parse(wf.lastRunAt) : 0;
+      if (wf.trigger.atHour != null) { // daily at a fixed local hour
+        const d = new Date(at);
+        if (d.getHours() === wf.trigger.atHour && new Date(last).toDateString() !== d.toDateString()) await this.run(wf.id, { scheduled: true });
+        continue;
+      }
       if (at - last >= wf.trigger.everyMinutes * 6e4) await this.run(wf.id, { scheduled: true });
     }
   }

@@ -12,7 +12,7 @@ const out = path.join(root, 'dist/webapp');
 fs.rmSync(out, { recursive: true, force: true });
 fs.mkdirSync(path.join(out, 'js'), { recursive: true });
 
-const shims = { 'node:crypto': 'crypto', 'node:events': 'events', 'node:fs': 'fs', 'node:path': 'path', 'node:os': 'os' };
+const shims = { 'node:crypto': 'crypto', 'node:events': 'events', 'node:fs': 'fs', 'node:path': 'path', 'node:os': 'os', 'node:vm': 'vm' };
 const shimPlugin = {
   name: 'node-shims',
   setup(b) {

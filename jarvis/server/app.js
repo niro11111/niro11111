@@ -65,7 +65,9 @@ export async function createApp(opts = {}) {
   s.agentsFor = (tool) => AGENTS.filter((a) => a.tools.includes(tool)).map((a) => a.id);
   s.capabilities.restore();
   s.router.setPreferences?.(store.getMeta('modelPrefs', {}));
+  s.fetch = opts.fetch ?? globalThis.fetch;
   s.learn = new LearningEngine(s);
+  s.learn.devlab.restore();
   s.core.learn = s.learn;
   s.watchers = new Watchers(s);
   s.automations = new Automations({ ...s, ctx: { householdId, actor: 'automation' } });

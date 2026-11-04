@@ -19,6 +19,13 @@ export function parseClause(raw, convo = {}) {
 
   // --- conversation: greetings and thanks need no model and no tools ---
   if (SMALLTALK.test(text.trim())) return [{ agent: 'assistant', tool: 'chat.smalltalk', args: { text } }];
+  // --- feedback on the previous answer (voice or text) ---
+  if ((m = text.match(/^(?:jarvis,?\s*)?(?:that(?:'s| was| is)|this (?:is|was)|it(?:'s| was))\s+(wrong|incorrect|not right|not what i asked|too long|too short|great|perfect|exactly right|helpful)[\s.!]*$/i) ?? text.match(/^(?:זה|זו|התשובה)\s+(?:היה |הייתה |היתה )?(לא נכון|לא נכונה|שגוי|שגויה|לא מה שביקשתי|ארוך מדי|ארוכה מדי|קצר מדי|קצרה מדי|מצוין|מצוינת|מעולה|בדיוק מה שרציתי|עזר(?:ה)?)[\s.!]*$/))) {
+    const w = m[1].toLowerCase();
+    const positive = /great|perfect|exactly|helpful|מצוי|מעולה|בדיוק|עזר/.test(w);
+    const category = positive ? null : /long|ארו[כך]/.test(w) ? 'too_long' : /short|קצר/.test(w) ? 'too_short' : /what i asked|ביקשתי/.test(w) ? 'misunderstood' : 'accuracy';
+    return [{ agent: 'assistant', tool: 'learning.feedback', args: { rating: positive ? 1 : -1, note: text, ...(category ? { category } : {}) } }];
+  }
   // --- bare commands: the brain will ask for the missing detail ---
   if (/^(?:remind me|תזכיר לי|תזכורת)[\s.!?]*$/i.test(text)) return [{ agent: 'assistant', tool: 'reminders.create', args: {} }];
   if (/^(?:add (?:a )?task|new task|הוסף משימה|תוסיף משימה|משימה חדשה)[\s.!?:]*$/i.test(text)) return [{ agent: 'assistant', tool: 'tasks.create', args: {} }];

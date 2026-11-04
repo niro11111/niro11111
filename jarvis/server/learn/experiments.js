@@ -25,6 +25,9 @@ async function sandbox(prod, override) {
   return sb;
 }
 
+/** Replays are the user's own requests: identifiers are masked before they enter the sandbox. */
+export const anonymize = (msg) => String(msg).replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, '[email]').replace(/\+?\d[\d\s-]{7,}\d/g, '[number]').replace(/\b\d{5,}\b/g, '[number]');
+
 async function runSuite(sb, replays) {
   const ask = (text, conversationId = 'exp') => sb.core.handle(text, { householdId: sb.householdId, conversationId });
   const cases = [];
@@ -69,6 +72,8 @@ function staticChecks(sb, target, value) {
 
 export function compare(base, cand) {
   const byId = new Map(base.cases.map((c) => [c.id, c]));
+  const cats = {};
+  for (const [side, run] of [['baseline', base], ['candidate', cand]]) for (const c of run.cases) { const x = (cats[c.category] ??= { baseline: { pass: 0, total: 0 }, candidate: { pass: 0, total: 0 } })[side]; x.total++; if (c.pass) x.pass++; }
   const rows = cand.cases.map((c) => {
     const b = byId.get(c.id);
     return { id: c.id, category: c.category, baseline: b?.pass ?? null, candidate: c.pass, change: b == null ? 'new' : b.pass === c.pass ? 'same' : c.pass ? 'improved' : 'regressed', baselineDetail: b?.detail, candidateDetail: c.detail, baselineMs: b?.ms, candidateMs: c.ms };
@@ -76,7 +81,8 @@ export function compare(base, cand) {
   const regressions = rows.filter((r) => r.change === 'regressed');
   const improvements = rows.filter((r) => r.change === 'improved');
   return {
-    rows, regressions: regressions.map((r) => r.id), improvements: improvements.map((r) => r.id),
+    rows, regressions: regressions.map((r) => r.id), improvements: improvements.map((r) => r.id), categories: cats,
+    multilingual: cats.multilingual ?? null, security: { 'malicious content': cats['malicious content'] ?? null, 'permission denial': cats['permission denial'] ?? null, 'sensitive operations': cats['sensitive operations'] ?? null },
     metrics: {
       passRate: { baseline: base.passRate, candidate: cand.passRate, delta: cand.passRate - base.passRate },
       avgMs: { baseline: base.avgMs, candidate: cand.avgMs, delta: cand.avgMs - base.avgMs },
@@ -95,9 +101,10 @@ export async function runExperiment(prod, { target, candidate, replays = [], req
   const errs = adapter.validate(prod, candidate);
   const started = Date.now();
   if (errs.length) return { target, verdict: 'invalid', reasons: errs, durationMs: 0, environment: 'sandbox' };
-  const base = await runSuite(await sandbox(prod, null), replays.slice(0, 10));
+  const safeReplays = replays.slice(0, 10).map(anonymize);
+  const base = await runSuite(await sandbox(prod, null), safeReplays);
   const candSb = await sandbox(prod, { target, value: candidate });
-  const cand = await runSuite(candSb, replays.slice(0, 10));
+  const cand = await runSuite(candSb, safeReplays);
   const checks = staticChecks(candSb, target, candidate);
   const report = compare(base, cand);
   const reasons = [];
@@ -110,6 +117,15 @@ export async function runExperiment(prod, { target, candidate, replays = [], req
   return {
     target, verdict, reasons, environment: 'sandbox (in-memory store, demo data, no model, no network, silenced events)',
     baseline: { passed: base.passed, total: base.total, passRate: base.passRate }, candidate: { passed: cand.passed, total: cand.total, passRate: cand.passRate },
-    report, checks, replays: replays.slice(0, 10), durationMs: Date.now() - started,
+    report, checks, replays: safeReplays, durationMs: Date.now() - started,
   };
+}
+
+/** Regression run of the CURRENT production configuration, compared with the previous run. */
+export async function runRegression(prod, prev) {
+  const t0 = Date.now();
+  const run = await runSuite(await sandbox(prod, null), []);
+  const out = { suite: 'brain-regression-v1', environment: 'sandbox', passed: run.passed, total: run.total, passRate: run.passRate, avgMs: run.avgMs, violations: run.violations, falseSuccess: run.falseSuccess, cases: run.cases, durationMs: Date.now() - t0 };
+  if (prev?.cases) out.comparison = compare(prev, run);
+  return out;
 }

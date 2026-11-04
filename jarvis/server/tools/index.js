@@ -14,6 +14,18 @@ import { gatherContext, contextBlock, withSources } from '../brain/context.js';
 
 const dt = (iso, lang) => new Date(iso).toLocaleString(lang === 'he' ? 'he-IL' : 'en-GB', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 
+/** Task category of an open request, used by benchmark-driven routing preferences. */
+export function taskCategory(prompt = '') {
+  const p = String(prompt);
+  if (/\b(?:code|function|bug|javascript|python|sql|regex)\b|קוד|פונקציה|באג/i.test(p)) return 'coding';
+  if (/\d\s*[-+*/x×%]\s*\d|calculate|חשב|כמה זה/i.test(p)) return 'math';
+  if (/\b(?:plan|steps|schedule|organize)\b|תכנן|שלבים|תוכנית/i.test(p)) return 'planning';
+  if (/\b(?:extract|parse|summari[sz]e)\b|חלץ|סכם|תקציר/i.test(p)) return 'extraction';
+  if (/\b(?:research|latest|news|source)\b|מחקר|חדשות|מקור/i.test(p)) return 'research';
+  if (/[\u0590-\u05FF]/.test(p)) return 'hebrew';
+  return 'general';
+}
+
 export function buildTools(s) {
   const { store, memory, wealth, home, productivity, notifications, bridge, router, audit, documents, health, personality } = s;
   const T = {};
@@ -166,7 +178,7 @@ export function buildTools(s) {
       const src = withSources(r.text, items, ctx.lang);
       return { data: { model: r.model, deep: true, sources: src.sources }, summary: src.text };
     }
-    const need = { complexity: a.complexity ?? 'medium', latency: ctx.channel === 'voice' || ctx.channel === 'watch' ? 'realtime' : 'normal', privacy: a.privacy };
+    const need = { complexity: a.complexity ?? 'medium', latency: ctx.channel === 'voice' || ctx.channel === 'watch' ? 'realtime' : 'normal', privacy: a.privacy, task: taskCategory(a.prompt) };
     const route = router.route(need);
     // Providers that support page tools get JARVIS's tools; every call still passes the policy.
     const tools = router.providers[route.provider]?.capabilities().tools ? s.core.modelTools(ctx) : undefined;
@@ -232,6 +244,13 @@ ${(a.memories ?? []).map((m) => `- ${m.content} [${m.provenance}]`).join('\n') |
   } });
 
   // ---------- conversation ----------
+  def('learning.feedback', { risk: RISK.WRITE, desc: 'Record spoken or written feedback about the previous answer', run: async (a, ctx) => {
+    const prev = s.store.all('tasks_exec', (t) => t.conversationId === ctx.conversationId && t.id !== ctx.taskId && t.actor === ctx.actor && !(t.plan?.tools ?? []).includes('learning.feedback')).at(-1);
+    const he2 = ctx.lang === 'he';
+    if (!prev) return { data: null, summary: he2 ? 'אין תשובה קודמת לתת עליה משוב.' : 'There is no previous answer to give feedback on.' };
+    const rec = s.learning.feedback({ taskId: prev.id, rating: a.rating, note: a.note ?? '', category: a.category ?? null, source: ctx.channel === 'voice' ? 'voice' : 'conversation' });
+    return { data: { feedbackId: rec.id, taskId: prev.id, category: rec.category }, summary: a.rating > 0 ? (he2 ? 'תודה, רשמתי שזה עזר.' : 'Thanks, noted that this helped.') : (he2 ? `תודה, רשמתי את המשוב${rec.category ? ` (${rec.category})` : ''}. אלמד מזה רק אם זה יחזור.` : `Thanks, feedback recorded${rec.category ? ` (${rec.category})` : ''}. I only learn from it if it repeats.`) };
+  } });
   def('chat.smalltalk', { risk: RISK.READ, desc: 'Greetings and thanks (no model needed)', run: async (a, ctx) => {
     const x = String(a.text).toLowerCase(); const he2 = ctx.lang === 'he';
     const reply = /thank|תודה/.test(x) ? (he2 ? 'בשמחה. עוד משהו?' : 'You are welcome. Anything else?')

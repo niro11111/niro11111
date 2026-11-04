@@ -39,14 +39,14 @@ export class Learning {
   approve(id) { return this.s.memory.correct(id, { provenance: 'user_statement' }, 'user'); }
   reject(id) { return this.s.memory.delete(id, 'user'); }
 
-  feedback({ taskId, rating, note = '', category = null, correction = '' }) {
+  feedback({ taskId, rating, note = '', category = null, correction = '', source = 'rating' }) {
     if (![1, -1].includes(Number(rating))) throw Object.assign(new Error('rating must be 1 or -1'), { status: 400 });
     if (category && !FEEDBACK_CATEGORIES.includes(category)) throw Object.assign(new Error(`category must be one of ${FEEDBACK_CATEGORIES.join(', ')}`), { status: 400 });
     const task = this.s.store.get('tasks_exec', taskId);
     // No category chosen: infer one from an explicit note (never from silence).
     const inferred = !category && Number(rating) < 0 ? inferCategory(note) : null;
     category = category ?? inferred;
-    const rec = this.s.store.insert('feedback', { taskId, rating: Number(rating), note: String(note).slice(0, 500), category, categoryInferred: !!inferred, correction: String(correction ?? '').slice(0, 500), lang: task?.lang ?? null, channel: task?.channel ?? null, tools: task?.plan?.tools ?? [], agents: task?.plan?.agents ?? [], at: now() });
+    const rec = this.s.store.insert('feedback', { taskId, rating: Number(rating), note: String(note).slice(0, 500), category, categoryInferred: !!inferred, source, correction: String(correction ?? '').slice(0, 500), lang: task?.lang ?? null, channel: task?.channel ?? null, tools: task?.plan?.tools ?? [], agents: task?.plan?.agents ?? [], at: now() });
     this.s.audit.log('user', 'learning.feedback', { taskId, rating: rec.rating, category });
     const proposal = this.s.learn?.onFeedback(rec);
     if (proposal) rec.profileProposal = { id: proposal.id, key: proposal.key, value: proposal.value };

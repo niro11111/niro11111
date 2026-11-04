@@ -193,7 +193,7 @@ export class Core {
   }
 
   ctxFor(task) {
-    return { actor: task.actor, householdId: task.householdId, channel: task.channel, lang: task.lang ?? 'en', deviceId: task.deviceId };
+    return { actor: task.actor, householdId: task.householdId, channel: task.channel, lang: task.lang ?? 'en', deviceId: task.deviceId, conversationId: task.conversationId, taskId: task.id };
   }
 
   async run(task) {
