@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JARVIS Devices</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&family=Orbitron:wght@600;800&display=swap">
+<style>
+  :root { --bg: #02040a; --panel: rgba(10,22,44,.85); --line: rgba(80,200,255,.22); --cyan: #2ee6ff; --ice: #9fe8ff; --text: #e6f6ff; --muted: #7f9bb8; --amber: #ffbf3c; --green: #22e08a; --red: #ff5d6c; }
+  :root[data-theme="light"] { --bg: #eef4fb; --text: #0a1a2e; --muted: #4c6582; }
+  @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { --bg: #eef4fb; --text: #0a1a2e; --muted: #4c6582; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: radial-gradient(900px 600px at 50% 0%, rgba(46,230,255,.12), transparent 60%), var(--bg); color: var(--text); font: 15px/1.5 Rubik, system-ui, sans-serif; padding: 24px 16px 60px; }
+  header { max-width: 1200px; margin: 0 auto 26px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  h1 { margin: 0; font-family: Orbitron, sans-serif; letter-spacing: .25em; font-size: 20px; color: var(--ice); }
+  header p { margin: 0; color: var(--muted); flex-basis: 100%; }
+  a.back { margin-inline-start: auto; color: var(--cyan); text-decoration: none; border: 1px solid var(--line); padding: 6px 12px; border-radius: 10px; }
+  .stage { max-width: 1200px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 40px; justify-content: center; align-items: flex-start; }
+  figure { margin: 0; text-align: center; } figcaption { color: var(--muted); font-size: 13px; margin-top: 12px; max-width: 300px; }
+  /* Apple Watch */
+  .aw { width: 220px; height: 268px; border-radius: 58px; background: #111; padding: 14px; box-shadow: 0 0 0 3px #2a2f36, 0 20px 60px rgba(0,0,0,.6), 0 0 40px rgba(46,230,255,.12); position: relative; }
+  .aw::after { content: ""; position: absolute; inset-inline-end: -9px; top: 70px; width: 8px; height: 44px; border-radius: 4px; background: #333; }
+  .aw .scr { width: 100%; height: 100%; border-radius: 44px; background: #000; overflow: hidden; padding: 14px 12px; color: #e6f6ff; font-size: 12px; overflow-y: auto; }
+  /* Wear OS */
+  .wo { width: 240px; height: 240px; border-radius: 50%; background: #111; padding: 12px; box-shadow: 0 0 0 4px #2a2f36, 0 20px 60px rgba(0,0,0,.6), 0 0 40px rgba(46,230,255,.12); }
+  .wo .scr { width: 100%; height: 100%; border-radius: 50%; background: #000; overflow: hidden; padding: 30px 26px; color: #e6f6ff; font-size: 11.5px; text-align: center; }
+  /* Phone */
+  .ph { width: 300px; height: 620px; border-radius: 46px; background: #0d0f12; padding: 12px; box-shadow: 0 0 0 3px #2a2f36, 0 30px 80px rgba(0,0,0,.6), 0 0 50px rgba(46,230,255,.12); }
+  .ph .scr { width: 100%; height: 100%; border-radius: 36px; background: #02040a; overflow: hidden; display: flex; flex-direction: column; color: #e6f6ff; }
+  .ph .body { flex: 1; overflow-y: auto; padding: 10px 14px; display: flex; flex-direction: column; gap: 10px; }
+  .ph .tabs { display: flex; border-top: 1px solid var(--line); } .ph .tabs span { flex: 1; text-align: center; padding: 10px 0 16px; font-size: 12px; color: var(--muted); } .ph .tabs .on { color: var(--cyan); box-shadow: inset 0 2px 0 var(--cyan); }
+  .brand { font-family: Orbitron, sans-serif; letter-spacing: .3em; text-align: center; color: var(--ice); font-size: 12px; padding: 16px 0 4px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; text-align: start; }
+  .card h4 { margin: 0 0 4px; font-size: 10px; letter-spacing: .14em; color: var(--ice); font-weight: 600; }
+  .ring { flex-shrink: 0; width: 74px; height: 74px; margin: 0 auto 8px; border-radius: 50%; display: grid; place-items: center; position: relative; background: radial-gradient(circle, #fff 0, var(--c, var(--cyan)) 26%, transparent 62%); }
+  .ring::before { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--c, var(--cyan)); border-top-color: transparent; animation: spin 4s linear infinite; box-shadow: 0 0 16px var(--c, var(--cyan)); }
+  .ring b { font: 800 8px Orbitron, sans-serif; letter-spacing: .15em; color: #001; position: relative; }
+  .ring.big { width: 140px; height: 140px; } .ring.big b { font-size: 12px; }
+  @keyframes spin { to { transform: rotate(1turn); } }
+  @media (prefers-reduced-motion: reduce) { .ring::before { animation: none; } }
+  .chip { display: block; border-radius: 99px; padding: 7px 10px; margin: 5px 0; background: rgba(46,230,255,.14); border: 1px solid var(--line); color: #e6f6ff; font: inherit; width: 100%; cursor: pointer; }
+  .chip.warn { background: rgba(255,191,60,.14); border-color: rgba(255,191,60,.5); }
+  .row { display: flex; gap: 6px; } .row .chip { flex: 1; }
+  .muted { color: var(--muted); } .small { font-size: 11px; }
+  .note { max-width: 1200px; margin: 30px auto 0; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 14px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>J.A.R.V.I.S · DEVICES</h1>
+  <a class="back" href="index.html">← מרכז הפיקוד (דמו חי)</a>
+  <p>אב־טיפוס של מסכי השעון והטלפון, מוצגים עם נתונים שהוקלטו מהשרת האמיתי. האפליקציות עצמן נמצאות ב-<code>jarvis/apps</code>.</p>
+</header>
+<div class="stage" id="stage"></div>
+<p class="note">Apple Watch (SwiftUI) ו-Wear OS (Compose) כתובים כקוד מקור ולא נבנו כאן, כי אין בסביבה הזו Xcode או Android SDK. אפליקציית הטלפון (Expo) עברה בדיקת TypeScript ונבנתה לחבילת Android. אפליקציית הדסקטופ (Tauri) קומפלה והורצה.</p>
+<script type="module">
+import { FIXTURES } from './js/fixtures.js';
+const g = FIXTURES.gets['/api/watch/glance?lang=he'];
+const ap = FIXTURES.gets['/api/approvals'];
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ringColor = ap.length ? 'var(--amber)' : 'var(--cyan)';
+const time = new Date().toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+
+const watch = `<figure><div class="aw"><div class="scr">
+  <div class="small muted" style="text-align:center">${time}</div>
+  <div class="ring" style="--c:${ringColor}"><b>JARVIS</b></div>
+  ${g.weather ? `<div class="small muted" style="text-align:center">${g.weather.t}° ${esc(g.weather.text)}</div>` : ''}
+  <button class="chip">🎙 שאל את ג׳ארוויס</button>
+  ${ap.length ? `<button class="chip warn">⚠ ${ap.length} אישורים</button>` : ''}
+  ${g.nextEvent ? `<div class="card" style="margin-top:6px"><h4>האירוע הבא</h4>${esc(g.nextEvent.title)}</div>` : ''}
+  ${g.tasks.map((t) => `<div class="small" style="margin-top:6px">○ ${esc(t.title)}</div>`).join('')}
+  <button class="chip">⚡ פעולות מהירות</button>
+</div></div><figcaption>Apple Watch: מצב, הכתבה קולית, אישורים, משימות. תצוגה בתוך פני השעון (complication) מציגה את מספר האישורים.</figcaption></figure>`;
+
+const wear = `<figure><div class="wo"><div class="scr">
+  <div class="ring" style="--c:${ringColor};width:60px;height:60px"><b>J</b></div>
+  <button class="chip">🎙 דבר עם ג׳ארוויס</button>
+  ${ap[0] ? `<div class="card"><div class="small">${esc(ap[0].summary)}</div><div class="row" style="margin-top:4px"><button class="chip">אשר</button><button class="chip warn">דחה</button></div></div>` : ''}
+  <div class="small muted" style="margin-top:6px">${g.tasks[0] ? `○ ${esc(g.tasks[0].title)}` : ''}</div>
+</div></div><figcaption>Wear OS: מסך עגול, קלט קולי של המערכת, אישור בלחיצה, ו-Tile עם המשימה הבאה.</figcaption></figure>`;
+
+const phone = `<figure><div class="ph"><div class="scr"><div class="brand">J.A.R.V.I.S</div><div class="body">
+  <div class="ring big" style="--c:${ringColor}"><b>JARVIS</b></div>
+  <div class="small muted" style="text-align:center">${ap.length ? 'ממתין לאישור' : 'מוכן'}</div>
+  ${g.weather ? `<div class="card"><h4>מזג אוויר</h4><b style="font-size:20px">${g.weather.t}°</b> ${esc(g.weather.text)}</div>` : ''}
+  <div class="card"><h4>האירוע הבא</h4>${g.nextEvent ? esc(g.nextEvent.title) : 'אין'}</div>
+  <div class="card"><h4>משימות</h4>${g.tasks.map((t) => `<div>• ${esc(t.title)}</div>`).join('')}</div>
+  ${g.bills.length ? `<div class="card"><h4>חשבונות</h4>${g.bills.map((b) => `<div style="${b.overdue ? 'color:var(--red)' : ''}">• ${esc(b.name)}${b.overdue ? ' (באיחור)' : ''}</div>`).join('')}</div>` : ''}
+  ${ap.map((a) => `<div class="card" style="border-color:rgba(255,191,60,.5)"><h4>אישור · ${esc(a.risk)}</h4>${esc(a.summary)}<div class="small muted">${esc(a.consequences ?? '')}</div><div class="row" style="margin-top:6px"><button class="chip">אשר</button><button class="chip warn">דחה</button></div></div>`).join('')}
+</div><div class="tabs"><span class="on">ראשי</span><span>שיחה</span><span>אישורים</span><span>פעולות</span></div></div></div>
+<figcaption>טלפון (iOS / Android): לוח ראשי, שיחה עם הקראה בקול, אישורים, פעולות מהירות ותור לא מקוון.</figcaption></figure>`;
+
+document.getElementById('stage').innerHTML = watch + wear + phone;
+</script>
+</body>
+</html>

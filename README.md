@@ -121,3 +121,7 @@ docker compose up -d --build    # או: fly launch --no-deploy && fly volumes cr
 - `site/` – האתר המלא שנבנה (לא נשמר ב-git; נבנה ב-CI)
 - `.github/workflows/pages.yml` – פריסה ל-GitHub Pages
 - `code-blocks.html` – קורס משלים על בלוקי קוד ב-Markdown ובאינטגרציות
+
+## J.A.R.V.I.S AI
+
+התיקייה `jarvis/` מכילה מערכת עוזר אישי מלאה: שרת ליבה, סוכנים, זיכרון, אינטגרציית Family Wealth OS, בית חכם, אוטומציות ומרכז שליטה בדפדפן עם קול בעברית ובאנגלית. ההפעלה וההסבר נמצאים ב-[`jarvis/README.md`](jarvis/README.md).

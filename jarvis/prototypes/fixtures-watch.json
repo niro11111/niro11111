@@ -1,0 +1,64 @@
+{
+ "he": {
+  "lang": "he",
+  "status": "approval",
+  "time": "2026-11-03T13:49:52.677Z",
+  "nextEvent": {
+   "title": "פגישת צוות",
+   "start": "2026-11-03T16:49:52.406Z"
+  },
+  "tasks": [
+   {
+    "id": "task_0ca463398a0d4b09",
+    "title": "להגיש דוח רבעוני"
+   },
+   {
+    "id": "task_eb299740038f474b",
+    "title": "לקבוע תור לרופא שיניים"
+   },
+   {
+    "id": "task_04e7810cf4a547a2",
+    "title": "Renew car insurance"
+   }
+  ],
+  "approvals": [
+   {
+    "id": "appr_cedd104297e649ab",
+    "summary": "unlock lock.front_door",
+    "risk": "sensitive"
+   }
+  ],
+  "unread": 3,
+  "bills": [
+   {
+    "name": "Water",
+    "overdue": true
+   }
+  ],
+  "weather": {
+   "t": 24,
+   "text": "בהיר ברובו"
+  }
+ },
+ "approvals": [
+  {
+   "id": "appr_cedd104297e649ab",
+   "createdAt": "2026-11-03T13:49:52.626Z",
+   "taskId": "task_b2364fb728d244df",
+   "step": 1,
+   "tool": "home.control",
+   "agent": "smarthome",
+   "risk": "sensitive",
+   "summary": "unlock lock.front_door",
+   "consequences": "The door will stay unlocked until locked again.",
+   "args": {
+    "entityId": "lock.front_door",
+    "action": "unlock"
+   },
+   "actionHash": "74ce149654451607a00917e8a152ddb006981e5b58bfd31b321330bf87e1395a",
+   "status": "pending",
+   "requestedAt": "2026-11-03T13:49:52.626Z",
+   "expiresAt": "2026-11-03T14:04:52.626Z"
+  }
+ ]
+}

@@ -1,0 +1,25 @@
+{
+  "name": "jarvis-ai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "J.A.R.V.I.S AI - Personal Intelligence OS: core server, agents, memory, Family Wealth OS integration and web command center",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node --no-warnings server/index.js",
+    "test": "node --no-warnings --test tests/*.test.js",
+    "test:e2e": "node tests/e2e/ui.e2e.mjs",
+    "build:prototypes": "node prototypes/build.mjs",
+    "build:webapp": "node scripts/build-webapp.mjs",
+    "brain:report": "node scripts/brain-report.mjs",
+    "load:test": "node --no-warnings scripts/load-test.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.4.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.2"
+  }
+}
