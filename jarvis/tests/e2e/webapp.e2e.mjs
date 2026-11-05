@@ -211,6 +211,19 @@ try {
     assert.match(await p2.textContent('#view'), /נשמר בענן/);
     assert.deepEqual(e2, [], JSON.stringify(e2));
   });
+  // ---------------- single-file build opened straight from disk ----------------
+  await check('single HTML file runs from file:// with no server (chat, isolated code, persistence)', async () => {
+    const fileUrl = `file://${path.resolve(dist, '../jarvis.html')}`;
+    const c3 = await browser.newContext({ viewport: { width: 1280, height: 800 } }); const p3 = await c3.newPage();
+    const e3 = []; p3.on('pageerror', (e) => e3.push(e.message));
+    await p3.goto(`${fileUrl}#conversation`); await p3.waitForSelector('#view .composer', { timeout: 20000 });
+    await ask(p3, 'כמה הוצאנו החודש?', /הוצאתם/);
+    await ask(p3, 'run code: [1,2,3].map(x=>x*x)', /1,4,9/);
+    await ask(p3, 'add task single file check', /./);
+    await p3.reload(); await p3.goto(`${fileUrl}#planner`); await p3.waitForTimeout(1200);
+    assert.match(await p3.textContent('#view'), /single file check/);
+    assert.deepEqual(e3, []); await c3.close();
+  });
 } finally { await browser.close(); srv.close(); }
 console.log(failures ? `\n${failures} failed` : '\nall webapp checks passed');
 process.exit(failures ? 1 : 0);

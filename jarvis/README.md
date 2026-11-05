@@ -13,7 +13,8 @@ cd jarvis && npm install && npm start     # backend + frontend + SQLite database
 npm test                                  # 110 unit / integration / API tests
 npm run load:test                         # concurrent mixed load against the real API router
 npm run test:e2e                          # browser tests: all screens, RTL/LTR, a11y, approvals, phone width
-npm run build:webapp                      # dist/webapp: the COMPLETE JARVIS running in the browser (no server)
+npm run build:webapp                      # dist/webapp: the COMPLETE JARVIS in the browser, plus dist/jarvis.html:
+                                          #   ONE self-contained file you can double-click on your computer (no server, offline)
 npm run build:prototypes                  # prototypes/demo: the real UI on recorded data
 ```
 

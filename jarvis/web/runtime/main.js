@@ -93,7 +93,8 @@ async function boot() {
     permissions,
     async wipe() { await backend.wipe(); store.data = {}; location.reload(); },
   };
-  await import(new URL('./app.js', import.meta.url).href);
+  // Single-file build: the UI is bundled in; otherwise it is loaded next to this runtime.
+  if (globalThis.__JARVIS_APP__) await globalThis.__JARVIS_APP__(); else await import(new URL('./app.js', import.meta.url).href);
 }
 
 boot().catch((e) => { console.error(e); setBoot(`JARVIS could not start: ${e.message}`); });

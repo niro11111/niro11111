@@ -56,3 +56,26 @@ fs.writeFileSync(path.join(art, 'index.html'), `<title>JARVIS Personal OS</title
 ${body}
 `);
 console.log(`dist/webapp built (runtime ${(bytes / 1024).toFixed(0)} KB) · dist/artifact packaged`);
+
+// ---------- single self-contained HTML file (opens from disk, no server) ----------
+{
+  const r = await build({
+    entryPoints: [path.join(root, 'web/runtime/standalone.js')],
+    bundle: true, format: 'esm', platform: 'browser', target: 'es2022', minify: true, write: false,
+    plugins: [shimPlugin],
+    banner: { js: 'globalThis.process ??= { env: {}, argv: [], memoryUsage: () => ({ rss: globalThis.performance?.memory?.usedJSHeapSize ?? 0 }) };' },
+    logLevel: 'warning',
+  });
+  const js = r.outputFiles[0].text.replace(/<\/script/gi, '<\\/script').replace(/<!--/g, '<\\!--');
+  const css = fs.readFileSync(path.join(root, 'web/styles.css'), 'utf8').replace(/<\/style/gi, '<\\/style');
+  const icon = `data:image/svg+xml;base64,${Buffer.from(fs.readFileSync(path.join(root, 'web/icon.svg'))).toString('base64')}`;
+  const single = html
+    .replace('<link rel="stylesheet" href="styles.css">', () => `<style>\n${css}\n</style>`)
+    .replace('<link rel="manifest" href="manifest.webmanifest">', '')
+    .replace('<link rel="icon" href="icon.svg">', `<link rel="icon" href="${icon}">`)
+    .replace('<script type="module" src="js/runtime.js"></script>', () => `<script type="module">\n${js}\n</script>`);
+  if (/src="js\/|href="styles\.css"/.test(single)) throw new Error('single-file build still references external files');
+  fs.writeFileSync(path.join(root, 'dist/jarvis.html'), single);
+  fs.copyFileSync(path.join(root, 'dist/jarvis.html'), path.join(out, 'jarvis.html'));
+  console.log(`dist/jarvis.html built (${(single.length / 1024 / 1024).toFixed(2)} MB, self-contained)`);
+}
