@@ -1,0 +1,41 @@
+name: Server
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - run: npm ci
+        working-directory: server
+      - run: npm audit --omit=dev --audit-level=moderate
+        working-directory: server
+      - run: npm run check && npm test
+        working-directory: server
+      - run: ./build.sh
+      - name: Full stack (real server + browser)
+        run: |
+          npm install --no-save playwright@1
+          npx playwright install --with-deps chromium
+          node tests/e2e-fullstack.js | tee out.txt
+          ! grep -q '^FAIL' out.txt
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t academy .
+      - name: Container starts and is healthy
+        run: |
+          docker run -d --name a -p 8080:8080 -e COOKIE_SECURE=false academy
+          for i in $(seq 1 30); do curl -fsS http://localhost:8080/readyz && break; sleep 1; done
+          curl -fsS http://localhost:8080/readyz | grep '"db":"up"'
+          curl -fsS -I http://localhost:8080/ | grep -i 'content-security-policy'

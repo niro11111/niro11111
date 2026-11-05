@@ -1,0 +1,13 @@
+.git
+.work
+**/node_modules
+server/data
+server/backups
+site
+dist
+tests
+examples
+*.db
+*.db-wal
+*.db-shm
+.env

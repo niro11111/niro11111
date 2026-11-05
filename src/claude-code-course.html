@@ -442,6 +442,13 @@ main{overflow-wrap:break-word}
 .ctF{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:6px 12px;margin-bottom:6px}
 .ctF summary{cursor:pointer}
 @media (max-width:700px){.ctScore{grid-template-columns:repeat(3,minmax(0,1fr))}.ctOut{height:320px}}
+
+/* account */
+.acctBtn{margin:4px 0 8px;width:100%}
+.acErr{color:var(--red);font-weight:700;min-height:1.2em;margin:6px 0}
+.btn.danger{border-color:var(--red);color:var(--red)}
+#acct .pal-box{max-width:520px}
+#acct form{margin:8px 0}
 </style>
 
 <div class="app" dir="rtl" lang="he">
@@ -4963,8 +4970,9 @@ function packFile(p, scope){
     $("#cpFilter").innerHTML = cats.map(c => '<button type="button" class="'+(c===f?"on":"")+'">'+esc(c)+'</button>').join("");
     const list = PACK_FIX.filter(p => match(p) && (!q || p.join(" ").toLowerCase().includes(q)));
     $("#cpList").innerHTML = list.map(p => { const [path, content] = packFile(p, scope());
-      return '<details class="cp'+(sel.has(p[1])?" on":"")+'"><summary><label class="tick" onclick="event.stopPropagation()"><input type="checkbox" data-cp="'+esc(p[1])+'" '+(sel.has(p[1])?"checked":"")+'></label><span class="pill">'+({cmd:"/",agent:"🤖",skill:"🧩"}[p[0]])+'</span><b class="ltr">'+(p[0]==="cmd"?"/":"")+esc(p[1])+'</b><span class="hint">'+esc(p[3])+'</span></summary><div class="code" data-lang="markdown" data-file="'+esc(path)+'"><pre>'+esc(content)+'</pre></div></details>'; }).join("");
+      return '<details class="cp'+(sel.has(p[1])?" on":"")+'"><summary><label class="tick cpTick"><input type="checkbox" data-cp="'+esc(p[1])+'" '+(sel.has(p[1])?"checked":"")+'></label><span class="pill">'+({cmd:"/",agent:"🤖",skill:"🧩"}[p[0]])+'</span><b class="ltr">'+(p[0]==="cmd"?"/":"")+esc(p[1])+'</b><span class="hint">'+esc(p[3])+'</span></summary><div class="code" data-lang="markdown" data-file="'+esc(path)+'"><pre>'+esc(content)+'</pre></div></details>'; }).join("");
     $$("#cpList .code").forEach(decorate);
+    $$("#cpList .cpTick").forEach(l => l.addEventListener("click", e => e.stopPropagation()));   // no inline handlers (CSP)
     script();
   };
   const script = () => {
@@ -6665,6 +6673,135 @@ function ctPlan(r, name){
 
 Object.keys(TRACKS).forEach(k => { if(!TRACKS[k].m.includes("codeterm")) TRACKS[k].m.push("codeterm"); });
 BADGES.push(["reviewer","🔍","סוקרי קוד","הרצתם ריוויו על פרויקט", () => !!state.awarded["ct-scan"]]);
+// ================= own backend: accounts, server sync and online certificates =================
+// Only when the page is served by the academy server (same origin /api). On claude.ai the artifact
+// storage is used as before; as a file or on a static host nothing changes.
+(function(){
+  const S = {on:false, user:null, lastAt:0};
+  const api = async (method, url, body) => {
+    const r = await fetch(url, {method, credentials:"same-origin", headers: Object.assign({"x-cca":"1"}, body !== undefined ? {"content-type":"application/json"} : {}), body: body !== undefined ? JSON.stringify(body) : undefined});
+    let j = null; try{ j = await r.json(); }catch(e){}
+    if(!r.ok){ const err = new Error((j && j.message) || ("HTTP " + r.status)); err.status = r.status; err.body = j; throw err; }
+    return j;
+  };
+  // same shape as the claude.ai doc used by sync v3: get() -> {exists, data()}, set(doc)
+  const serverRef = {
+    async get(){ const j = await api("GET", "/api/progress"); if(j.exists) S.lastAt = Math.max(S.lastAt, j.at); return {exists: !!j.exists, data: () => ({at: j.at, dev: j.dev, data: j.data})}; },
+    async set(doc){
+      try{ await api("PUT", "/api/progress", {at: doc.at, dev: doc.dev, data: doc.data, baseAt: S.lastAt}); S.lastAt = doc.at; }
+      catch(e){
+        if(e.status !== 409 || !e.body || !e.body.current) throw e;
+        // another device saved in between: merge its copy, then save the result
+        applyRemote(JSON.parse(e.body.current.data || "{}")); S.lastAt = e.body.current.at;
+        const at = Date.now(); await api("PUT", "/api/progress", {at, dev: doc.dev, data: JSON.stringify(localBundle()), baseAt: S.lastAt}); S.lastAt = at;
+        toast("☁ מוזג עם מכשיר אחר");
+      }
+    }
+  };
+  function clearLocal(){
+    try{ Object.keys(localStorage).filter(k => k.startsWith("cca-") && isSyncKey(k.slice(4))).forEach(k => localStorage.removeItem(k)); }catch(e){}
+    applyRemote({});
+  }
+  async function connect(){
+    const owner = store.get("owner", null);
+    if(owner && owner !== S.user.id) clearLocal();   // shared computer: don't mix another account's progress into this one
+    try{ localStorage.setItem("cca-owner", JSON.stringify(S.user.id)); }catch(e){}
+    SYNC.ref = serverRef; SYNC.lastAt = 0;
+    try{
+      const snap = await serverRef.get();
+      if(snap.exists){ const d = snap.data(); SYNC.lastAt = d.at; applyRemote(JSON.parse(d.data || "{}")); }
+      SYNC.ready = true; await pushSync();
+      setSync("☁ מסונכרן לחשבון " + S.user.email, "ok");
+    }catch(e){ setSync("☁ השרת לא זמין כרגע, נשמר מקומית", "err"); }
+  }
+  function disconnect(){ SYNC.ref = null; SYNC.ready = false; setSync("☁ שמירה בדפדפן הזה בלבד · התחברו כדי לסנכרן", ""); }
+
+  // ---------- account dialog ----------
+  const dlg = () => document.getElementById("acct");
+  function ui(){
+    const u = S.user, box = $("#acctBody"), btn = $("#acctBtn");
+    btn.textContent = u ? "👤 " + (u.name || u.email.split("@")[0]) : "👤 התחברות וסנכרון";
+    if(!u){
+      box.innerHTML = '<div class="tabs" id="acTabs"><button type="button" class="on" data-m="login">התחברות</button><button type="button" data-m="register">חשבון חדש</button></div>' +
+        '<form class="form" id="acForm" novalidate><label id="acNameL" hidden>שם (יופיע על התעודה)<input type="text" id="acName" autocomplete="name" maxlength="80"></label>' +
+        '<label>אימייל<input type="email" id="acEmail" class="ltr" autocomplete="email" required maxlength="254"></label>' +
+        '<label>סיסמה<input type="password" id="acPass" class="ltr" autocomplete="current-password" required minlength="10" maxlength="200"></label>' +
+        '<p class="hint" id="acHint">ההתקדמות, הספרייה וההגדרות שלכם יסונכרנו לכל מכשיר שמתחבר לחשבון.</p>' +
+        '<p class="acErr" id="acErr" role="alert"></p><button class="btn pri" type="submit" id="acSubmit">התחברות</button></form>';
+      let mode = "login";
+      $("#acTabs").addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; mode = b.dataset.m; $$("#acTabs button").forEach(x => x.classList.toggle("on", x === b)); $("#acNameL").hidden = mode !== "register"; $("#acSubmit").textContent = mode === "register" ? "יצירת חשבון" : "התחברות"; $("#acPass").autocomplete = mode === "register" ? "new-password" : "current-password"; $("#acHint").textContent = mode === "register" ? "סיסמה של 10 תווים לפחות. ההתקדמות שכבר צברתם בדפדפן הזה תעבור לחשבון." : "ההתקדמות, הספרייה וההגדרות שלכם יסונכרנו לכל מכשיר שמתחבר לחשבון."; $("#acErr").textContent = ""; });
+      $("#acForm").addEventListener("submit", async e => {
+        e.preventDefault(); $("#acErr").textContent = ""; $("#acSubmit").disabled = true;
+        try{
+          const body = {email: $("#acEmail").value.trim(), password: $("#acPass").value};
+          if(mode === "register") body.name = $("#acName").value.trim();
+          const j = await api("POST", "/api/auth/" + mode, body);
+          S.user = j.user; if(S.user.name && !store.get("name", "")) store.set("name", S.user.name);
+          ui(); await connect(); toast(mode === "register" ? "החשבון נוצר ✓" : "התחברתם ✓"); award("acct", 15, "חשבון מסונכרן");
+        }catch(err){ $("#acErr").textContent = err.message || "משהו השתבש. נסו שוב."; }
+        finally{ const s = $("#acSubmit"); if(s) s.disabled = false; }
+      });
+      return;
+    }
+    box.innerHTML = '<p>מחוברים כ-<b class="ltr">' + esc(u.email) + '</b></p><p class="sync ok" id="acSync">' + esc($("#syncStatus").textContent) + '</p>' +
+      '<form class="form" id="acNameF"><label>שם על התעודה<input type="text" id="acName2" maxlength="80" value="' + esc(u.name || "") + '"></label><button class="btn sm" type="submit">שמירה</button></form>' +
+      '<details class="box"><summary><b>החלפת סיסמה</b></summary><form class="form" id="acPw"><label>סיסמה נוכחית<input type="password" id="acCur" class="ltr" autocomplete="current-password"></label><label>סיסמה חדשה (10 תווים לפחות)<input type="password" id="acNew" class="ltr" autocomplete="new-password" minlength="10"></label><button class="btn sm" type="submit">החלפה</button><p class="hint">החלפת סיסמה מנתקת את כל המכשירים האחרים.</p></form></details>' +
+      '<div class="row"><button class="btn sm" type="button" id="acSyncNow">סנכרון עכשיו</button><button class="btn sm" type="button" id="acOthers">ניתוק מכשירים אחרים</button><button class="btn sm" type="button" id="acExport">הורדת כל המידע שלי</button><button class="btn sm" type="button" id="acOut">התנתקות</button></div>' +
+      '<details class="box"><summary><b>מחיקת החשבון</b></summary><form class="form" id="acDel"><p>מוחק לצמיתות את החשבון, ההתקדמות בשרת והתעודה. ההתקדמות בדפדפן הזה נשארת.</p><label>הסיסמה לאישור<input type="password" id="acDelPw" class="ltr" autocomplete="current-password"></label><button class="btn sm danger" type="submit">מחיקה לצמיתות</button></form></details>' +
+      '<p class="acErr" id="acErr" role="alert"></p>';
+    const err = m => { $("#acErr").textContent = m; };
+    $("#acNameF").addEventListener("submit", async e => { e.preventDefault(); try{ const j = await api("PATCH", "/api/me", {name: $("#acName2").value.trim()}); S.user = j.user; store.set("name", S.user.name); ui(); toast("נשמר ✓"); }catch(x){ err(x.message); } });
+    $("#acPw").addEventListener("submit", async e => { e.preventDefault(); try{ await api("POST", "/api/auth/password", {current: $("#acCur").value, next: $("#acNew").value}); toast("הסיסמה הוחלפה ✓"); ui(); }catch(x){ err(x.message); } });
+    $("#acSyncNow").onclick = async () => { await pushSync(); $("#acSync").textContent = $("#syncStatus").textContent; };
+    $("#acOthers").onclick = async () => { try{ const j = await api("POST", "/api/me/logout-others", {}); toast("נותקו " + j.closed + " מכשירים"); }catch(x){ err(x.message); } };
+    $("#acExport").onclick = async () => { try{ const j = await api("GET", "/api/me/export"); saveFile("claude-code-academy-my-data.json", JSON.stringify(j, null, 2)); }catch(x){ err(x.message); } };
+    $("#acOut").onclick = async () => {
+      try{ await pushSync(); await api("POST", "/api/auth/logout", {}); }catch(x){}
+      S.user = null; disconnect(); clearLocal(); try{ localStorage.removeItem("cca-owner"); }catch(e){}
+      ui(); toast("התנתקתם. ההתקדמות שמורה בחשבון");
+    };
+    $("#acDel").addEventListener("submit", async e => { e.preventDefault(); try{ await api("DELETE", "/api/me", {password: $("#acDelPw").value}); S.user = null; disconnect(); try{ localStorage.removeItem("cca-owner"); }catch(e){} ui(); toast("החשבון נמחק"); }catch(x){ err(x.message); } });
+  }
+  function open(){ const d = dlg(); d.hidden = false; ui(); setTimeout(() => { const f = d.querySelector("input,button:not(#acctClose)"); if(f) f.focus(); }, 30); }
+
+  // ---------- online certificate ----------
+  showCert = (orig => function(score){
+    orig(score);
+    if(!S.on) return;
+    $("#certBox").insertAdjacentHTML("beforeend", '<div class="row" id="certOnline"><button class="btn pri" type="button" id="certIssue">הנפקת תעודה עם קישור אימות</button><span class="hint" id="certLink"></span></div>');
+    $("#certIssue").onclick = async () => {
+      if(!S.user){ open(); toast("התחברו כדי להנפיק תעודה מאומתת"); return; }
+      try{
+        await pushSync();
+        const j = await api("POST", "/api/certificates", {name: (store.get("name", "") || S.user.name || S.user.email.split("@")[0]).slice(0, 80), score: Math.max(0, Math.min(100, Math.round(+score || 0)))});
+        const url = location.origin + j.url;
+        $("#certLink").innerHTML = '✓ <a href="' + esc(j.url) + '" target="_blank" rel="noopener">' + esc(url) + '</a>';
+        try{ await navigator.clipboard.writeText(url); toast("הקישור הועתק ✓"); }catch(e){}
+        award("cert-online", 30, "תעודה מאומתת");
+      }catch(e){ $("#certLink").textContent = e.message; }
+    };
+  })(showCert);
+
+  // ---------- detect the server ----------
+  (async () => {
+    if(!/^https?:$/.test(location.protocol) || (window.claude && window.claude.use)) return;
+    let r;
+    try{ r = await fetch("/api/me", {credentials:"same-origin", headers:{"x-cca":"1"}}); }catch(e){ return; }
+    if(r.headers.get("x-cca-server") !== "1") return;
+    let j = null; try{ j = await r.json(); }catch(e){ return; }
+    S.on = true; window.__server = S;
+    document.body.insertAdjacentHTML("beforeend", '<div class="pal" id="acct" hidden role="dialog" aria-label="חשבון"><div class="pal-box"><div class="row" style="justify-content:space-between"><b>החשבון שלי</b><button class="btn sm" type="button" id="acctClose" aria-label="סגירה">✕</button></div><div id="acctBody"></div></div></div>');
+    $("#syncStatus").insertAdjacentHTML("afterend", '<button class="btn sm acctBtn" type="button" id="acctBtn">👤 התחברות וסנכרון</button>');
+    $("#acctBtn").onclick = open;
+    $("#acctClose").onclick = () => { dlg().hidden = true; };
+    dlg().setAttribute("aria-modal", "true");
+    new MutationObserver(() => { if(dlg().hidden) $("#acctBtn").focus({preventScroll:true}); }).observe(dlg(), {attributes:true, attributeFilter:["hidden"]});
+    dlg().addEventListener("click", e => { if(e.target === dlg()) dlg().hidden = true; });
+    S.user = j && j.user;
+    if(S.user){ ui(); await connect(); } else { ui(); disconnect(); }
+  })();
+})();
+
 checkBadges(true);
 
 renderStats();

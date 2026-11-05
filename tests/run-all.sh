@@ -19,6 +19,8 @@ run "workspace: theme, keys, status line" node tests/e2e-workspace.js
 run "every generated bash script parses"  node tests/scripts-syntax.js
 run "system health (links, a11y, phone width, storage)" node tests/health.js
 run "code terminal: review, spec, zip, ai"  node tests/e2e-codeterm.js
+run "server API (accounts, security, sync, certificates)" bash -c "cd server && npx vitest run"
+run "full stack: real server + two browsers" node tests/e2e-fullstack.js
 run "every button in every chapter"       node tests/audit-buttons.js
 [ $fail -eq 0 ] && echo "all tests passed" || echo "some tests failed"
 exit $fail

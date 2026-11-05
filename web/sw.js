@@ -22,9 +22,13 @@ self.addEventListener("fetch", e => {
     return;
   }
   if (url.origin !== self.location.origin) return;
-  // pages: network first so updates arrive quickly, cache when offline
+  // the backend (when the app runs on its own server) is always live, never cached
+  if (/\/(api|verify)\//.test(url.pathname) || /\/(healthz|readyz)$/.test(url.pathname)) return;
+  // the app page: network first so updates arrive quickly, cache when offline.
+  // Only a successful response for the app itself replaces the cached copy (never a 404 or another page).
   if (e.request.mode === "navigate") {
-    e.respondWith(fetch(e.request).then(r => { const copy = r.clone(); caches.open(SHELL).then(c => c.put("index.html", copy)); return r; })
+    const isApp = /\/(index\.html)?$/.test(url.pathname);
+    e.respondWith(fetch(e.request).then(r => { if (isApp && r.ok) { const copy = r.clone(); caches.open(SHELL).then(c => c.put("index.html", copy)); } return r; })
       .catch(() => caches.match("index.html")));
     return;
   }

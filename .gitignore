@@ -1,2 +1,9 @@
 .work/
 site/
+node_modules/
+server/data/
+server/backups/
+*.db
+*.db-wal
+*.db-shm
+.env
