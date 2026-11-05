@@ -224,6 +224,22 @@ try {
     assert.match(await p3.textContent('#view'), /single file check/);
     assert.deepEqual(e3, []); await c3.close();
   });
+  await check('single HTML file also works in a sandboxed preview (storage blocked) and without crypto.randomUUID', async () => {
+    const htmlText = fs.readFileSync(path.resolve(dist, '../jarvis.html'), 'utf8');
+    const c4 = await browser.newContext(); const p4 = await c4.newPage();
+    const e4 = []; p4.on('pageerror', (e) => e4.push(e.message));
+    await p4.addInitScript(() => { try { delete Crypto.prototype.randomUUID; } catch {} });
+    await p4.setContent('<iframe id="f" sandbox="allow-scripts allow-forms allow-modals" style="width:1200px;height:800px;border:0"></iframe>');
+    await p4.$eval('#f', (f, h) => { f.srcdoc = h; }, htmlText);
+    const fr = () => p4.frames()[1];
+    await fr().waitForSelector('#nav a', { timeout: 20000 });
+    await fr().evaluate(() => { location.hash = '#conversation'; });
+    await fr().waitForSelector('.composer input[dir=auto]');
+    await fr().fill('.composer input[dir=auto]', 'כמה הוצאנו החודש?'); await fr().press('.composer input[dir=auto]', 'Enter');
+    await fr().waitForFunction(() => /הוצאתם/.test([...document.querySelectorAll('.chat .msg.jarvis')].pop()?.textContent ?? ''), null, { timeout: 15000 });
+    assert.ok(await fr().evaluate(() => /האחסון חסום/.test(document.body.innerText)), 'storage warning shown');
+    assert.deepEqual(e4, []); await c4.close();
+  });
 } finally { await browser.close(); srv.close(); }
 console.log(failures ? `\n${failures} failed` : '\nall webapp checks passed');
 process.exit(failures ? 1 : 0);

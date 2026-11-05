@@ -58,6 +58,13 @@ ${body}
 console.log(`dist/webapp built (runtime ${(bytes / 1024).toFixed(0)} KB) · dist/artifact packaged`);
 
 // ---------- single self-contained HTML file (opens from disk, no server) ----------
+// Watchdog (classic script, runs even if the module cannot): if JARVIS has not started after
+// 12 s, show why and what to do instead of an endless "loading".
+const WATCHDOG = `<script>
+(function(){var errs=[];addEventListener('error',function(e){errs.push(e.message||String(e.error||e));});addEventListener('unhandledrejection',function(e){errs.push(String(e.reason&&e.reason.message||e.reason));});
+setTimeout(function(){if(window.JARVIS_BOOTED)return;var m=document.getElementById('bootMsg');if(!m)return;var why=window.JARVIS_BOOT_ERROR?window.JARVIS_BOOT_ERROR.message:(errs[0]||'the page scripts did not run');
+m.innerHTML='<b>JARVIS לא הצליח לעלות כאן.</b><br>נראה שהקובץ נפתח בתצוגה מקדימה או בדפדפן שחוסם סקריפטים. שמרו את הקובץ במחשב ופתחו אותו בלחיצה כפולה ב-Chrome או Edge (גרסה עדכנית).<br><br><b>JARVIS could not start here.</b> Save the file and open it with a double-click in a current Chrome or Edge.<br><small style="opacity:.7">'+String(why).replace(/[<>&]/g,'')+'</small>';},12000);})();
+</script>`;
 {
   const r = await build({
     entryPoints: [path.join(root, 'web/runtime/standalone.js')],
@@ -73,7 +80,8 @@ console.log(`dist/webapp built (runtime ${(bytes / 1024).toFixed(0)} KB) · dist
     .replace('<link rel="stylesheet" href="styles.css">', () => `<style>\n${css}\n</style>`)
     .replace('<link rel="manifest" href="manifest.webmanifest">', '')
     .replace('<link rel="icon" href="icon.svg">', `<link rel="icon" href="${icon}">`)
-    .replace('<script type="module" src="js/runtime.js"></script>', () => `<script type="module">\n${js}\n</script>`);
+    .replace('<script type="module" src="js/runtime.js"></script>', () => `${WATCHDOG}\n<script type="module">\n${js}\n</script>`)
+    .replace('<body>', `<body>\n<noscript><div style="padding:40px;font:16px system-ui;color:#ffd58a;background:#03060d;text-align:center" dir="rtl">JARVIS צריך JavaScript. פתחו את הקובץ בדפדפן (Chrome / Edge / Firefox / Safari) ולא בתצוגה מקדימה.<br>JARVIS needs JavaScript: open this file in a web browser, not in a preview.</div></noscript>`);
   if (/src="js\/|href="styles\.css"/.test(single)) throw new Error('single-file build still references external files');
   fs.writeFileSync(path.join(root, 'dist/jarvis.html'), single);
   fs.copyFileSync(path.join(root, 'dist/jarvis.html'), path.join(out, 'jarvis.html'));

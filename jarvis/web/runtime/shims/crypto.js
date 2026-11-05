@@ -30,9 +30,23 @@ export function sha256Hex(input) {
   return Array.from(H, (x) => x.toString(16).padStart(8, '0')).join('');
 }
 
-export const randomUUID = () => globalThis.crypto.randomUUID();
+// crypto.randomUUID exists only in secure contexts (https/localhost). A file opened from disk,
+// an in-app preview or plain http may not have it, so fall back to getRandomValues (available
+// everywhere), and to Math.random only if even that is missing.
+function rand(n) {
+  const b = new Uint8Array(n);
+  if (globalThis.crypto?.getRandomValues) return globalThis.crypto.getRandomValues(b);
+  for (let i = 0; i < n; i++) b[i] = Math.floor(Math.random() * 256);
+  return b;
+}
+export function randomUUID() {
+  if (typeof globalThis.crypto?.randomUUID === 'function') { try { return globalThis.crypto.randomUUID(); } catch { /* insecure context */ } }
+  const b = rand(16); b[6] = (b[6] & 0x0f) | 0x40; b[8] = (b[8] & 0x3f) | 0x80;
+  const h = Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+}
 export function randomBytes(n) {
-  const b = globalThis.crypto.getRandomValues(new Uint8Array(n));
+  const b = rand(n);
   return { toString: () => Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('') };
 }
 export function createHash() {

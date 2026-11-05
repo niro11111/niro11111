@@ -24,8 +24,17 @@ function chunks(items) {
   return out;
 }
 
+/** localStorage when the browser allows it; otherwise an in-memory stand-in (app runs, data is not kept). */
+function safeStorage() {
+  try { const ls = globalThis.localStorage; ls.setItem('jarvis.__probe', '1'); ls.removeItem('jarvis.__probe'); return { store: ls, persistent: true }; }
+  catch { const m = new Map(); return { persistent: false, store: { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k), key: (i) => [...m.keys()][i] ?? null, get length() { return m.size; }, keys: () => [...m.keys()] } }; }
+}
+const LS = safeStorage();
+const localStorage = LS.store;
+export const storagePersistent = LS.persistent;
+
 export class LocalBackend {
-  constructor(prefix = 'jarvis.v1') { this.p = prefix; this.kind = 'browser'; }
+  constructor(prefix = 'jarvis.v1') { this.p = prefix; this.kind = LS.persistent ? 'browser' : 'memory'; }
   async load() {
     const man = JSON.parse(localStorage.getItem(`${this.p}.manifest`) ?? 'null');
     if (!man) return null;
@@ -45,7 +54,7 @@ export class LocalBackend {
   }
   async saveManifest(man) { localStorage.setItem(`${this.p}.manifest`, JSON.stringify(man)); }
   async manifest() { return JSON.parse(localStorage.getItem(`${this.p}.manifest`) ?? 'null') ?? { cols: {} }; }
-  async wipe() { for (const k of Object.keys(localStorage)) if (k.startsWith(this.p)) localStorage.removeItem(k); }
+  async wipe() { const keys = LS.persistent ? Object.keys(globalThis.localStorage) : localStorage.keys(); for (const k of keys) if (k.startsWith(this.p)) localStorage.removeItem(k); }
 }
 
 export class DbBackend {

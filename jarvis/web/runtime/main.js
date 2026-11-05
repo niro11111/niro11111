@@ -14,8 +14,8 @@ import { SampleProvider, SAMPLE_TIERS } from './sample-provider.js';
 import { LocalBackend, DbBackend, Persister } from './persist.js';
 
 const SETTINGS_KEY = 'jarvis.local.settings';
-const readSettings = () => { try { return JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? '{}'); } catch { return {}; } };
-const writeSettings = (v) => { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(v)); return true; } catch { return false; } };
+const readSettings = () => { try { return JSON.parse(globalThis.localStorage.getItem(SETTINGS_KEY) ?? '{}'); } catch { return {}; } };
+const writeSettings = (v) => { try { globalThis.localStorage.setItem(SETTINGS_KEY, JSON.stringify(v)); return true; } catch { return false; } };
 
 async function use(name) {
   if (!window.claude?.use) return null;
@@ -95,6 +95,17 @@ async function boot() {
   };
   // Single-file build: the UI is bundled in; otherwise it is loaded next to this runtime.
   if (globalThis.__JARVIS_APP__) await globalThis.__JARVIS_APP__(); else await import(new URL('./app.js', import.meta.url).href);
+  globalThis.JARVIS_BOOTED = true;
+  if (backend.kind === 'memory') { notice(['⚠ האחסון חסום כאן (למשל בתצוגה מקדימה של אפליקציה), לכן הנתונים לא יישמרו.', 'כדי לשמור: הורידו את הקובץ ופתחו אותו ב-Chrome או ב-Edge.', 'Storage is blocked here, so data will not be kept: download the file and open it in Chrome or Edge.']); dispatchEvent(new CustomEvent('jarvis:storage', { detail: { state: 'saved', kind: 'memory' } })); }
 }
 
-boot().catch((e) => { console.error(e); setBoot(`JARVIS could not start: ${e.message}`); });
+function notice(text) {
+  const n = document.createElement('div');
+  n.setAttribute('role', 'status');
+  n.style.cssText = 'position:fixed;inset:auto 12px 12px 12px;z-index:9999;padding:10px 14px;border-radius:12px;background:#2a1d05;color:#ffd58a;border:1px solid #ffbf3c;font:13px/1.5 system-ui,sans-serif;direction:rtl;text-align:right;box-shadow:0 6px 24px #0008';
+  for (const [i, line] of [].concat(text).entries()) { const d = document.createElement('div'); d.textContent = line; if (/^[A-Za-z]/.test(line)) { d.dir = 'ltr'; d.style.textAlign = 'left'; d.style.opacity = '.85'; } if (!i) d.style.fontWeight = '600'; n.append(d); }
+  const x = document.createElement('button'); x.textContent = '✕'; x.setAttribute('aria-label', 'close'); x.style.cssText = 'float:left;background:none;border:0;color:inherit;font-size:16px;cursor:pointer';
+  x.onclick = () => n.remove(); n.prepend(x); document.body.append(n);
+}
+
+boot().catch((e) => { console.error(e); globalThis.JARVIS_BOOT_ERROR = e; setBoot(`JARVIS could not start: ${e.message}`); });
