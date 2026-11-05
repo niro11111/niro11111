@@ -246,7 +246,7 @@ ${(a.memories ?? []).map((m) => `- ${m.content} [${m.provenance}]`).join('\n') |
   // ---------- conversation ----------
   def('knowledge.graph', { risk: RISK.READ, desc: 'Personal knowledge graph: who is someone, how two things are related (with sources)', run: async (a, ctx) => {
     const he2 = ctx.lang === 'he';
-    if (!s.store.all('kg_nodes').length) s.kg.rebuild();
+    s.kg.ensure();
     if (a.a && a.b) {
       const p = s.kg.path(a.a, a.b);
       if (!p.found) return { data: p, summary: he2 ? `לא מצאתי קשר בין ${a.a} ל-${a.b} בידע שלך.` : `I found no connection between ${a.a} and ${a.b} in your knowledge.` };

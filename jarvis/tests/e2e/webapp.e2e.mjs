@@ -73,7 +73,7 @@ try {
     assert.match(await page.textContent('#view'), /ספורט/);
   });
   await check('every screen renders in the standalone app', async () => {
-    for (const v of ['command', 'map', 'agents', 'brain', 'missions', 'ai', 'automations', 'knowledge', 'planner', 'wealth', 'home', 'devices', 'console', 'privacy', 'preferences']) {
+    for (const v of ['command', 'map', 'agents', 'brain', 'learn', 'neural', 'graph', 'missions', 'ai', 'automations', 'knowledge', 'planner', 'wealth', 'home', 'devices', 'console', 'database', 'privacy', 'preferences']) {
       await page.goto(`${url}#${v}`); await page.waitForTimeout(400);
       assert.ok(!(await page.$('#view .panel.err')), v);
     }
@@ -97,6 +97,21 @@ try {
     await page.click('[data-linst]'); await page.click('.dlg-yes'); await page.waitForSelector('[data-lun]', { timeout: 10000 });
     if (process.env.SHOT) { await page.click('[data-ltab=A]'); await page.waitForTimeout(1600); await page.screenshot({ path: process.env.SHOT, fullPage: true }); }
     for (const tb of ['A', 'B', 'C', 'D', 'E', 'F', 'G']) { await page.goto(`${url}#learn`); await page.waitForSelector('[data-ltab]'); await page.click(`[data-ltab=${tb}]`); await page.waitForTimeout(500); assert.ok(!(await page.$('#view .panel.err')), tb); }
+    assert.deepEqual(errors, []);
+  });
+  await check('neural lab: trains the intent network in the browser, predicts, knowledge graph from memories', async () => {
+    await page.goto(`${url}#conversation`); await page.waitForSelector('#view .composer');
+    await ask(page, 'remember that my wife Dana works at Acme', /./);
+    await page.goto(`${url}#neural`); await page.waitForSelector('#trI', { timeout: 15000 });
+    await page.click('#trI'); await page.waitForSelector('#plF', { timeout: 60000 });
+    await page.fill('#plF input', 'what bills do I have to pay this week'); await page.click('#plF button');
+    await page.waitForFunction(() => /wealth\.bills/.test(document.querySelector('#plOut')?.textContent ?? ''), null, { timeout: 10000 });
+    if (process.env.SHOT2) await page.screenshot({ path: process.env.SHOT2, fullPage: true });
+    await page.goto(`${url}#graph`); await page.waitForSelector('[data-node]', { timeout: 15000 });
+    await page.click('[data-node="Dana"]'); await page.waitForFunction(() => /works_at/.test(document.querySelector('#kgAbout')?.textContent ?? ''), null, { timeout: 10000 });
+    if (process.env.SHOT3) await page.screenshot({ path: process.env.SHOT3, fullPage: true });
+    await page.goto(`${url}#database`); await page.waitForTimeout(500);
+    assert.match(await page.textContent('#view'), /browser|localStorage|דפדפן/i);
     assert.deepEqual(errors, []);
   });
   await check('dictation mode sends automatically after a pause', async () => {

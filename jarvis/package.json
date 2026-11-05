@@ -8,12 +8,13 @@
     "node": ">=20"
   },
   "scripts": {
-    "start": "node server/index.js",
+    "start": "node --no-warnings server/index.js",
     "test": "node --no-warnings --test tests/*.test.js",
     "test:e2e": "node tests/e2e/ui.e2e.mjs",
     "build:prototypes": "node prototypes/build.mjs",
     "build:webapp": "node scripts/build-webapp.mjs",
-    "brain:report": "node scripts/brain-report.mjs"
+    "brain:report": "node scripts/brain-report.mjs",
+    "load:test": "node --no-warnings scripts/load-test.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.4.0"

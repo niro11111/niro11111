@@ -64,7 +64,15 @@ export class KnowledgeGraph {
     return this.stats();
   }
   stats() { const n = this.s.store.all('kg_nodes'); const e = this.s.store.all('kg_edges'); const types = {}; for (const x of n) types[x.type] = (types[x.type] ?? 0) + 1; return { nodes: n.length, edges: e.length, types, builtAt: this.s.store.getMeta('kgBuiltAt', null) }; }
+  /** True when a source record changed after the last build. */
+  stale() {
+    const built = this.s.store.getMeta('kgBuiltAt', null);
+    if (!built) return true;
+    return ['memories', 'notes', 'documents', 'tasks', 'events'].some((c) => this.s.store.all(c).some((r) => (r.updatedAt ?? r.createdAt ?? '') > built));
+  }
+  ensure() { if (this.stale()) this.rebuild(); }
   graph({ limit = 150 } = {}) {
+    this.ensure();
     const nodes = this.s.store.all('kg_nodes').sort((a, b) => b.rank - a.rank).slice(0, limit);
     const ids = new Set(nodes.map((n) => n.id));
     return { nodes, edges: this.s.store.all('kg_edges', (e) => ids.has(e.from) && ids.has(e.to)), stats: this.stats() };
@@ -76,6 +84,7 @@ export class KnowledgeGraph {
     return all.find((n) => n.label.toLowerCase() === q) ?? all.find((n) => n.label.toLowerCase().startsWith(q)) ?? null;
   }
   about(name) {
+    this.ensure();
     const n = this.find(name);
     if (!n) return null;
     const edges = this.s.store.all('kg_edges', (e) => e.from === n.id || e.to === n.id).sort((a, b) => b.weight - a.weight);
@@ -84,6 +93,7 @@ export class KnowledgeGraph {
   }
   /** Shortest relationship path (BFS, undirected, strongest edges first). */
   path(a, b, { maxDepth = 4 } = {}) {
+    this.ensure();
     const na = this.find(a); const nb = this.find(b);
     if (!na || !nb) return { found: false, missing: [!na && a, !nb && b].filter(Boolean) };
     const adj = new Map();
@@ -103,6 +113,8 @@ export class KnowledgeGraph {
   /** Used by CORE where the parser had no rule: "who is X" / "how is X related to Y" when X is in the graph. */
   routeFor(message) {
     const t = String(message).trim();
+    if (!/^(?:how is|how are|who is|tell me about|what do you know about|מה הקשר|מי זה|מי זאת|מי זו|ספר לי על|מה אתה יודע על)/i.test(t)) return null;
+    this.ensure();
     let m = t.match(/^(?:how is|how are) (.+?) (?:related|connected) to (.+?)\??$/i) ?? t.match(/^מה הקשר בין (.+?) (?:ל-?|לבין )(.+?)\??$/);
     if (m && this.find(m[1]) && this.find(m[2])) return [{ agent: 'knowledge', tool: 'knowledge.graph', args: { a: m[1], b: m[2] } }];
     m = t.match(/^(?:who is|tell me about|what do you know about) (.+?)\??$/i) ?? t.match(/^(?:מי זה|מי זאת|מי זו|ספר לי על|מה אתה יודע על) (.+?)\??$/);

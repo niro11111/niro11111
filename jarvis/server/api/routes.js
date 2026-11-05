@@ -259,7 +259,7 @@ export function createApi(s, token, opts = {}) {
   r('GET', `${M}/clusters`, () => s.ml.requestClusters());
 
   // --- personal knowledge graph ---
-  r('GET', '/api/knowledge/graph', (req) => { if (!s.store.all('kg_nodes').length) s.kg.rebuild(); return s.kg.graph({ limit: Number(req.query.get('limit') ?? 150) }); });
+  r('GET', '/api/knowledge/graph', (req) => { return s.kg.graph({ limit: Number(req.query.get('limit') ?? 150) }); });
   r('POST', '/api/knowledge/graph/rebuild', () => s.kg.rebuild());
   r('GET', '/api/knowledge/graph/about', (req) => s.kg.about(req.query.get('name')) ?? { node: null, facts: [] });
   r('GET', '/api/knowledge/graph/path', (req) => s.kg.path(req.query.get('a'), req.query.get('b')));

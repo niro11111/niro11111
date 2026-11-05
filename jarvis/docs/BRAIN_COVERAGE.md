@@ -1,11 +1,11 @@
 # JARVIS BRAIN: capability coverage
 
-Generated 2026-11-04 by `npm run brain:report`.
+Generated 2026-11-05 by `npm run brain:report`.
 
-- **Implemented and tested**: 54
+- **Implemented and tested**: 62
 - **Implemented but not fully tested**: 1
-- **Partially implemented**: 5
-- **Planned**: 5
+- **Partially implemented**: 4
+- **Planned**: 3
 - **Blocked by external dependency**: 5
 - **Unsupported**: 1
 
@@ -22,7 +22,7 @@ Generated 2026-11-04 by `npm run brain:report`.
 | §6 Reasoning | Strategy selection (direct, retrieval, computation, comparative, scenario, multi-agent, decomposition, iterative verification, tool-assisted) | Implemented and tested | brain/analyze.js STRATEGY |
 | §6 Reasoning | Deterministic computation for money, dates, units, statistics | Implemented and tested | wealth/calc.js, tools/utility.js · eval exact-math |
 | §6 Reasoning | Iterative verification (draft → critique → revision) | Implemented and tested | ai/engines.js deepThink · tests/brain |
-| §6 Reasoning | Code-assisted computation (sandboxed code execution) | Planned | needs a code-execution sandbox service |
+| §6 Reasoning | Code-assisted computation (sandboxed code execution) | Implemented and tested | tool compute.code: static analysis + isolated worker/vm with timeout · tests/ml |
 | §7 Models | Provider-independent gateway, tiers by complexity/latency/privacy, user preferences | Implemented and tested | core/router.js |
 | §7 Models | Fallback chain, provider health with circuit breaker, rate-limit retry, usage and cost tracking | Implemented and tested | core/router.js · observability · tests/brain2 |
 | §7 Models | Speech-to-text / text-to-speech providers on the server | Blocked by external dependency | browser and phone speech used; server STT/TTS needs a provider key |
@@ -42,7 +42,7 @@ Generated 2026-11-04 by `npm run brain:report`.
 | §11 Tools | Browser automation / computer control | Partially implemented | desktop bridge (apps, URLs, files, screenshots); no DOM automation |
 | §12 Memory | Short-term, working (mission state), long-term, episodic, procedural (workflows), knowledge (documents) | Implemented and tested | memory, missions, episodes, automations, documents |
 | §12 Memory | Hybrid search, dedupe, provenance, confidence, expiry, correction, export, deletion | Implemented and tested | memory/memory.js |
-| §12 Memory | Semantic memory: entities and relationships (knowledge graph) | Partially implemented | typed person/project memories; no relationship graph yet |
+| §12 Memory | Semantic memory: entities and relationships (knowledge graph) | Implemented and tested | knowledge/graph.js: he/en extraction, PageRank, paths, provenance · tests/ml · e2e |
 | §13 Personalization | Learn preferences (review queue), feedback adaptation, inspect and correct | Implemented and tested | brain/learning.js |
 | §13 Personalization | Never change permissions, financial rules or security silently | Implemented and tested | learning only touches personality, on user click |
 | §14 Multimodal | Text, voice (browser/phone), images (vision), documents (text formats), structured data (CSV stats) | Implemented and tested | /api/input · brain/multimodal.js |
@@ -59,11 +59,16 @@ Generated 2026-11-04 by `npm run brain:report`.
 | §20 Devices | Native watch apps | Blocked by external dependency | source in apps/; needs Xcode / Android SDK to build |
 | §21 Conversation | Follow-ups, pronouns, corrections, clarifications, language switching, honest small talk | Implemented and tested | intent.js, analyze.js |
 | §22 Proactive | Event-driven suggestions, watchers, quiet hours, priorities | Implemented and tested | proactive/engine.js, brain/watchers.js, notify |
-| §23 Stack | NestJS / PostgreSQL / Prisma / Redis / queues | Unsupported | kept the tested modular Node + JSON store (see EVOLUTION.md §5) |
+| §23 Stack | Dedicated database: SQLite with migrations, typed views, WAL, backups, integrity checks, read-only SQL console | Implemented and tested | db/sqlite.js · tests/ml |
+| §23 Stack | NestJS / PostgreSQL / Prisma / Redis / queues | Unsupported | modular Node services + SQLite (no external database server needed) |
 | §24 Entities | Typed collections for providers, agents, capabilities, memory, missions, executions, approvals, evidence, evaluations, usage, audit | Implemented and tested | see docs/BRAIN.md entity map |
 | §25 API & events | Versioned API /api/v1/brain and typed event contracts v1 | Implemented and tested | api/routes.js · brain/events.js · tests/brain2 |
 | §26 Security | Prompt-injection, permission, duplicate, tool-isolation tests | Implemented and tested | tests/*, eval suite |
-| §26 Security | Load tests | Planned |  |
+| §26 Security | Load tests | Implemented and tested | scripts/load-test.mjs (npm run load:test): ~2,000 req/s, p95 ≈ 18 ms in-memory |
+| §ML | Neural network library (MLP, Adam, dropout, early stopping) and Hebrew/English hashed text features | Implemented and tested | ml/nn.js, ml/features.js · tests/ml (XOR gradient check) |
+| §ML | Neural intent router: on-device training, held-out metrics, calibration, routing precision; activated only via sandbox experiment + approval | Implemented and tested | ml/intent-model.js, ml.routing target · tests/ml · e2e |
+| §ML | Naive Bayes categorization (suggestions only), Holt forecasts with intervals, MAD anomalies, k-means++ clustering | Implemented and tested | ml/algorithms.js, ml/service.js · tests/ml |
+| §ML | Signed model registry with champion/challenger promotion | Implemented and tested | ml/service.js · tests/ml |
 | §L Learning | Performance monitoring with daily history and filters (channel, agent, tool, dates) | Implemented and tested | learn/engine.js performance/snapshot · tests/learning |
 | §L Learning | Error analysis: the spec's 13 failure classes mapped to components, logs and evidence, ranked solutions with risk, "insufficient evidence" when unsupported | Implemented and tested | learn/classify.js, engine.hypothesis · tests/learning AC1-2 |
 | §L Learning | Development Lab: isolated branches, static analysis, dependency and secret scans, signed artifacts, unit/security/performance tests, owner-approved install | Implemented and tested | learn/devlab.js, isolate.js, sign.js · tests/learning · e2e |
