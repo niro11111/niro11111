@@ -8,7 +8,10 @@ import helmet from "@fastify/helmet";
 import rateLimit from "@fastify/rate-limit";
 import compress from "@fastify/compress";
 import fastifyStatic from "@fastify/static";
+import crypto from "node:crypto";
 import { hashPassword, verifyPassword, DUMMY_HASH, newToken, sha256, randomId, escapeHtml, inlineScriptHashes } from "./security.js";
+import { createEmitter } from "./events.js";
+import { createAi, AiRequest, aiErrorResponse } from "./ai.js";
 
 const COOKIE = "cca_sid";
 const DAY = 86400000;
@@ -27,7 +30,7 @@ const schemas = {
   cert: z.object({ name: Name.min(1), score: z.number().int().min(0).max(100) }).strict()
 };
 
-export async function buildApp({ config, db, logger }) {
+export async function buildApp({ config, db, logger, emitter, ai }) {
   const app = Fastify({
     logger: logger ?? { level: config.LOG_LEVEL, redact: ["req.headers.cookie", "req.headers.authorization", 'res.headers["set-cookie"]'] },
     trustProxy: config.TRUST_PROXY,
@@ -67,6 +70,14 @@ export async function buildApp({ config, db, logger }) {
       (SELECT COUNT(*) FROM sessions WHERE expires_at > ?) AS activeSessions`)
   };
   const log = (userId, type, req) => q.event.run(userId, type, req.ip || "", Date.now());
+  const events = emitter ?? createEmitter({ url: config.WEBHOOK_URL, secret: config.WEBHOOK_SECRET, log: app.log });
+  const gateway = ai === undefined ? createAi(config) : ai;
+  const publicUrl = path => (config.PUBLIC_URL ? config.PUBLIC_URL.replace(/\/$/, "") : "") + path;
+  q.aiUsage = db.prepare("SELECT requests, input_tokens, output_tokens FROM ai_usage WHERE user_id = ? AND day = ?");
+  q.aiCount = db.prepare("INSERT INTO ai_usage (user_id, day, requests) VALUES (?, ?, 1) ON CONFLICT(user_id, day) DO UPDATE SET requests = requests + 1");
+  q.aiTokens = db.prepare("UPDATE ai_usage SET input_tokens = input_tokens + ?, output_tokens = output_tokens + ? WHERE user_id = ? AND day = ?");
+  q.recentCerts = db.prepare("SELECT c.id, c.name, c.score, c.chapters, c.issued_at FROM certificates c WHERE c.issued_at > ? ORDER BY c.issued_at DESC LIMIT ?");
+  const doneCount = data => { try { return Object.keys((JSON.parse(data).state || {}).done || {}).length; } catch { return 0; } };
 
   // ---------- plugins ----------
   const indexFile = path.join(config.SITE_DIR, "index.html");
@@ -153,6 +164,7 @@ export async function buildApp({ config, db, logger }) {
     const info = q.insertUser.run(b.email, b.name, hash, Date.now());
     const id = Number(info.lastInsertRowid);
     setSession(reply, id, req); q.setLogin.run(Date.now(), id); log(id, "register", req);
+    events.emit("user.registered", { user_id: id, name: b.name, ...(config.WEBHOOK_INCLUDE_PII ? { email: b.email } : {}) });
     return reply.code(201).send({ user: publicUser({ id, email: b.email, name: b.name }) });
   });
 
@@ -174,7 +186,7 @@ export async function buildApp({ config, db, logger }) {
     return { ok: true };
   });
 
-  app.get("/api/me", async req => ({ user: req.user ? publicUser(req.user) : null, server: { version: 1 } }));
+  app.get("/api/me", async req => ({ user: req.user ? publicUser(req.user) : null, server: { version: 2, ai: !!gateway } }));
 
   app.patch("/api/me", { preHandler: auth }, async (req, reply) => {
     const b = parse(schemas.profile, req.body, reply); if (!b) return;
@@ -209,7 +221,8 @@ export async function buildApp({ config, db, logger }) {
   app.delete("/api/me", { preHandler: auth, ...authLimit }, async (req, reply) => {
     const b = parse(schemas.remove, req.body, reply); if (!b) return;
     if (!(await verifyPassword(b.password, q.passHash.get(req.user.id).pass_hash))) return reply.code(401).send({ error: "bad_credentials", message: "הסיסמה שגויה." });
-    q.deleteUser.run(req.user.id);   // sessions, progress, certificate and events cascade
+    q.deleteUser.run(req.user.id);   // sessions, progress, certificate, AI usage and events cascade
+    events.emit("user.deleted", { user_id: req.user.id });
     reply.clearCookie(COOKIE, { path: "/" });
     return { ok: true };
   });
@@ -231,6 +244,10 @@ export async function buildApp({ config, db, logger }) {
       return reply.code(409).send({ error: "conflict", current: { at: cur.at, dev: cur.dev, data: cur.data } });
     }
     q.upsertProgress.run(req.user.id, b.at, b.dev, b.data, Date.now());
+    // milestones for automations (e.g. a Make scenario that sends a congratulation email)
+    const before = cur ? doneCount(cur.data) : 0, after = doneCount(b.data);
+    const crossed = [10, 25, 50].filter(m => before < m && after >= m);
+    if (crossed.length) events.emit("progress.milestone", { user_id: req.user.id, chapters: after, milestone: crossed[crossed.length - 1] });
     return { ok: true, at: b.at };
   });
 
@@ -245,6 +262,7 @@ export async function buildApp({ config, db, logger }) {
     const existing = q.certOf.get(req.user.id);
     if (existing) q.updateCert.run(b.name, b.score, chapters, req.user.id);
     else q.insertCert.run(randomId(12), req.user.id, b.name, b.score, chapters, Date.now());
+    if (!existing) { const c0 = q.certOf.get(req.user.id); events.emit("certificate.issued", { user_id: req.user.id, certificate_id: c0.id, name: c0.name, score: c0.score, chapters: c0.chapters, verify_url: publicUrl("/verify/" + c0.id) }); }
     const c = q.certOf.get(req.user.id);
     log(req.user.id, "certificate", req);
     return reply.code(existing ? 200 : 201).send({ certificate: c, url: "/verify/" + c.id });
@@ -265,6 +283,60 @@ export async function buildApp({ config, db, logger }) {
     return `<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>אימות תעודה · אקדמיית Claude Code</title><meta name="robots" content="noindex"><style>body{font-family:system-ui,sans-serif;background:#f6f4ef;color:#1c1b19;display:grid;place-items:center;min-height:100vh;margin:0;padding:16px}main{background:#fff;border:2px solid #1c1b19;border-radius:6px;padding:32px 24px;max-width:480px;width:100%;text-align:center}h1{font-size:1.4rem;margin:.2em 0}.ok{color:#16794a;font-weight:800}.bad{color:#b4231f;font-weight:800}.nm{font-size:1.8rem;font-weight:800;margin:.3em 0}a{color:#0d7568}@media(prefers-color-scheme:dark){body{background:#15171a;color:#eee}main{background:#1f2226;border-color:#eee}.ok{color:#4fd28e}.bad{color:#ff7b7b}a{color:#3cc8b0}}</style></head><body><main>${c
       ? `<p class="ok">✓ תעודה מאומתת</p><h1>אקדמיית Claude Code · תעודת סיום</h1><div class="nm">${escapeHtml(c.name)}</div><p>ציון במבחן הגמר: <b>${c.score}</b> · פרקים שהושלמו: <b>${c.chapters}</b></p><p>הונפקה ב-${escapeHtml(date)}</p><p><small>מזהה: ${escapeHtml(c.id)}</small></p>`
       : `<p class="bad">✗ לא נמצאה תעודה עם המזהה הזה</p><h1>אקדמיית Claude Code</h1>`}<p><a href="/">לאקדמיה</a></p></main></body></html>`;
+  });
+
+  // ---------- AI gateway ----------
+  app.post("/api/ai", { preHandler: auth, config: { rateLimit: { max: 30, timeWindow: "1 minute" } } }, async (req, reply) => {
+    if (!gateway) return reply.code(404).send({ error: "ai_disabled", message: "ה-AI לא מופעל בשרת הזה." });
+    const r = AiRequest.safeParse(req.body ?? {});
+    if (!r.success) return reply.code(400).send({ error: "invalid", message: r.error.issues[0].message, field: r.error.issues[0].path.join(".") });
+    const day = new Date().toISOString().slice(0, 10);
+    const used = q.aiUsage.get(req.user.id, day);
+    if (config.AI_DAILY_REQUESTS && used && used.requests >= config.AI_DAILY_REQUESTS) {
+      return reply.code(429).send({ error: "quota", message: "הגעתם למכסת ה-AI היומית (" + config.AI_DAILY_REQUESTS + " בקשות). היא מתאפסת בחצות UTC." });
+    }
+    q.aiCount.run(req.user.id, day);
+    reply.hijack();
+    const raw = reply.raw, ctl = new AbortController();
+    let started = false, done = false;
+    req.raw.on("close", () => { if (!done) ctl.abort(); });
+    const start = () => { if (started) return; started = true; raw.writeHead(200, { "content-type": "text/event-stream; charset=utf-8", "cache-control": "no-cache, no-transform", "x-accel-buffering": "no", "x-content-type-options": "nosniff", "x-cca-server": "1" }); };
+    const send = obj => raw.write("data: " + JSON.stringify(obj) + "\n\n");
+    try {
+      const s = gateway.stream(r.data, ctl.signal);
+      for await (const ev of s) { start(); send(ev); }
+      const final = await s.finalMessage();
+      start(); send({ type: "final", message: final });
+      q.aiTokens.run(final.usage?.input_tokens || 0, final.usage?.output_tokens || 0, req.user.id, day);
+    } catch (err) {
+      if (ctl.signal.aborted) { done = true; return raw.end(); }
+      const [status, code, message] = aiErrorResponse(err);
+      req.log.warn({ code, status: err.status }, "ai request failed");
+      if (!started) { raw.writeHead(status, { "content-type": "application/json; charset=utf-8", "x-cca-server": "1" }); raw.end(JSON.stringify({ error: code, message })); done = true; return; }
+      send({ type: "error", error: code, message });
+    }
+    done = true; raw.end();
+  });
+
+  app.get("/api/ai/usage", { preHandler: auth }, async req => {
+    const u = q.aiUsage.get(req.user.id, new Date().toISOString().slice(0, 10)) || { requests: 0, input_tokens: 0, output_tokens: 0 };
+    return { enabled: !!gateway, limit: config.AI_DAILY_REQUESTS, ...u };
+  });
+
+  // ---------- integrations: read-only API for Make / Zapier / n8n (Bearer token) ----------
+  const integration = async (req, reply) => {
+    const token = config.INTEGRATION_TOKEN;
+    if (!token) return reply.code(404).send({ error: "not_found", message: "לא נמצא." });
+    const got = String(req.headers.authorization || "").replace(/^Bearer\s+/i, "");
+    const a = Buffer.from(sha256(got)), b2 = Buffer.from(sha256(token));
+    if (!got || !crypto.timingSafeEqual(a, b2)) return reply.code(401).send({ error: "unauthorized", message: "טוקן אינטגרציה שגוי." });
+  };
+  app.get("/api/integrations/stats", { preHandler: integration }, async () => ({ ...q.stats.get(Date.now() - 7 * DAY, Date.now()), at: new Date().toISOString() }));
+  app.get("/api/integrations/certificates", { preHandler: integration }, async (req, reply) => {
+    const since = Date.parse(String(req.query.since || "1970-01-01"));
+    const limit = Math.min(200, Math.max(1, parseInt(req.query.limit, 10) || 50));
+    if (Number.isNaN(since)) return reply.code(400).send({ error: "invalid", message: "since must be an ISO date" });
+    return { certificates: q.recentCerts.all(since, limit).map(c => ({ ...c, issued_at: new Date(c.issued_at).toISOString(), verify_url: publicUrl("/verify/" + c.id) })) };
   });
 
   // ---------- admin ----------
@@ -299,6 +371,6 @@ export async function buildApp({ config, db, logger }) {
   // housekeeping: drop expired sessions now and every hour
   q.purgeSessions.run(Date.now());
   const t = setInterval(() => q.purgeSessions.run(Date.now()), 3600000); t.unref();
-  app.addHook("onClose", async () => clearInterval(t));
+  app.addHook("onClose", async () => { clearInterval(t); await events.flush(); });
   return app;
 }

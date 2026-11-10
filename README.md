@@ -79,6 +79,16 @@ docker compose up -d --build    # או: fly launch --no-deploy && fly volumes cr
 | ניהול | ‏`/api/admin/stats` למיילים שב-`ADMIN_EMAILS` בלבד |
 | Docker | ‏multi-stage, משתמש לא-root, ‏HEALTHCHECK, ‏volume לנתונים. ‏compose מריץ את הקונטיינר read-only עם `no-new-privileges` |
 
+### AI בשרת שלכם
+
+כשמגדירים `ANTHROPIC_API_KEY` ו-`AI_MODEL`, המורה ה-AI וכל יכולות ה-AI (שיפור פרומפטים, שאלות חדשות, אבחון שגיאות ו-`ai review` בטרמינל הקוד) עובדים גם בשרת שלכם, ולא רק ב-claude.ai. השרת קורא ל-Claude API דרך ה-SDK הרשמי עם streaming. המפתח לא מגיע לדפדפן, לכל משתמש יש מכסה יומית ותקרת טוקנים, והשימוש נשמר במסד. כשיש בקשה עם כלים, הדפדפן מריץ את הכלים (למשל קריאת הקבצים שהעליתם) ושולח את התוצאות חזרה. בלי מפתח, ה-AI פשוט מוסתר.
+
+### אוטומציה עם Make (או Zapier ו-n8n)
+
+- **אירועים יוצאים**: ‏`WEBHOOK_URL` מקבל `user.registered`, ‏`progress.milestone`, ‏`certificate.issued` ו-`user.deleted`, עם חתימת HMAC ב-`x-cca-signature`. השליחה ברקע עם retries, ולא מעכבת אף בקשה. אימייל נשלח רק עם `WEBHOOK_INCLUDE_PII=true`.
+- **API לקריאה**: ‏`/api/integrations/stats` ו-`/api/integrations/certificates?since=` עם `Authorization: Bearer $INTEGRATION_TOKEN`.
+- בפרק "Make.com עם Claude ו-Claude Code" יש מחוללים מוכנים ושישה תרחישים מלאים.
+
 ### API
 
 | שיטה | נתיב | |
@@ -91,6 +101,8 @@ docker compose up -d --build    # או: fly launch --no-deploy && fly volumes cr
 | GET · PUT | `/api/progress` | סנכרון התקדמות |
 | POST · GET | `/api/certificates` · `/api/certificates/:id` | הנפקה ואימות |
 | GET | `/verify/:id` · `/healthz` · `/readyz` · `/api/admin/stats` | דף אימות, בריאות, סטטיסטיקה |
+| POST · GET | `/api/ai` · `/api/ai/usage` | שער ה-AI (SSE) ושימוש היומי |
+| GET | `/api/integrations/stats` · `/api/integrations/certificates` | ל-Make, עם Bearer token |
 
 כל בקשה שמשנה משהו צריכה את הכותרת `x-cca: 1` ו-JSON.
 
@@ -98,9 +110,11 @@ docker compose up -d --build    # או: fly launch --no-deploy && fly volumes cr
 
 **הכול בפקודה אחת:** `tests/run-all.sh` (בונה ומריץ את כל הבדיקות).
 
-- `node tests/e2e-complete-course.js` – משלים את כל 63 הפרקים בדרך האמיתית של כל אחד (בחנים, אתגרים, פרויקטים, תרחישים, ספידראן ומבחן גמר) ובודק 100%, תעודה, ושכל 57 פקודות הסימולטור עונות.
-- `cd server && npm test` – ‏28 בדיקות API: חשבונות, ‏CSRF, הגבלות קצב ונעילה, הפרדה בין משתמשים, 409 בסנכרון, תעודות כולל XSS, ייצוא ומחיקה, ‏path traversal, גיבוי ודחיסה.
+- `node tests/e2e-complete-course.js` – משלים את כל 64 הפרקים בדרך האמיתית של כל אחד (בחנים, אתגרים, פרויקטים, תרחישים, ספידראן ומבחן גמר) ובודק 100%, תעודה, ושכל 57 פקודות הסימולטור עונות.
+- `cd server && npm test` – ‏39 בדיקות API (כולל webhooks חתומים עם retries, ‏API האינטגרציה ושער ה-AI מול Claude API מדומה): חשבונות, ‏CSRF, הגבלות קצב ונעילה, הפרדה בין משתמשים, 409 בסנכרון, תעודות כולל XSS, ייצוא ומחיקה, ‏path traversal, גיבוי ודחיסה.
 - `node tests/e2e-fullstack.js` – השרת האמיתי עם מסד זמני ושני דפדפנים כשני מכשירים: הרשמה, סנכרון בין מכשירים, שינויים בו-זמניים, תעודה ודף אימות, ייצוא, מחשב משותף, מחיקת חשבון, ובלי הפרות CSP.
+- `node tests/e2e-ai-gateway.js` – השרת עם Claude API מדומה ודפדפן אמיתי: המורה, שאלות AI כ-JSON, ו-`ai review` עם לולאת כלים מלאה.
+- `node tests/e2e-make.js` – פרק Make: כל המחוללים, וה-Hook שנוצר רץ באמת מול שרת שמחקה webhook של Make.
 - `node tests/contrast.js` – ניגודיות WCAG ‏(4.5:1) בכל 7 הערכות, במצב בהיר וכהה.
 - `node tests/audit-buttons.js` – לוחץ על כל כפתור בכל פרק ומדווח על כפתורים בלי השפעה ועל שגיאות.
 - `node tests/e2e-toolbox.js [dir]` – חבילת הפקודות (שומר את סקריפט ההתקנה ב-dir/packtest), בונה הפרומפטים, הגלריה, מחולל הפרוטוטייפים וערכות העיצוב.

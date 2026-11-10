@@ -27,6 +27,7 @@ jobs:
           npm install --no-save playwright@1
           npx playwright install --with-deps chromium
           node tests/e2e-fullstack.js | tee out.txt
+          node tests/e2e-ai-gateway.js | tee -a out.txt
           ! grep -q '^FAIL' out.txt
   docker:
     runs-on: ubuntu-latest

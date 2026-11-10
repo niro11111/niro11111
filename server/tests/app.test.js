@@ -34,6 +34,10 @@ describe("config and crypto", () => {
     expect(loadConfig({}).TRUST_PROXY).toBe(false);
     expect(loadConfig({ TRUST_PROXY: "true" }).TRUST_PROXY).toBe(true);
     expect(loadConfig({ NODE_ENV: "production" }).cookieSecure).toBe(true);
+    // .env.example copied as-is: every empty value is "not set", and the server starts
+    const ex = Object.fromEntries(fs.readFileSync(new URL("../../.env.example", import.meta.url), "utf8").split("\n").filter(l => /^[A-Z_]+=/.test(l)).map(l => [l.split("=")[0], l.slice(l.indexOf("=") + 1)]));
+    const c = loadConfig(ex);
+    expect(c.PUBLIC_URL).toBeUndefined(); expect(c.WEBHOOK_URL).toBeUndefined(); expect(c.AI_MODEL).toBeUndefined();
   });
   it("hashes passwords with a salt and verifies them", async () => {
     const a = await hashPassword("secret password 1"), b = await hashPassword("secret password 1");
@@ -44,8 +48,8 @@ describe("config and crypto", () => {
     expect(await verifyPassword("x", "garbage")).toBe(false);
   });
   it("migrations are idempotent", () => {
-    expect(migrate(db)).toBe(1);
-    expect(migrate(db)).toBe(1);
+    expect(migrate(db)).toBe(2);
+    expect(migrate(db)).toBe(2);
   });
   it("computes CSP hashes for inline scripts only", () => {
     expect(inlineScriptHashes('<script>a</script><script src="x.js"></script>')).toHaveLength(1);

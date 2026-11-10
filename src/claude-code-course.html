@@ -1870,6 +1870,101 @@ export OTEL_RESOURCE_ATTRIBUTES="team=payments,department=rnd"</pre></div>
   <div class="note warn"><b>לפני שמשתמשים</b>כתובות שרתי MCP משתנות. אמתו כל כתובת בתיעוד הרשמי של הכלי, והעדיפו משתמשים והרשאות לקריאה בלבד במסדי נתונים ובענן.</div>
 </section>
 
+<section class="mod" id="make" data-level="אינטגרציות ופרויקטים" data-title="Make.com עם Claude ו-Claude Code">
+  <div class="eyebrow"></div>
+  <h1>Make.com עם Claude ו-Claude Code: המדריך המלא</h1>
+  <p class="lead">‏Claude Code כותב ומריץ קוד. ‏Make מחבר אפליקציות בלי קוד: Gmail, ‏Slack, ‏Sheets, ‏CRM ועוד. יחד מקבלים סוכן שגם בונה וגם פועל בעולם האמיתי. הפרק מסביר את המושגים, שש דרכים לחבר ביניהם, שישה תרחישים מלאים, ומחוללים שמייצרים את ההגדרות. כל שם, כתובת ומספר כאן נבדקו מול התיעוד הרשמי של Make בנובמבר 2026.</p>
+
+  <h2>1. המושגים של Make בחמש דקות</h2>
+  <div class="tricks" id="mkConcepts"></div>
+
+  <h2>2. שש דרכים לחבר Make ל-Claude</h2>
+  <div class="tabs" id="mkWays"></div>
+  <div id="mkWay"></div>
+
+  <h2>3. מחוללים</h2>
+  <div class="tabs" data-tabs="mkgen"><button class="on" type="button">Claude Code ← Make (Hook)</button><button type="button">Make ← Claude Code (MCP)</button><button type="button">הרצת תרחיש מה-API</button><button type="button">שרת האקדמיה ← Make</button></div>
+
+  <div class="pane on" data-pane="mkgen">
+    <p>‏Hook ששולח ל-Make אירוע בכל פעם ש-Claude Code מסיים משימה או מחכה לכם. ב-Make, תרחיש עם <b>Webhooks ‏&gt; Custom webhook</b> מקבל את האירוע ושולח הלאה: Slack, מייל, שורה ב-Sheets.</p>
+    <div class="grid2"><div class="form">
+      <b>אירועים</b><div class="chk" id="mhEvents"><label><input type="checkbox" value="Stop" checked>Stop (סיים)</label><label><input type="checkbox" value="Notification" checked>Notification (מחכה לכם)</label><label><input type="checkbox" value="SubagentStop">SubagentStop</label></div>
+      <label class="tick"><input type="checkbox" id="mhGit" checked> לצרף ענף git ושינויים אחרונים</label>
+      <label>טיימאאוט (שניות)<input type="number" id="mhTimeout" min="1" max="30" value="5"></label>
+    </div><div>
+      <div class="code" data-lang="bash" data-file=".claude/hooks/notify-make.sh" id="mhScript"><pre></pre></div>
+      <div class="code" data-lang="json" data-file=".claude/settings.json" id="mhSettings"><pre></pre></div>
+      <div class="code" data-lang="json" data-file=".claude/settings.local.json (לא ל-git)" id="mhLocal"><pre></pre></div>
+      <p class="hint">כתובת ה-webhook היא סוד: כל מי שמחזיק בה יכול להפעיל את התרחיש. היא נשמרת ב-<code>settings.local.json</code>, שלא נכנס ל-git. הסקריפט תמיד יוצא עם קוד 0 ומוגבל בזמן, כך ש-Make איטי לא יעכב את Claude.</p>
+    </div></div>
+  </div>
+
+  <div class="pane" data-pane="mkgen">
+    <p>‏Claude Code מפעיל תרחישים של Make ככלים. כל תרחיש <b>פעיל</b>, עם תזמון <b>On demand</b>, עם inputs ו-outputs מוגדרים, ועם תיאור, נהיה כלי ש-Claude יכול לקרוא לו.</p>
+    <div class="grid2"><div class="form">
+      <label>לקוח<select id="mmClient"><option value="cc">Claude Code (OAuth, מומלץ)</option><option value="cckey">Claude Code (מפתח API ב-header)</option><option value="ai">claude.ai ו-Claude Desktop</option></select></label>
+      <label id="mmZoneL">אזור (zone)<select id="mmZone"><option>eu1.make.com</option><option>eu2.make.com</option><option>us1.make.com</option><option>us2.make.com</option></select></label>
+      <label>היקף<select id="mmScope"><option value="project">פרויקט (.mcp.json, לכל הצוות)</option><option value="local" selected>אישי לפרויקט הזה</option><option value="user">אישי לכל הפרויקטים</option></select></label>
+    </div><div>
+      <div class="code" data-lang="bash" id="mmOut"><pre></pre></div>
+      <div id="mmSteps"></div>
+    </div></div>
+  </div>
+
+  <div class="pane" data-pane="mkgen">
+    <p>מפעילים תרחיש מכל סקריפט, מ-CI או מ-Claude Code עם <code class="ltr">POST /scenarios/{id}/run</code>. התרחיש חייב להיות פעיל. עם <code>responsive: true</code> הקריאה מחכה עד 40 שניות ומחזירה את ה-outputs.</p>
+    <div class="grid2"><div class="form">
+      <label>אזור<select id="mrZone"><option>eu1.make.com</option><option>eu2.make.com</option><option>us1.make.com</option><option>us2.make.com</option></select></label>
+      <label>מזהה התרחיש<input type="text" id="mrId" class="ltr" value="123456" inputmode="numeric"></label>
+      <label>inputs (JSON)<textarea id="mrData" class="ltr" rows="3">{"email": "dana@example.com", "plan": "pro"}</textarea></label>
+      <label class="tick"><input type="checkbox" id="mrResp" checked> לחכות לתוצאה (responsive)</label>
+      <p class="acErr" id="mrErr" role="alert"></p>
+    </div><div>
+      <div class="tabs" data-tabs="mr"><button class="on" type="button">curl</button><button type="button">Node.js</button><button type="button">פקודה ל-Claude Code</button></div>
+      <div class="pane on" data-pane="mr"><div class="code" data-lang="bash" id="mrCurl"><pre></pre></div></div>
+      <div class="pane" data-pane="mr"><div class="code" data-lang="text" data-file="run-make.mjs" id="mrNode"><pre></pre></div></div>
+      <div class="pane" data-pane="mr"><div class="code" data-lang="markdown" data-file=".claude/commands/make-run.md" id="mrCmd"><pre></pre></div></div>
+      <p class="hint">הטוקן: ב-Make, ‏Profile ‏← API access ‏← ‎+ API token, עם ה-scope ‏<code>scenarios:run</code>. מגבלות קצב ה-API לפי תוכנית: Core ‏60, ‏Pro ‏120, ‏Teams ‏240 ו-Enterprise ‏1,000 בקשות לדקה, אבל נקודת הקצה של הרצת תרחיש פטורה מהן.</p>
+    </div></div>
+  </div>
+
+  <div class="pane" data-pane="mkgen">
+    <p>לשרת של האקדמיה יש חיבור מובנה: הוא שולח ל-Make אירועים חתומים, ו-Make יכול לקרוא ממנו נתונים עם טוקן.</p>
+    <div class="grid2"><div class="form">
+      <label>כתובת ה-Custom webhook מ-Make<input type="url" id="msHook" class="ltr" placeholder="https://hook.eu1.make.com/..."></label>
+      <label class="tick"><input type="checkbox" id="msPii"> לכלול את אימייל המשתמש באירועים (רק אם צריך, למשל למייל ברכה)</label>
+      <button class="btn sm" type="button" id="msGen">יצירת סודות חדשים</button>
+    </div><div>
+      <div class="code" data-lang="bash" data-file=".env (בשרת)" id="msEnv"><pre></pre></div>
+      <div class="code" data-lang="json" data-file="אירוע לדוגמה (גוף הבקשה)" id="msEvent"><pre></pre></div>
+      <div class="code" data-lang="bash" data-file="Make: ‏HTTP ← academy" id="msHttp"><pre></pre></div>
+    </div></div>
+    <table><thead><tr><th scope="col">אירוע</th><th scope="col">מתי</th><th scope="col">שדות</th></tr></thead><tbody>
+      <tr><td><code>user.registered</code></td><td>משתמש חדש נרשם</td><td><code>user_id</code>, ‏<code>name</code> (ו-<code>email</code> רק עם WEBHOOK_INCLUDE_PII)</td></tr>
+      <tr><td><code>progress.milestone</code></td><td>עברו 10, ‏25 או 50 פרקים</td><td><code>user_id</code>, ‏<code>chapters</code>, ‏<code>milestone</code></td></tr>
+      <tr><td><code>certificate.issued</code></td><td>הונפקה תעודה</td><td><code>certificate_id</code>, ‏<code>name</code>, ‏<code>score</code>, ‏<code>verify_url</code></td></tr>
+      <tr><td><code>user.deleted</code></td><td>חשבון נמחק</td><td><code>user_id</code></td></tr>
+    </tbody></table>
+  </div>
+
+  <h2>4. שישה תרחישים מלאים</h2>
+  <div class="tabs" id="mkRecipes"></div>
+  <div id="mkRecipe"></div>
+
+  <h2>5. כללים לעבודה מקצועית עם Make</h2>
+  <ol>
+    <li><b>תיאור טוב לכל תרחיש-כלי</b>: ‏Claude בוחר כלי לפי התיאור. כתבו מה התרחיש עושה, מתי להשתמש בו ומה הוא מחזיר.</li>
+    <li><b>הרשאות מינימליות</b>: חברו ל-Claude רק את מה שצריך. ‏<b>MCP toolboxes</b> מגבילים אילו תרחישים חשופים, ו-OAuth מאפשר לבחור ארגון אחד.</li>
+    <li><b>‏Webhook response בסוף התרחיש</b>: אם הוא באמצע ומודול אחריו נכשל, התרחיש לא יושבת ולא תקבלו התראה, וזה עלול לבזבז קרדיטים.</li>
+    <li><b>טיפול בשגיאות</b>: ‏Retry לשירותים שנופלים לרגע (שומר incomplete executions), ‏Resume עם ערך חלופי, ‏Skip לפריט בעייתי, ו-Commit או Rollback לעצירה.</li>
+    <li><b>סדר וקצב</b>: אם סדר הבקשות חשוב, מפעילים <b>Process data in order</b>. מגבלת הקצב של תרחיש היא 100 כברירת מחדל, והתור של כל webhook מוגבל (667 פריטים לכל 10,000 קרדיטים בחודש, ועד 10,000).</li>
+    <li><b>סודות לא בתרחיש</b>: מפתחות נשמרים ב-connections של Make, לא בטקסט של מודול. כתובות webhook מתייחסים אליהן כמו לסיסמה.</li>
+    <li><b>גיבוי וגרסאות</b>: מייצאים blueprint (קובץ JSON) לפני שינוי גדול. ה-connections לא נכללים בו, ולכן אפשר לשתף אותו.</li>
+    <li><b>עלות</b>: באפליקציות רגילות כל operation הוא קרדיט אחד. ב-Simple Text Prompt הקרדיטים לפי טוקנים. עם מפתח API משלכם, Make גובה לפי operations, ואת הטוקנים משלמים ישירות ל-Anthropic.</li>
+  </ol>
+  <div class="quiz" data-q="make"></div>
+</section>
+
 <section class="mod" id="buildalong" data-level="אינטגרציות ופרויקטים" data-title="פרויקט מלא בבנייה משותפת">
   <div class="eyebrow"></div>
   <h1>בונים יחד מקצה לקצה: "קיצור", שירות קיצור קישורים</h1>
@@ -3055,6 +3150,12 @@ const Q = {
     ["איזה קיצור אי אפשר לשנות?", ["Ctrl+G","Ctrl+C","Ctrl+S","Alt+P"], 1, "‏Ctrl+C ו-Ctrl+D שמורים, וגם מקשים שהטרמינל שולח כ-Enter, Tab ו-Escape."],
     ["איפה שמים ערכת צבעים משלכם?", ["‏~/.claude/themes/<name>.json","ב-CSS","ב-package.json","ב-git config"], 0, "קובץ עם base ו-overrides, ובוחרים אותו ב-/theme."]
   ],
+  make: [
+    ["מה צריך כדי שתרחיש של Make יהיה כלי ש-Claude יכול לקרוא לו?", ["רק לשמור אותו","תרחיש פעיל, תזמון On demand, inputs ו-outputs, ‏Return output ותיאור","להריץ אותו כל 15 דקות","לייצא blueprint"], 1, "בלי On demand ו-outputs, ‏Claude לא רואה אותו ככלי ולא מקבל תשובה."],
+    ["איך מחברים את Make ל-Claude Code?", ["npm install make","‏claude mcp add --transport http make https://mcp.make.com/claude","מעתיקים קבצים","אי אפשר"], 1, "ואז ‎/mcp למסך ההסכמה של OAuth."],
+    ["איפה שמים את כתובת ה-webhook של Make בפרויקט?", ["ב-CLAUDE.md","ב-settings.local.json, שלא נכנס ל-git","ב-README","בקוד"], 1, "הכתובת היא סוד: מי שמחזיק בה מפעיל את התרחיש."],
+    ["איזה error handler שומר incomplete executions כדי להריץ אותן שוב?", ["Skip","Retry","Resume","Commit"], 1, "‏Retry מתאים לשירות שנופל לרגע."]
+  ],
   promptpro: [
     ["מתי משתמשים בפרה-מורטם?", ["אחרי שהכול נשבר","לפני שינוי גדול, כדי לצפות כשלים מראש","אף פעם","רק בבדיקות"], 1, "מדמיינים כישלון ומונעים אותו מראש."],
     ["מה מטרת דפוס 'הגדרת גמר'?", ["לקצר את הפרומפט","למנוע מ-Claude להכריז 'סיימתי' לפני שכל התנאים נבדקו","להאט","לשנות מודל"], 1, "רשימה מפורשת עם ראיות."],
@@ -3951,6 +4052,19 @@ function mergeBundles(local, remote){
     }finally{ $("#tutorSend").disabled = false; $("#tutorStop").hidden = true; }
   }
   window.askTutor = (q) => { if(!sample) return; open(); ask(q); };
+  const AI_BTNS = ["plAi","pgAi","edAi"];
+  window.__enableTutor = s => {
+    sample = s; window.tutorSample = s; window.tutorMd = md;
+    $("#tutorFab").hidden = false; $("#chkAi").hidden = false; document.body.classList.add("has-tutor");
+    AI_BTNS.forEach(id => { const el = document.getElementById(id); if(el) el.hidden = false; });
+    if(window.__qgShowAi) window.__qgShowAi();
+  };
+  window.__disableTutor = () => {
+    sample = null; window.tutorSample = null; turns = [];
+    $("#tutor").hidden = true; $("#tutorFab").hidden = true; $("#chkAi").hidden = true; document.body.classList.remove("has-tutor");
+    AI_BTNS.forEach(id => { const el = document.getElementById(id); if(el) el.hidden = true; });
+    if(window.__qgShowAi) window.__qgShowAi();
+  };
   $("#tutorSugg").innerHTML = SUGG.map(s => '<button type="button" class="btn sm">'+esc(s)+'</button>').join("");
   $("#tutorSugg").addEventListener("click", e => { const b = e.target.closest("button"); if(b) ask(b.textContent); });
   $("#tutorFab").onclick = () => $("#tutor").hidden ? open() : ($("#tutor").hidden = true);
@@ -6677,7 +6791,7 @@ BADGES.push(["reviewer","🔍","סוקרי קוד","הרצתם ריוויו על
 // Only when the page is served by the academy server (same origin /api). On claude.ai the artifact
 // storage is used as before; as a file or on a static host nothing changes.
 (function(){
-  const S = {on:false, user:null, lastAt:0};
+  const S = {on:false, user:null, lastAt:0, ai:false};
   const api = async (method, url, body) => {
     const r = await fetch(url, {method, credentials:"same-origin", headers: Object.assign({"x-cca":"1"}, body !== undefined ? {"content-type":"application/json"} : {}), body: body !== undefined ? JSON.stringify(body) : undefined});
     let j = null; try{ j = await r.json(); }catch(e){}
@@ -6716,6 +6830,61 @@ BADGES.push(["reviewer","🔍","סוקרי קוד","הרצתם ריוויו על
   }
   function disconnect(){ SYNC.ref = null; SYNC.ready = false; setSync("☁ שמירה בדפדפן הזה בלבד · התחברו כדי לסנכרן", ""); }
 
+
+  // ---------- AI through the server's gateway: same interface as the claude.ai sample capability ----------
+  function serverSample(){
+    async function call(body, onEvent, signal){
+      const r = await fetch("/api/ai", {method:"POST", credentials:"same-origin", headers:{"x-cca":"1", "content-type":"application/json"}, body: JSON.stringify(body), signal});
+      if(!r.ok){ let j = {}; try{ j = await r.json(); }catch(e){} throw {code: r.status === 429 ? "rate_limited" : (r.status === 401 || r.status === 404) ? "not_granted" : "unavailable", message: j.message || ("HTTP " + r.status)}; }
+      const reader = r.body.getReader(), dec = new TextDecoder(); let buf = "", final = null;
+      for(;;){
+        const {value, done} = await reader.read(); if(done) break;
+        buf += dec.decode(value, {stream:true}); let i;
+        while((i = buf.indexOf("\n\n")) >= 0){
+          const chunk = buf.slice(0, i); buf = buf.slice(i + 2);
+          const line = chunk.split("\n").find(l => l.startsWith("data: ")); if(!line) continue;
+          const ev = JSON.parse(line.slice(6));
+          if(ev.type === "error") throw {code: ev.error === "rate_limited" ? "rate_limited" : "unavailable", message: ev.message};
+          if(ev.type === "final") final = ev.message; else onEvent(ev);
+        }
+      }
+      if(!final) throw {code:"unavailable", message:"התשובה נקטעה. נסו שוב."};
+      return final;
+    }
+    const textOf = m => (m.content || []).filter(b => b.type === "text").map(b => b.text).join("");
+    async function sample(input, opts = {}){
+      const messages = typeof input === "string" ? [{role:"user", content:input}] : input.map(m => ({role:m.role, content:m.content}));
+      const defs = opts.tools || [], tools = defs.map(t => ({name:t.name, description:t.description || "", input_schema:t.inputSchema || {type:"object", properties:{}}}));
+      let prior = "";
+      for(let round = 0; round < 10; round++){
+        let cur = "";
+        const final = await call({messages, ...(tools.length ? {tools} : {})}, ev => {
+          if(ev.type === "content_block_delta" && ev.delta && ev.delta.type === "text_delta"){ cur += ev.delta.text; if(opts.onText) opts.onText({text: prior + cur, delta: ev.delta.text}); }
+        }, opts.signal);
+        if(final.stop_reason === "refusal") return {text: prior + (textOf(final) || "לא אוכל לעזור בבקשה הזו."), truncated:false};
+        if(final.stop_reason !== "tool_use" || !tools.length) return {text: prior + textOf(final), truncated: final.stop_reason === "max_tokens"};
+        // run the page's tools, then send every result back in one message
+        const uses = final.content.filter(b => b.type === "tool_use");
+        const results = await Promise.all(uses.map(async u => {
+          const t = defs.find(x => x.name === u.name);
+          try{ if(!t) throw new Error("unknown tool " + u.name); const out = await t.execute(u.input || {}); return {type:"tool_result", tool_use_id:u.id, content: typeof out === "string" ? out : JSON.stringify(out)}; }
+          catch(e){ return {type:"tool_result", tool_use_id:u.id, content:String((e && e.message) || e), is_error:true}; }
+        }));
+        messages.push({role:"assistant", content: final.content}, {role:"user", content: results});   // content blocks passed back unchanged
+        if(textOf(final)) prior += textOf(final) + "\n\n";
+      }
+      throw {code:"unavailable", message:"יותר מדי סבבי כלים."};
+    }
+    sample.json = async (input, opts = {}) => {
+      const r = await sample(typeof input === "string" ? input + "\n\nReply with only valid JSON, no other text." : input, opts), t = r.text.trim();
+      const a = t.search(/[[{]/), b = Math.max(t.lastIndexOf("}"), t.lastIndexOf("]"));
+      for(const x of [t, (t.match(/```(?:json)?\s*([\s\S]*?)```/) || [])[1], a >= 0 && b > a ? t.slice(a, b + 1) : null]){ if(!x) continue; try{ return JSON.parse(x); }catch(e){} }
+      throw {code:"invalid_json", text:r.text};
+    };
+    return sample;
+  }
+  const aiOn = () => { if(S.ai && S.user && window.__enableTutor) window.__enableTutor(serverSample()); };
+  const aiOff = () => { if(S.ai && window.__disableTutor) window.__disableTutor(); };
   // ---------- account dialog ----------
   const dlg = () => document.getElementById("acct");
   function ui(){
@@ -6737,19 +6906,20 @@ BADGES.push(["reviewer","🔍","סוקרי קוד","הרצתם ריוויו על
           if(mode === "register") body.name = $("#acName").value.trim();
           const j = await api("POST", "/api/auth/" + mode, body);
           S.user = j.user; if(S.user.name && !store.get("name", "")) store.set("name", S.user.name);
-          ui(); await connect(); toast(mode === "register" ? "החשבון נוצר ✓" : "התחברתם ✓"); award("acct", 15, "חשבון מסונכרן");
+          ui(); await connect(); aiOn(); toast(mode === "register" ? "החשבון נוצר ✓" : "התחברתם ✓"); award("acct", 15, "חשבון מסונכרן");
         }catch(err){ $("#acErr").textContent = err.message || "משהו השתבש. נסו שוב."; }
         finally{ const s = $("#acSubmit"); if(s) s.disabled = false; }
       });
       return;
     }
-    box.innerHTML = '<p>מחוברים כ-<b class="ltr">' + esc(u.email) + '</b></p><p class="sync ok" id="acSync">' + esc($("#syncStatus").textContent) + '</p>' +
+    box.innerHTML = '<p>מחוברים כ-<b class="ltr">' + esc(u.email) + '</b></p><p class="sync ok" id="acSync">' + esc($("#syncStatus").textContent) + '</p>' + (S.ai ? '<p class="hint" id="acAi">🎓 המורה ה-AI פעיל בחשבון הזה</p>' : '') +
       '<form class="form" id="acNameF"><label>שם על התעודה<input type="text" id="acName2" maxlength="80" value="' + esc(u.name || "") + '"></label><button class="btn sm" type="submit">שמירה</button></form>' +
       '<details class="box"><summary><b>החלפת סיסמה</b></summary><form class="form" id="acPw"><label>סיסמה נוכחית<input type="password" id="acCur" class="ltr" autocomplete="current-password"></label><label>סיסמה חדשה (10 תווים לפחות)<input type="password" id="acNew" class="ltr" autocomplete="new-password" minlength="10"></label><button class="btn sm" type="submit">החלפה</button><p class="hint">החלפת סיסמה מנתקת את כל המכשירים האחרים.</p></form></details>' +
       '<div class="row"><button class="btn sm" type="button" id="acSyncNow">סנכרון עכשיו</button><button class="btn sm" type="button" id="acOthers">ניתוק מכשירים אחרים</button><button class="btn sm" type="button" id="acExport">הורדת כל המידע שלי</button><button class="btn sm" type="button" id="acOut">התנתקות</button></div>' +
       '<details class="box"><summary><b>מחיקת החשבון</b></summary><form class="form" id="acDel"><p>מוחק לצמיתות את החשבון, ההתקדמות בשרת והתעודה. ההתקדמות בדפדפן הזה נשארת.</p><label>הסיסמה לאישור<input type="password" id="acDelPw" class="ltr" autocomplete="current-password"></label><button class="btn sm danger" type="submit">מחיקה לצמיתות</button></form></details>' +
       '<p class="acErr" id="acErr" role="alert"></p>';
     const err = m => { $("#acErr").textContent = m; };
+    if(S.ai) api("GET", "/api/ai/usage").then(x => { const el = $("#acAi"); if(el) el.textContent = "🎓 המורה ה-AI: " + x.requests + (x.limit ? "/" + x.limit : "") + " בקשות היום"; }).catch(() => {});
     $("#acNameF").addEventListener("submit", async e => { e.preventDefault(); try{ const j = await api("PATCH", "/api/me", {name: $("#acName2").value.trim()}); S.user = j.user; store.set("name", S.user.name); ui(); toast("נשמר ✓"); }catch(x){ err(x.message); } });
     $("#acPw").addEventListener("submit", async e => { e.preventDefault(); try{ await api("POST", "/api/auth/password", {current: $("#acCur").value, next: $("#acNew").value}); toast("הסיסמה הוחלפה ✓"); ui(); }catch(x){ err(x.message); } });
     $("#acSyncNow").onclick = async () => { await pushSync(); $("#acSync").textContent = $("#syncStatus").textContent; };
@@ -6757,10 +6927,10 @@ BADGES.push(["reviewer","🔍","סוקרי קוד","הרצתם ריוויו על
     $("#acExport").onclick = async () => { try{ const j = await api("GET", "/api/me/export"); saveFile("claude-code-academy-my-data.json", JSON.stringify(j, null, 2)); }catch(x){ err(x.message); } };
     $("#acOut").onclick = async () => {
       try{ await pushSync(); await api("POST", "/api/auth/logout", {}); }catch(x){}
-      S.user = null; disconnect(); clearLocal(); try{ localStorage.removeItem("cca-owner"); }catch(e){}
+      S.user = null; disconnect(); clearLocal(); aiOff(); try{ localStorage.removeItem("cca-owner"); }catch(e){}
       ui(); toast("התנתקתם. ההתקדמות שמורה בחשבון");
     };
-    $("#acDel").addEventListener("submit", async e => { e.preventDefault(); try{ await api("DELETE", "/api/me", {password: $("#acDelPw").value}); S.user = null; disconnect(); try{ localStorage.removeItem("cca-owner"); }catch(e){} ui(); toast("החשבון נמחק"); }catch(x){ err(x.message); } });
+    $("#acDel").addEventListener("submit", async e => { e.preventDefault(); try{ await api("DELETE", "/api/me", {password: $("#acDelPw").value}); S.user = null; disconnect(); aiOff(); try{ localStorage.removeItem("cca-owner"); }catch(e){} ui(); toast("החשבון נמחק"); }catch(x){ err(x.message); } });
   }
   function open(){ const d = dlg(); d.hidden = false; ui(); setTimeout(() => { const f = d.querySelector("input,button:not(#acctClose)"); if(f) f.focus(); }, 30); }
 
@@ -6797,11 +6967,123 @@ BADGES.push(["reviewer","🔍","סוקרי קוד","הרצתם ריוויו על
     dlg().setAttribute("aria-modal", "true");
     new MutationObserver(() => { if(dlg().hidden) $("#acctBtn").focus({preventScroll:true}); }).observe(dlg(), {attributes:true, attributeFilter:["hidden"]});
     dlg().addEventListener("click", e => { if(e.target === dlg()) dlg().hidden = true; });
-    S.user = j && j.user;
-    if(S.user){ ui(); await connect(); } else { ui(); disconnect(); }
+    S.user = j && j.user; S.ai = !!(j && j.server && j.server.ai);
+    if(S.user){ ui(); await connect(); aiOn(); } else { ui(); disconnect(); }
   })();
 })();
 
+// ================= Make.com with Claude and Claude Code (facts checked against help.make.com / developers.make.com, Nov 2026) =================
+(function(){
+  const code = (lang, txt, file) => '<div class="code" data-lang="' + lang + '"' + (file ? ' data-file="' + esc(file) + '"' : '') + '><pre>' + esc(txt) + '</pre></div>';
+  const CONCEPTS = [
+    ["תרחיש (Scenario)","זרימת אוטומציה: שרשרת של מודולים שמעבירים ומעבדים נתונים בין אפליקציות."],
+    ["מודול וטריגר","כל צעד הוא מודול. הראשון הוא טריגר: <b>Instant</b> (webhook, רץ מיד כשמגיע אירוע) או polling (בודק מדי פעם אם יש חדש)."],
+    ["‏Bundles ו-operations","כל פריט מידע שעובר הוא bundle. כל ריצה של מודול היא operation."],
+    ["קרדיטים","יחידת החיוב (החליפה את המונח operations). באפליקציות רגילות, operation אחד = קרדיט אחד. במודולי AI של Make החיוב לפי טוקנים."],
+    ["‏Router, ‏Iterator ו-Aggregator","‏Router מפצל לכמה מסלולים לפי תנאים. ‏Iterator מפרק מערך לפריטים. ‏Array aggregator מאחד הרבה פריטים ל-bundle אחד."],
+    ["תזמון","‏At regular intervals (ברירת המחדל: כל 15 דקות, והמינימום לפי התוכנית), ‏Once, ‏On demand (רק מקריאת API או Run once), ו-Immediately לטריגרים מסוימים."],
+    ["‏Webhooks","‏Custom webhook יוצר כתובת שכל שירות יכול לשלוח אליה. כברירת מחדל התשובה היא 200 Accepted. כשהתור מלא חוזר 400, ובחריגה מקצב 429."],
+    ["טיפול בשגיאות","חמישה handlers: ‏Skip, ‏Retry, ‏Resume, ‏Commit ו-Rollback. ‏Retry שומר incomplete executions שאפשר להריץ שוב."],
+    ["‏Blueprints","ייצוא וייבוא של תרחיש כקובץ JSON, לגיבוי ולשיתוף. ה-connections לא נכללים, וכל משתמש מחבר את החשבונות שלו."],
+    ["‏Scenario inputs ו-outputs","מגדירים מה תרחיש מקבל ומה הוא מחזיר. זה מה שהופך אותו לכלי ש-Claude יכול לקרוא לו, דרך המודול Scenarios ‏&gt; Return output."]
+  ];
+  $("#mkConcepts").innerHTML = CONCEPTS.map(c => '<div class="trick"><h3>' + esc(c[0]) + '</h3><p>' + c[1] + '</p></div>').join("");
+
+  const WAYS = [
+    ["אפליקציית Anthropic Claude", '<p>בתוך תרחיש של Make, האפליקציה הרשמית <b>Anthropic Claude</b> מוסיפה את Claude כצעד: מסכם מייל, מסווג פנייה, מחלץ שדות מחשבונית.</p><ul><li><b>Simple Text Prompt</b>: בלי חשבון Anthropic ובלי מפתח. בוחרים מודל וכותבים פרומפט, והחיוב בקרדיטים לפי טוקנים.</li><li><b>Create a Prompt</b>: עם מפתח API משלכם, ‏Skills וקבצים. ‏Make גובה לפי operations, ואת הטוקנים משלמים ישירות ל-Anthropic.</li><li><b>Files</b> ‏(List, ‏Get, ‏Download, ‏Upload, ‏Delete), ‏<b>Skills</b> ו-<b>Skill Versions</b>, ו-<b>Make an API Call</b> לכל נקודת קצה אחרת.</li></ul><p><b>חיבור:</b> ב-Console של Anthropic יוצרים מפתח (סמל המפתח ← ‎+ Create Key). ב-Make מוסיפים מודול של Anthropic Claude ← Create a connection ← מדביקים בשדה API Key.</p><p class="hint">טיפ: הגדירו פלט JSON בפרומפט, כדי שהמודולים הבאים יוכלו למפות שדות. Claude עלול לסרב לבקשה שמפרה את מדיניות הבטיחות, וגם ריצה כזו מחויבת.</p>'],
+    ["‏Make MCP server ‏← Claude Code", '<p>‏Make מריץ שרת MCP מנוהל (Streamable HTTP). ‏Claude Code, ‏claude.ai ו-Claude Desktop מקבלים את התרחישים שלכם ככלים, ובתוכניות בתשלום גם כלי ניהול: תרחישים, ‏connections, ‏webhooks ו-data stores.</p>' + code("bash", "claude mcp add --transport http make https://mcp.make.com/claude\nclaude\n/mcp        # opens the OAuth consent: pick the organization and scopes") + '<p><b>מה צריך בתרחיש:</b> פעיל, מתוזמן <b>On demand</b>, עם scenario inputs ו-outputs, שמסתיים ב-<b>Scenarios ‏&gt; Return output</b>, ועם תיאור.</p><p><b>הרשאות:</b> ה-scope של הרצת תרחישים זמין בכל התוכניות, וה-scopes של ניהול רק בתוכניות בתשלום. לשליטה מדויקת באילו תרחישים חשופים משתמשים ב-<b>MCP toolboxes</b>.</p><p><b>בלי OAuth:</b> מפתח API עם ה-scope ‏<code>mcp:use</code>, והכתובת <code class="ltr">https://&lt;zone&gt;/mcp/v2</code> עם <code class="ltr">Authorization: Bearer</code>.</p>'],
+    ["‏claude.ai ‏(Connectors)", '<ol><li>ב-claude.ai: שם הפרופיל ← <b>Settings</b> ← <b>Connectors</b> ← <b>Browse connectors</b>.</li><li>מחפשים Make ולוחצים על הפלוס.</li><li>במסך ההסכמה בוחרים ארגון ו-scopes.</li><li>מבקשים מ-Claude בצ\'אט: "תריץ את התרחיש שמסכם את המיילים שלא נקראו".</li></ol><p class="hint">זו הדרך הקלה לאנשים שלא עובדים בטרמינל: כל תרחיש פעיל עם On demand זמין להם בשיחה.</p>'],
+    ["‏Make API ‏(הרצה מקוד)", '<p>כל סקריפט, ‏CI או פקודה של Claude Code יכולים להריץ תרחיש:</p>' + code("bash", "curl -X POST \"https://eu1.make.com/api/v2/scenarios/$SCENARIO_ID/run\" \\\n  -H \"Authorization: Token $MAKE_API_TOKEN\" \\\n  -H \"content-type: application/json\" \\\n  -d '{\"data\": {\"email\": \"dana@example.com\"}, \"responsive\": true}'") + '<ul><li>‏<code>data</code>: ה-scenario inputs.</li><li>‏<code>responsive: true</code>: מחכה עד 40 שניות ומחזיר <code>executionId</code>, סטטוס (1 הצלחה, 2 אזהרה, 3 שגיאה) ו-outputs.</li><li>‏<code>callbackUrl</code>: לריצות ארוכות.</li><li>אם הארגון חרג ממכסה, חוזר <code>429</code> עם הקוד <code>IM310</code>.</li></ul><p>המחולל "הרצת תרחיש מה-API" למטה מייצר את זה עם הערכים שלכם.</p>'],
+    ["‏Hooks של Claude Code ‏← Make", '<p>‏Hook של <code>Stop</code> או <code>Notification</code> שולח אירוע ל-Custom webhook, ו-Make מעביר אותו ל-Slack, למייל, לטלפון או לגיליון. כך יודעים כש-Claude סיים משימה ארוכה, גם כשאתם רחוקים מהמחשב. את הסקריפט מייצר המחולל "Claude Code ← Make" למטה.</p>'],
+    ["‏Make AI Agent (New)", '<p>אפליקציה של Make לבניית סוכנים בתוך תרחישים (כרגע בבטא פתוחה). מגדירים לסוכן הוראות, ידע (קבצים) וכלים. כלים יכולים להיות מודולים, תרחישים, כלים של שרתי MCP וסוכנים אחרים. ‏Anthropic Claude הוא אחד מספקי המודלים, עם connection משלכם בתוכניות בתשלום.</p><p class="hint">מתי להשתמש בזה ומתי ב-Claude Code? סוכן של Make מתאים לתהליך עסקי שרץ לבד, כמו מענה לפניות או מיון לידים. ‏Claude Code מתאים לעבודה על קוד ועל קבצים. אפשר גם לשלב: Claude Code קורא לתרחיש שיש בו סוכן.</p>']
+  ];
+  $("#mkWays").innerHTML = WAYS.map((w, i) => '<button type="button"' + (i ? "" : ' class="on"') + '>' + esc(w[0]) + '</button>').join("");
+  const way = i => { $("#mkWay").innerHTML = '<div class="box">' + WAYS[i][1] + '</div>'; $$("#mkWay .code").forEach(decorate); };
+  $("#mkWays").addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; $$("#mkWays button").forEach(x => x.classList.toggle("on", x === b)); way([...$("#mkWays").children].indexOf(b)); award("mk-ways", 5); });
+  way(0);
+
+  const RECIPES = [
+    {t:"Claude Code סיים ← הודעה לטלפון", why:"משימות ארוכות (מיגרציה, בדיקות, ‏loop.sh) רצות לבד, ואתם מקבלים הודעה כשצריך אתכם.",
+     steps:["ב-Make: תרחיש חדש עם <b>Webhooks ‏&gt; Custom webhook</b>. מעתיקים את הכתובת.","ב-Claude Code: המחולל הראשון בפרק מייצר את ה-Hook. שמים את הכתובת ב-<code>settings.local.json</code>.","מריצים את Claude פעם אחת כדי ש-Make יזהה את מבנה הנתונים.","מוסיפים מודול שליחה (Slack, מייל או Telegram), וממפים את <code>event</code>, <code>project</code> ו-<code>message</code>.","מוסיפים Router: ‏Notification ‏(Claude מחכה לאישור) הולך להודעה דחופה, ו-Stop לסיכום רגיל."],
+     claude:null},
+    {t:"Claude Code שואל את ה-CRM שלכם", why:"‏Claude שכותב קוד ללקוח רואה את הנתונים האמיתיים של הלקוח: תוכנית, תקלות פתוחות, היסטוריה. בלי לתת לו גישה ישירה ל-CRM.",
+     steps:["תרחיש עם scenario input בשם <code>email</code>.","מודול חיפוש של ה-CRM שלכם לפי האימייל, ואם יש כמה תוצאות, ‏Array aggregator.","‏<b>Scenarios ‏&gt; Return output</b> עם השדות שמותר לחשוף (לא מספרי כרטיס ולא הערות פנימיות).","תיאור: \"Look up a customer by email and return plan, status and open tickets\". תזמון On demand, ומפעילים.","ב-Claude Code: ‏<code>claude mcp add --transport http make https://mcp.make.com/claude</code>, ואז ‏<code>/mcp</code>."],
+     claude:"Use the Make tool to look up dana@example.com, then explain why the export feature fails for her plan. Don't show me any personal data beyond the plan name."},
+    {t:"Issue חדש ב-GitHub ‏← מיון אוטומטי", why:"כל Issue מקבל סיווג, עדיפות ותגיות בתוך דקה, עם הסבר.",
+     steps:["טריגר: מודול GitHub שמאזין ל-Issues חדשים (או Custom webhook מ-GitHub).","‏<b>Anthropic Claude ‏&gt; Create a Prompt</b> עם הפרומפט שלמטה ופלט JSON.","‏Parse JSON, ואז Router: ‏<code>bug</code> עם חומרה גבוהה הולך להודעה לצוות. כל השאר מקבל תגיות ותגובה.","מודול GitHub שמוסיף labels ותגובה עם ההסבר.","‏Retry error handler על המודולים של GitHub ו-Claude."],
+     claude:"Classify this GitHub issue. Reply with only JSON: {\"type\": \"bug|feature|question|docs\", \"severity\": \"low|medium|high\", \"labels\": [..], \"summary_he\": \"one sentence in Hebrew\", \"needs_repro\": true|false}.\n\nTitle: {{title}}\nBody: {{body}}"},
+    {t:"דוח בוקר על האקדמיה", why:"מנהלי הקורס מקבלים כל בוקר מספרים ותובנות, בלי לפתוח מסך ניהול.",
+     steps:["תזמון: כל יום ב-8:00.","‏<b>HTTP</b> אל <code>/api/integrations/stats</code> ו-<code>/api/integrations/certificates?since=</code> עם <code>Authorization: Bearer</code> (המחולל הרביעי).","‏<b>Anthropic Claude ‏&gt; Simple Text Prompt</b> שכותב סיכום בעברית.","שליחה במייל או ב-Slack, ושורה בגיליון להיסטוריה."],
+     claude:"Write a 5-line morning report in Hebrew for the course team from this data. Highlight changes worth acting on, not just numbers.\n\n{{stats}}\n{{certificates}}"},
+    {t:"תעודה הונפקה ← ברכה ופוסט מוכן", why:"כל מי שסיים מקבל מייל ברכה עם קישור האימות וטיוטה לפוסט בלינקדאין.",
+     steps:["‏Custom webhook שמקבל אירועים מהשרת (המחולל הרביעי), ‏<code>WEBHOOK_INCLUDE_PII=true</code> כדי שיגיע אימייל.","‏Filter: ‏<code>type = certificate.issued</code>.","‏Claude כותב טיוטת פוסט קצרה וצנועה בעברית.","מייל למשתמש עם קישור האימות והטיוטה, ושורה ב-Sheets."],
+     claude:"Write a short, modest LinkedIn post in Hebrew (max 60 words) about finishing a Claude Code course with score {{score}}. Include this verification link: {{verify_url}}. No hashtags spam: at most 2."},
+    {t:"טופס או מייל ← נתונים מובנים", why:"פניות, הזמנות וחשבוניות נכנסות כטקסט חופשי ויוצאות כשורה נקייה במערכת.",
+     steps:["טריגר: טופס, מייל חדש או קובץ.","‏Claude מחלץ שדות ל-JSON לפי סכמה. שדה חסר מקבל <code>null</code>, ולא ניחוש.","‏Parse JSON, ‏Filter לבדיקת שדות חובה, ומה שלא עובר נשלח לבדיקה ידנית.","כתיבה ל-CRM או ל-Sheets."],
+     claude:"Extract these fields from the message. Use null for anything missing; never guess. Reply with only JSON: {\"name\":..., \"company\":..., \"email\":..., \"request_type\":..., \"budget\":..., \"deadline\": \"YYYY-MM-DD or null\"}.\n\n{{message}}"}
+  ];
+  $("#mkRecipes").innerHTML = RECIPES.map((r, i) => '<button type="button"' + (i ? "" : ' class="on"') + '>' + esc(r.t) + '</button>').join("");
+  const recipe = i => { const r = RECIPES[i]; $("#mkRecipe").innerHTML = '<div class="box"><p><b>למה:</b> ' + esc(r.why) + '</p><ol>' + r.steps.map(s => '<li>' + s + '</li>').join("") + '</ol>' + (r.claude ? '<h4>הפרומפט ל-Claude</h4>' + code("text", r.claude, "prompt") : "") + '</div>'; $$("#mkRecipe .code").forEach(decorate); };
+  $("#mkRecipes").addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; $$("#mkRecipes button").forEach(x => x.classList.toggle("on", x === b)); recipe([...$("#mkRecipes").children].indexOf(b)); award("mk-recipe", 5); });
+  recipe(0);
+
+  // ---------- generator 1: Claude Code hook -> Make webhook ----------
+  function hook(){
+    const ev = $$("#mhEvents input:checked").map(i => i.value), git = $("#mhGit").checked, t = Math.min(30, Math.max(1, +$("#mhTimeout").value || 5));
+    const sh = "#!/usr/bin/env bash\n# Sends a Claude Code event to a Make custom webhook. Never blocks or fails Claude.\nset -uo pipefail\n[ -n \"${MAKE_WEBHOOK_URL:-}\" ] || exit 0\ninput=$(cat)\n" +
+      (git ? "branch=$(git branch --show-current 2>/dev/null || true)\nchanges=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' ')\n" : "branch=\"\"\nchanges=0\n") +
+      "payload=$(printf '%s' \"$input\" | jq -c --arg project \"$(basename \"$PWD\")\" --arg branch \"$branch\" --argjson changes \"${changes:-0}\" \\\n  '{event: .hook_event_name, session: .session_id, project: $project, branch: $branch, changed_files: $changes, message: (.message // null), at: (now | todate)}') || exit 0\n" +
+      "curl -fsS -m " + t + " -X POST -H 'content-type: application/json' -d \"$payload\" \"$MAKE_WEBHOOK_URL\" >/dev/null 2>&1 || true\nexit 0\n";
+    setCode("#mhScript", sh);
+    const hooks = {}; ev.forEach(e => hooks[e] = [{hooks: [{type: "command", command: "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/notify-make.sh", timeout: t + 5}]}]);
+    setCode("#mhSettings", JSON.stringify({hooks}, null, 2));
+    setCode("#mhLocal", JSON.stringify({env: {MAKE_WEBHOOK_URL: "https://hook.eu1.make.com/your-webhook-id"}}, null, 2));
+  }
+  $("#mhEvents").addEventListener("change", hook); $("#mhGit").addEventListener("change", hook); $("#mhTimeout").addEventListener("input", hook); hook();
+
+  // ---------- generator 2: Make MCP server -> Claude ----------
+  function mcp(){
+    const c = $("#mmClient").value, z = $("#mmZone").value, sc = $("#mmScope").value;
+    $("#mmZoneL").hidden = c !== "cckey";
+    let out = "", steps = "";
+    if(c === "cc"){ out = "claude mcp add --transport http --scope " + sc + " make https://mcp.make.com/claude\nclaude\n/mcp"; steps = "<ol><li>אחרי <code>/mcp</code> נפתח דפדפן עם מסך הסכמה. בוחרים ארגון ו-scopes (\"Run your scenarios\" להרצת תרחישים).</li><li>חוזרים ל-Claude Code ומבקשים: \"Which Make tools do you have?\".</li><li>אם יש בעיית חיבור, עוברים למפתח API.</li></ol>"; }
+    else if(c === "cckey"){ out = "# Make: Profile -> API access -> + API token, with the mcp:use scope\nexport MAKE_MCP_TOKEN=...   # keep it out of git\nclaude mcp add --transport http --scope " + sc + " make https://" + z + "/mcp/v2 \\\n  --header \"Authorization: Bearer $MAKE_MCP_TOKEN\"\n\n# check the tools before using them:\nnpx @modelcontextprotocol/inspector --cli https://" + z + "/mcp/v2 --transport http --header \"Authorization: Bearer $MAKE_MCP_TOKEN\""; steps = "<p class=\"hint\">‏<code>" + esc(z) + "</code> הוא האזור של הארגון שלכם ב-Make. רואים אותו בכתובת בדפדפן כשאתם מחוברים. כדי להגביל אילו תרחישים חשופים, משתמשים ב-MCP toolboxes.</p>"; }
+    else { out = "# claude.ai: profile name -> Settings -> Connectors -> Browse connectors -> Make -> +\n# then pick the organization and scopes on the consent screen"; steps = "<p>אחרי החיבור, כל תרחיש פעיל עם תזמון On demand זמין ל-Claude בשיחה.</p>"; }
+    setCode("#mmOut", out); $("#mmSteps").innerHTML = steps;
+  }
+  ["#mmClient","#mmZone","#mmScope"].forEach(s => $(s).addEventListener("change", mcp)); mcp();
+
+  // ---------- generator 3: run a scenario through the Make API ----------
+  function run(){
+    const z = $("#mrZone").value, id = $("#mrId").value.trim(), resp = $("#mrResp").checked; let data = {};
+    $("#mrErr").textContent = "";
+    if(!/^\d+$/.test(id)) $("#mrErr").textContent = "מזהה תרחיש הוא מספר. רואים אותו בכתובת של התרחיש ב-Make.";
+    try{ data = JSON.parse($("#mrData").value || "{}"); if(!data || typeof data !== "object" || Array.isArray(data)) throw 0; }catch(e){ $("#mrErr").textContent = "ה-inputs צריכים להיות אובייקט JSON תקין."; data = {}; }
+    const body = JSON.stringify({data, responsive: resp});
+    setCode("#mrCurl", "curl -sS -X POST \"https://" + z + "/api/v2/scenarios/" + (id || "ID") + "/run\" \\\n  -H \"Authorization: Token $MAKE_API_TOKEN\" \\\n  -H \"content-type: application/json\" \\\n  -d '" + body.replace(/'/g, "'\\''") + "'");
+    setCode("#mrNode", "// node run-make.mjs   (MAKE_API_TOKEN in the environment)\nconst res = await fetch(\"https://" + z + "/api/v2/scenarios/" + (id || "ID") + "/run\", {\n  method: \"POST\",\n  headers: { Authorization: \"Token \" + process.env.MAKE_API_TOKEN, \"content-type\": \"application/json\" },\n  body: JSON.stringify(" + JSON.stringify({data, responsive: resp}, null, 2).replace(/\n/g, "\n  ") + ")\n});\nif (res.status === 429) throw new Error(\"Make: limit reached (IM310) or too many requests\");\nif (!res.ok) throw new Error(\"Make: HTTP \" + res.status + \" \" + await res.text());\nconst out = await res.json();   // { executionId, status: 1 success | 2 warning | 3 error, ...outputs }\nconsole.log(out);");
+    setCode("#mrCmd", "---\ndescription: Run a Make scenario with JSON inputs and report the result\nargument-hint: [scenario-id] [json-inputs]\nallowed-tools: Bash(curl *)\n---\n\nRun Make scenario $0 in zone " + z + " with these inputs: $1\n\nUse curl with the MAKE_API_TOKEN environment variable (never print the token):\nPOST https://" + z + "/api/v2/scenarios/$0/run with body {\"data\": <inputs>, \"responsive\": true}.\n\nThen tell me the status (1 success, 2 warning, 3 error) and summarize the outputs. If the response is 429 with IM310, say the Make organization reached its limit.");
+  }
+  ["#mrZone","#mrId","#mrData","#mrResp"].forEach(s => { $(s).addEventListener("input", run); $(s).addEventListener("change", run); }); run();
+
+  // ---------- generator 4: academy server <-> Make ----------
+  const rnd = n => { const a = new Uint8Array(n); crypto.getRandomValues(a); return [...a].map(b => b.toString(16).padStart(2, "0")).join(""); };
+  let secret = rnd(24), token = rnd(24);
+  function srv(){
+    const url = $("#msHook").value.trim() || "https://hook.eu1.make.com/your-webhook-id", pii = $("#msPii").checked;
+    setCode("#msEnv", "# events to Make (signed with HMAC-SHA256 over \"timestamp.body\")\nWEBHOOK_URL=" + url + "\nWEBHOOK_SECRET=" + secret + "\nWEBHOOK_INCLUDE_PII=" + pii + "\n\n# read-only integration API for Make's HTTP module\nINTEGRATION_TOKEN=" + token);
+    setCode("#msEvent", JSON.stringify({id: "6f1c2b0e-8a8e-4c55-9a3e-0d1f2a3b4c5d", type: "certificate.issued", created_at: "2026-11-10T08:30:00.000Z", data: {user_id: 42, certificate_id: "seyr49qRF6V8", name: "דנה", score: 93, chapters: 61, verify_url: "https://academy.example.com/verify/seyr49qRF6V8"}}, null, 2));
+    setCode("#msHttp", "# Make: HTTP module settings\n# URL:    https://academy.example.com/api/integrations/stats\n#         https://academy.example.com/api/integrations/certificates?since={{formatDate(addDays(now; -1); \"YYYY-MM-DD\")}}\n# Method: GET\n# Header: Authorization = Bearer " + token + "\n# Parse response: yes\n\n# the same request from a terminal:\ncurl -sS https://academy.example.com/api/integrations/stats -H \"Authorization: Bearer " + token + "\"");
+    if(pii) $("#msPii").closest("label").title = "האימייל יישלח ל-Make. ודאו שמותר לכם לפי מדיניות הפרטיות.";
+  }
+  $("#msHook").addEventListener("input", srv); $("#msPii").addEventListener("change", srv);
+  $("#msGen").onclick = () => { secret = rnd(24); token = rnd(24); srv(); toast("נוצרו סודות חדשים"); award("mk-server", 10, "חיבור השרת ל-Make"); };
+  srv();
+  window.__make = {hook, run, mcp, srv};
+})();
+
+Object.keys(TRACKS).forEach(k => { if(!TRACKS[k].m.includes("make")) TRACKS[k].m.push("make"); });
+BADGES.push(["automator","⚙","אוטומטורים","חיברתם את Claude ל-Make", () => !!(state.awarded["mk-server"] || state.awarded["quiz-make"])]);
 checkBadges(true);
 
 renderStats();

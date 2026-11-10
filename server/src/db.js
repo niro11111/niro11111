@@ -44,7 +44,16 @@ const MIGRATIONS = [
      ip TEXT NOT NULL DEFAULT '',
      at INTEGER NOT NULL
    );
-   CREATE INDEX events_user_type ON events(user_id, type, at);`
+   CREATE INDEX events_user_type ON events(user_id, type, at);`,
+  // 2: AI usage per user per day (quota and cost visibility)
+  `CREATE TABLE ai_usage (
+     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+     day TEXT NOT NULL,
+     requests INTEGER NOT NULL DEFAULT 0,
+     input_tokens INTEGER NOT NULL DEFAULT 0,
+     output_tokens INTEGER NOT NULL DEFAULT 0,
+     PRIMARY KEY (user_id, day)
+   );`
 ];
 
 export function openDb(file) {
