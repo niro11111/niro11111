@@ -27,6 +27,16 @@ export function createServer(s, token, opts = {}) {
       req.on('close', () => { bus.off('event', on); clearInterval(ka); });
       return;
     }
+    // Digital World artifact download (binary): authenticated like every API call.
+    const art = url.pathname.match(/^\/api\/worlds\/([a-z]+_[a-f0-9]+)\/artifact$/);
+    if (art && req.method === 'GET') {
+      if (!api.authenticate(req.headers.authorization ?? `Bearer ${url.searchParams.get('token')}`)) return send(res, 401, { error: 'unauthorized' });
+      const w = s.store.get('worlds', art[1]); const a = w && s.store.all('world_artifacts', (x) => x.worldId === w.id).at(-1);
+      const file = a && s.worldRunner?.artifactPath({ ...w, version: a.version }, a);
+      if (!file) return send(res, 404, { error: 'no artifact: build the project first' });
+      res.writeHead(200, { 'Content-Type': 'application/gzip', 'Content-Disposition': `attachment; filename="${a.file}"`, 'X-Artifact-SHA256': a.sha256 });
+      return fs.createReadStream(file).pipe(res);
+    }
     let raw = '';
     try {
       for await (const chunk of req) { raw += chunk; if (raw.length > 2e6) return send(res, 413, { error: 'payload too large' }); }
@@ -67,6 +77,10 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     process.on('SIGINT', close); process.on('SIGTERM', close);
     console.log(`Database: SQLite ${path.basename(dbFile)} (schema v${backend.status().schemaVersion})${imported ? `, imported ${imported} rows from ${path.basename(dataFile)}` : ''}`);
   } else s = await createApp({ file: dataFile });
+  // Digital World Engine runner: real builds/tests/previews in child processes, one directory per world.
+  const { WorldRunner } = await import('./worlds/runner.js');
+  s.worldRunner = new WorldRunner({ root: process.env.JARVIS_WORLDS_DIR ?? path.resolve(here, '../data/worlds') });
+  process.on('exit', () => s.worldRunner.stopAll());
   const token = resolveToken(s.store);
   startScheduler(s);
   const host = process.env.JARVIS_HOST ?? '127.0.0.1';

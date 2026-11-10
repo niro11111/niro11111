@@ -1,12 +1,12 @@
 # JARVIS BRAIN: capability coverage
 
-Generated 2026-11-05 by `npm run brain:report`.
+Generated 2026-11-10 by `npm run brain:report`.
 
-- **Implemented and tested**: 62
+- **Implemented and tested**: 65
 - **Implemented but not fully tested**: 1
 - **Partially implemented**: 4
-- **Planned**: 3
-- **Blocked by external dependency**: 5
+- **Planned**: 4
+- **Blocked by external dependency**: 6
 - **Unsupported**: 1
 
 | Section | Capability | Status | Evidence |
@@ -27,7 +27,7 @@ Generated 2026-11-05 by `npm run brain:report`.
 | §7 Models | Fallback chain, provider health with circuit breaker, rate-limit retry, usage and cost tracking | Implemented and tested | core/router.js · observability · tests/brain2 |
 | §7 Models | Speech-to-text / text-to-speech providers on the server | Blocked by external dependency | browser and phone speech used; server STT/TTS needs a provider key |
 | §7 Models | Image generation, video, embeddings provider | Planned | local embeddings used today |
-| §8 Agents | 18 agents with purpose, tools, data scope, I/O contract, timeout, retry policy, risk ceiling | Implemented and tested | agents/registry.js · eval risk-ceiling |
+| §8 Agents | 19 agents with purpose, tools, data scope, I/O contract, timeout, retry policy, risk ceiling | Implemented and tested | agents/registry.js · eval risk-ceiling |
 | §8 Agents | Agents cannot grant permissions to themselves or others | Implemented and tested | policy + riskLimit + mission validatePlan |
 | §8 Agents | Parallel subtasks, dependencies, combined results | Implemented and tested | brain/missions.js · tests/brain2 |
 | §8 Agents | Conflict detection between agents (council disagreements, decision robustness) | Partially implemented | ai.council synthesis, decision sensitivity |
@@ -65,6 +65,11 @@ Generated 2026-11-05 by `npm run brain:report`.
 | §25 API & events | Versioned API /api/v1/brain and typed event contracts v1 | Implemented and tested | api/routes.js · brain/events.js · tests/brain2 |
 | §26 Security | Prompt-injection, permission, duplicate, tool-isolation tests | Implemented and tested | tests/*, eval suite |
 | §26 Security | Load tests | Implemented and tested | scripts/load-test.mjs (npm run load:test): ~2,000 req/s, p95 ≈ 18 ms in-memory |
+| §DW Worlds | Idea → spec (he/en, templates, explicit entities, clarification) → architecture → mission with the Builder agent | Implemented and tested | worlds/spec.js, engine.js · tests/worlds |
+| §DW Worlds | Code generation → real build (node --check, packaging, signed artifact) → real tests (node --test) → live HTTP verification | Implemented and tested | worlds/generator.js, runner.js · tests/worlds · e2e |
+| §DW Worlds | Local deployment, health checks, logs, incidents, kill switch, budget, owner-only API, isolation | Implemented and tested | worlds/engine.js, runner.js · tests/worlds · e2e |
+| §DW Worlds | Docker / cloud deployment, GitHub export, Stripe / Google / Microsoft integrations | Blocked by external dependency | need Docker on the host or provider credentials; statuses verified, never faked (docs/WORLDS.md) |
+| §DW Worlds | Mobile/desktop builds and app-store publishing for generated projects; model-written custom logic | Planned | see docs/WORLDS.md §4 |
 | §ML | Neural network library (MLP, Adam, dropout, early stopping) and Hebrew/English hashed text features | Implemented and tested | ml/nn.js, ml/features.js · tests/ml (XOR gradient check) |
 | §ML | Neural intent router: on-device training, held-out metrics, calibration, routing precision; activated only via sandbox experiment + approval | Implemented and tested | ml/intent-model.js, ml.routing target · tests/ml · e2e |
 | §ML | Naive Bayes categorization (suggestions only), Holt forecasts with intervals, MAD anomalies, k-means++ clustering | Implemented and tested | ml/algorithms.js, ml/service.js · tests/ml |

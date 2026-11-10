@@ -7,6 +7,7 @@ import { voice, startListening, stopAll, saveVoicePrefs, toggleListening } from 
 import { lineChart, donut, gauge } from './charts.js';
 import { learnView } from './learnview.js';
 import { neuralView, graphView, databaseView } from './mlview.js';
+import { worldsView } from './worldsview.js';
 
 let cleanups = [];
 export function cleanup() { cleanups.forEach((f) => f()); cleanups = []; }
@@ -553,7 +554,7 @@ async function brainExtras(v) {
 }
 
 export const VIEWS = [
-  ['sec_core'], ['command', '◉', command], ['conversation', '◍', conversation], ['map', '⌬', map], ['agents', '⎔', agents], ['brain', '🧠', brainView], ['learn', '⟲', learnView], ['neural', '◎', neuralView], ['graph', '✳', graphView], ['missions', '◈', missionsView], ['ai', '✦', aiStudio], ['automations', '⟳', automations], ['knowledge', '⛁', knowledge],
+  ['sec_core'], ['command', '◉', command], ['conversation', '◍', conversation], ['map', '⌬', map], ['agents', '⎔', agents], ['brain', '🧠', brainView], ['learn', '⟲', learnView], ['neural', '◎', neuralView], ['graph', '✳', graphView], ['worlds', '🌐', worldsView], ['missions', '◈', missionsView], ['ai', '✦', aiStudio], ['automations', '⟳', automations], ['knowledge', '⛁', knowledge],
   ['sec_life'], ['planner', '✓', planner], ['wealth', '₪', wealth], ['home', '⌂', home],
   ['sec_system'], ['devices', '⌚', devices], ['console', '⌨', consoleView], ['database', '⛃', databaseView], ['privacy', '⛨', privacy], ['preferences', '⚙', settings],
 ];

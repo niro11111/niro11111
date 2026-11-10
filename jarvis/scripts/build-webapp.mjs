@@ -82,7 +82,8 @@ m.innerHTML='<b>JARVIS לא הצליח לעלות כאן.</b><br>נראה שהק
     .replace('<link rel="icon" href="icon.svg">', `<link rel="icon" href="${icon}">`)
     .replace('<script type="module" src="js/runtime.js"></script>', () => `${WATCHDOG}\n<script type="module">\n${js}\n</script>`)
     .replace('<body>', `<body>\n<noscript><div style="padding:40px;font:16px system-ui;color:#ffd58a;background:#03060d;text-align:center" dir="rtl">JARVIS צריך JavaScript. פתחו את הקובץ בדפדפן (Chrome / Edge / Firefox / Safari) ולא בתצוגה מקדימה.<br>JARVIS needs JavaScript: open this file in a web browser, not in a preview.</div></noscript>`);
-  if (/src="js\/|href="styles\.css"/.test(single)) throw new Error('single-file build still references external files');
+  // Check only the page markup (the bundle itself legitimately contains HTML templates for generated apps).
+  if (/src="js\/|href="styles\.css"/.test(single.replace(js, ''))) throw new Error('single-file build still references external files');
   fs.writeFileSync(path.join(root, 'dist/jarvis.html'), single);
   fs.copyFileSync(path.join(root, 'dist/jarvis.html'), path.join(out, 'jarvis.html'));
   console.log(`dist/jarvis.html built (${(single.length / 1024 / 1024).toFixed(2)} MB, self-contained)`);

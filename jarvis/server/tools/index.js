@@ -244,6 +244,20 @@ ${(a.memories ?? []).map((m) => `- ${m.content} [${m.provenance}]`).join('\n') |
   } });
 
   // ---------- conversation ----------
+  // ---------- Digital World Engine (each stage re-reads its stored result to verify it) ----------
+  const W2 = (fn, summary) => async (a) => { const r = await fn(a); if (r && r.ok === false) throw new Error(r.blocked ? `BLOCKED: ${r.reason}` : `stage failed: ${summary(r)}`); return { data: { worldId: a.worldId, ...r }, summary: summary(r) }; };
+  def('world.create', { risk: RISK.WRITE, desc: 'Digital World Engine: turn an idea into a project (spec → architecture → code → build → tests → verification)', run: async (a, ctx) => {
+    const w = s.worlds.create({ text: a.text }, ctx.actor ?? 'user');
+    const he2 = ctx.lang === 'he';
+    if (w.status === 'needs-input') return { data: { worldId: w.id, status: w.status }, summary: `${he2 ? 'כדי לבנות צריך עוד פרט' : 'One detail needed'}: ${w.spec.question}` };
+    s.worlds.startPipeline(w.id, ctx.actor ?? 'user');
+    return { data: { worldId: w.id, status: 'building' }, summary: he2 ? `התחלתי לבנות את "${w.title}": ${w.spec.entities.length} ישויות (${w.spec.entities.map((e) => e.labelHe ?? e.label).join(', ')}). שלבים: אפיון ← ארכיטקטורה ← קוד ← בנייה ← בדיקות ← אימות. אפשר לעקוב בעולמות דיגיטליים.` : `Started building "${w.title}": ${w.spec.entities.length} entities (${w.spec.entities.map((e) => e.label).join(', ')}). Stages: spec → architecture → code → build → tests → verification. Follow it in Digital Worlds.` };
+  }, verify: (r) => !!s.store.get('worlds', r.data.worldId) });
+  def('world.architect', { risk: RISK.WRITE, desc: 'Design the architecture of a digital world', run: W2(async (a) => ({ ok: true, ...s.worlds.architect(a.worldId) }), (r) => `architecture: ${r.api?.length ?? 0} endpoints`), verify: (r) => !!s.worlds.get(r.data.worldId).architecture });
+  def('world.generate', { risk: RISK.WRITE, desc: 'Generate the source code of a digital world', run: W2(async (a) => ({ ok: true, ...s.worlds.generate(a.worldId) }), (r) => `${r.files} files generated`), verify: (r) => s.worlds.files(r.data.worldId).length > 0 });
+  def('world.build', { risk: RISK.WRITE, desc: 'Build and package a digital world (real processes)', run: W2((a) => s.worlds.build(a.worldId), (r) => (r.ok ? `build passed (${r.steps.length} checks)` : r.steps?.filter((x) => !x.ok).map((x) => x.name).join(', ') ?? '')), verify: (r) => s.worlds.get(r.data.worldId).stages.build?.status === 'VERIFIED' });
+  def('world.test', { risk: RISK.WRITE, desc: 'Run the digital world test suite (real processes)', run: W2((a) => s.worlds.test(a.worldId), (r) => `${r.passed}/${r.total} tests passed`), verify: (r) => s.worlds.get(r.data.worldId).stages.test?.status === 'VERIFIED' });
+  def('world.verify', { risk: RISK.WRITE, desc: 'Start the built app and verify it over HTTP', run: W2((a) => s.worlds.verify(a.worldId), (r) => `${r.checks?.filter((c) => c.ok).length ?? 0}/${r.checks?.length ?? 0} live checks passed`), verify: (r) => s.worlds.get(r.data.worldId).status === 'verified' });
   def('knowledge.graph', { risk: RISK.READ, desc: 'Personal knowledge graph: who is someone, how two things are related (with sources)', run: async (a, ctx) => {
     const he2 = ctx.lang === 'he';
     s.kg.ensure();

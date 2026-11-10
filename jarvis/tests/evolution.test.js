@@ -8,9 +8,9 @@ import { workflowFromText } from '../server/automation/nl.js';
 import { Weather } from '../server/context/weather.js';
 import { Store } from '../server/lib/store.js';
 
-test('18 agents, each with scope, tools, schemas and data domains; tools exist', async () => {
+test('19 agents, each with scope, tools, schemas and data domains; tools exist', async () => {
   const s = await app();
-  assert.equal(AGENTS.length, 18);
+  assert.equal(AGENTS.length, 19);
   for (const a of AGENTS) {
     assert.ok(a.scope && a.tools.length && a.input && a.output && a.dataScopes.length, a.id);
     for (const t of a.tools) assert.ok(s.tools[t], `${a.id} -> ${t}`);

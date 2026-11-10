@@ -255,3 +255,19 @@ td.n, th.n { text-align: end; font-variant-numeric: tabular-nums; }
 .kg-node text { fill: var(--text, #e6f6ff); font-size: 11px; font-family: var(--font); }
 .kg-node:hover circle, .kg-node:focus circle { stroke: #fff; }
 @media (prefers-reduced-motion: reduce) { .nn-node { animation: none; } }
+
+/* Digital World Engine */
+.stat-box { min-width: 90px; padding: 6px 12px; border-inline-start: 2px solid var(--line, #1d2d45); }
+.world-card { cursor: pointer; transition: transform .2s, box-shadow .2s; }
+.world-card:hover, .world-card:focus { transform: translateY(-2px); box-shadow: 0 0 0 1px var(--cyan, #2ee6ff), 0 10px 30px #2ee6ff22; }
+.stages { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0; }
+.stage { font-size: 10px; padding: 2px 7px; border-radius: 999px; border: 1px solid var(--line, #1d2d45); color: var(--muted); }
+.stage.ok { border-color: var(--green, #22e08a); color: var(--green, #22e08a); }
+.stage.info { border-color: var(--cyan, #2ee6ff); color: var(--cyan, #2ee6ff); }
+.stage.warn { border-color: var(--amber, #ffbf3c); color: var(--amber, #ffbf3c); }
+.stage.bad { border-color: var(--red, #ff5d6c); color: var(--red, #ff5d6c); }
+.pipeline { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.pstage { padding: 10px; border-radius: 12px; border: 1px solid var(--line, #1d2d45); display: grid; gap: 4px; align-content: start; }
+.pstage.ok { border-color: color-mix(in srgb, var(--green, #22e08a) 60%, transparent); box-shadow: inset 0 0 18px #22e08a14; }
+.pstage.bad { border-color: var(--red, #ff5d6c); } .pstage.warn { border-color: var(--amber, #ffbf3c); }
+.warn { color: var(--amber, #ffbf3c); }

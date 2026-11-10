@@ -30,6 +30,7 @@ import { AGENTS } from './agents/registry.js';
 import { LearningEngine } from './learn/engine.js';
 import { MLService } from './ml/service.js';
 import { KnowledgeGraph } from './knowledge/graph.js';
+import { Worlds } from './worlds/engine.js';
 
 export async function createApp(opts = {}) {
   const { file = null, router = null, home = null, seed = true } = opts;
@@ -72,6 +73,8 @@ export async function createApp(opts = {}) {
   s.ml = new MLService(s);
   s.core.ml = s.ml;
   s.kg = new KnowledgeGraph(s);
+  s.worlds = new Worlds(s);
+  if (opts.worldRunner) s.worldRunner = opts.worldRunner;
   s.core.kg = s.kg;
   s.learn.devlab.restore();
   s.core.learn = s.learn;
@@ -82,7 +85,7 @@ export async function createApp(opts = {}) {
 
 /** Background loop: reminders, deferred notifications, scheduled workflows, proactive scan. */
 export function startScheduler(s, { everyMs = 30_000 } = {}) {
-  let lastProactive = 0; let lastWatch = 0; let lastLearn = Date.now();
+  let lastProactive = 0; let lastWatch = 0; let lastLearn = Date.now(); let lastWorldCheck = 0;
   const tick = async () => {
     try {
       for (const r of s.productivity.dueReminders()) {
@@ -96,6 +99,7 @@ export function startScheduler(s, { everyMs = 30_000 } = {}) {
       await s.automations.tick();
       if (Date.now() - lastWatch > 5 * 60e3) { lastWatch = Date.now(); await s.watchers.tick(); }
       await s.missions.tick();
+      if (s.worldRunner && Date.now() - lastWorldCheck > 5 * 60e3) { lastWorldCheck = Date.now(); await s.worlds.monitorAll(); }
       if (Date.now() - lastLearn > 60 * 60e3) { lastLearn = Date.now(); s.kg.rebuild(); await s.learn.cycle(); }
       const prefs = s.store.getMeta('proactive', {});
       if (s.privacy.get().proactiveEnabled && Date.now() - lastProactive > 60 * 60e3) {

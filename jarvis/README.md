@@ -1,7 +1,7 @@
 # J.A.R.V.I.S AI: Personal Intelligence OS
 
 A personal AI operating system for one household. It covers:
-- a central brain (JARVIS CORE) and 18 specialist agents
+- a central brain (JARVIS CORE) and 19 specialist agents (including the Digital World Builder)
 - long-term memory, Family Wealth OS, a smart home and automations
 - a holographic web command center in Hebrew and English
 - a desktop app, a phone app and smartwatch apps
@@ -10,7 +10,7 @@ A personal AI operating system for one household. It covers:
 
 ```bash
 cd jarvis && npm install && npm start     # backend + frontend + SQLite database at http://127.0.0.1:7777 (paste the printed token)
-npm test                                  # 110 unit / integration / API tests
+npm test                                  # 117 unit / integration / API tests
 npm run load:test                         # concurrent mixed load against the real API router
 npm run test:e2e                          # browser tests: all screens, RTL/LTR, a11y, approvals, phone width
 npm run build:webapp                      # dist/webapp: the COMPLETE JARVIS in the browser, plus dist/jarvis.html:
@@ -19,6 +19,7 @@ npm run build:prototypes                  # prototypes/demo: the real UI on reco
 ```
 
 📘 **Setup guide, including what only you can do:** [`docs/SETUP_GUIDE.he.md`](docs/SETUP_GUIDE.he.md)
+🌐 **Digital World Engine (idea → working, tested, deployed app):** [`docs/WORLDS.md`](docs/WORLDS.md)
 🧠 **Brain:** [`docs/BRAIN.md`](docs/BRAIN.md) · **Self-improvement:** [`docs/LEARNING.md`](docs/LEARNING.md) · **ML, knowledge graph & database:** [`docs/ML.md`](docs/ML.md)
 📊 **Status of every spec section:** [`docs/EVOLUTION.md`](docs/EVOLUTION.md) · Design: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 
@@ -36,7 +37,7 @@ npm run build:prototypes                  # prototypes/demo: the real UI on reco
 
 ```
                          JARVIS CORE (intent he/en → plan → permissions → approval → execute → verify)
-   Memory Engine · Voice Engine · Computer Engine · Agent Engine (18) · Security Engine · Automation Engine
+   Memory Engine · Voice Engine · Computer Engine · Agent Engine (19) · Security Engine · Automation Engine
         Web (built) · Desktop/Tauri (built & run) · iOS+Android/Expo (bundled) · Apple Watch / Wear OS (source)
 ```
 

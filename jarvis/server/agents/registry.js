@@ -1,4 +1,4 @@
-// The agent roster (18 agents). Each agent has: a scope, an explicit tool allow-list,
+// The agent roster (19 agents). Each agent has: a scope, an explicit tool allow-list,
 // the data domains it may read, a step limit, input/output schemas and delegation rules.
 // Agents never call each other directly: the Executive agent delegates through JARVIS CORE,
 // and every step still passes the central permission policy.
@@ -14,7 +14,7 @@ const A = (id, name, nameHe, scope, tools, extra = {}) => ({ id, name, nameHe, s
 
 export const AGENTS = [
   A('executive', 'Executive Intelligence', 'מודיעין מנהלי', 'Coordinates JARVIS, breaks goals into steps and delegates to specialists', ['llm.answer', 'tasks.create', 'tasks.list', 'ai.council', 'ai.plan_run', 'mission.run', 'ai.decide', 'agents.create', 'agents.invoke', 'brain.watch_create', 'brain.watch_list'],
-    { maxSteps: 12, timeoutMs: 180000, riskLimit: 'financial', delegatesTo: ['assistant', 'research', 'browser', 'finance', 'household', 'smarthome', 'communication', 'coding', 'knowledge', 'creative', 'automation'] }),
+    { maxSteps: 12, timeoutMs: 180000, riskLimit: 'financial', delegatesTo: ['assistant', 'research', 'browser', 'finance', 'household', 'smarthome', 'communication', 'coding', 'builder', 'knowledge', 'creative', 'automation'] }),
   A('assistant', 'Personal Assistant', 'עוזר אישי', 'Calendar, reminders, tasks, shopping, daily planning and small talk',
     ['chat.smalltalk', 'learning.feedback', 'briefing.daily', 'briefing.weekly', 'tasks.create', 'tasks.list', 'tasks.complete', 'calendar.create', 'calendar.list', 'reminders.create', 'shopping.add', 'shopping.list', 'calc.evaluate', 'compute.code', 'date.until', 'convert.units', 'timer.start', 'notes.add', 'notes.list'], { dataScopes: ['general', 'family', 'work'] }),
   A('research', 'Research', 'מחקר', 'Researches, compares and summarizes information with sources', ['research.web', 'memory.search', 'llm.answer'], { maxSteps: 4, timeoutMs: 180000 }),
@@ -26,6 +26,7 @@ export const AGENTS = [
   A('smarthome', 'Smart Home', 'בית חכם', 'Connected devices, scenes and home status', ['home.devices', 'home.control', 'home.scene'], { maxSteps: 10, riskLimit: 'sensitive' }),
   A('communication', 'Communication', 'תקשורת', 'Drafts and summarizes messages; never sends on its own', ['llm.answer', 'notify.send'], { maxSteps: 4, timeoutMs: 180000 }),
   A('coding', 'Coding', 'פיתוח', 'Code generation, review and debugging', ['llm.answer', 'ai.generate', 'ai.build_app'], { maxSteps: 4, timeoutMs: 180000, dataScopes: ['general', 'work'] }),
+  A('builder', 'Digital World Builder', 'בונה עולמות דיגיטליים', 'Turns ideas into working projects: specification, architecture, code generation, real builds, tests and verification', ['world.create', 'world.architect', 'world.generate', 'world.build', 'world.test', 'world.verify'], { maxSteps: 10, timeoutMs: 300000, dataScopes: ['general', 'work'], riskLimit: 'write' }),
   A('knowledge', 'Knowledge', 'ידע', 'Personal knowledge base and memory retrieval', ['memory.remember', 'memory.search', 'documents.search', 'notes.add', 'notes.list', 'knowledge.graph', 'llm.answer'], { maxSteps: 4, timeoutMs: 180000, dataScopes: ['general', 'family', 'work'] }),
   A('vision', 'Vision', 'ראייה', 'Image and screenshot understanding', ['vision.describe', 'computer.screenshot'], { maxSteps: 3, timeoutMs: 120000, riskLimit: 'sensitive' }),
   A('audio', 'Audio', 'שמע', 'Speech, voice notes and transcripts', ['voice.note', 'llm.answer'], { maxSteps: 3 }),

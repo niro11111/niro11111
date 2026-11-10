@@ -73,7 +73,7 @@ try {
     assert.match(await page.textContent('#view'), /ספורט/);
   });
   await check('every screen renders in the standalone app', async () => {
-    for (const v of ['command', 'map', 'agents', 'brain', 'learn', 'neural', 'graph', 'missions', 'ai', 'automations', 'knowledge', 'planner', 'wealth', 'home', 'devices', 'console', 'database', 'privacy', 'preferences']) {
+    for (const v of ['command', 'map', 'agents', 'brain', 'learn', 'neural', 'graph', 'worlds', 'missions', 'ai', 'automations', 'knowledge', 'planner', 'wealth', 'home', 'devices', 'console', 'database', 'privacy', 'preferences']) {
       await page.goto(`${url}#${v}`); await page.waitForTimeout(400);
       assert.ok(!(await page.$('#view .panel.err')), v);
     }
@@ -112,6 +112,16 @@ try {
     if (process.env.SHOT3) await page.screenshot({ path: process.env.SHOT3, fullPage: true });
     await page.goto(`${url}#database`); await page.waitForTimeout(500);
     assert.match(await page.textContent('#view'), /browser|localStorage|דפדפן/i);
+    assert.deepEqual(errors, []);
+  });
+  await check('Digital Worlds in the browser build: generates the project, execution stages honestly BLOCKED', async () => {
+    await page.goto(`${url}#worlds`); await page.waitForSelector('[data-wt=create]', { timeout: 15000 });
+    assert.match(await page.textContent('#view'), /npm start/);
+    await page.click('[data-wt=create]'); await page.click('[data-pre="3"]'); await page.click('#wF button.primary');
+    await page.waitForFunction(() => /BLOCKED/.test(document.querySelector('.pipeline')?.textContent ?? ''), null, { timeout: 30000 });
+    assert.match(await page.textContent('.pipeline'), /IMPLEMENTED|BLOCKED/);
+    assert.doesNotMatch(await page.$eval('#wtBody table', (t) => t.textContent), /\b(?:TESTED|VERIFIED)\b/); // no feature claims tests in the browser
+    await page.click('[data-wtab=code]'); await page.waitForSelector('[data-file="server.js"]');
     assert.deepEqual(errors, []);
   });
   await check('dictation mode sends automatically after a pause', async () => {

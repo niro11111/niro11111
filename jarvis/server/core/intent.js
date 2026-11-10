@@ -19,6 +19,10 @@ export function parseClause(raw, convo = {}) {
 
   // --- conversation: greetings and thanks need no model and no tools ---
   if (SMALLTALK.test(text.trim())) return [{ agent: 'assistant', tool: 'chat.smalltalk', args: { text } }];
+  // --- Digital World Engine: build a complete system/product/business from an idea ---
+  if (/^(?:build|create|make|develop|turn)\b[\s\S]{0,40}?\b(?:crm|erp|system|platform|saas|store|shop|e-?commerce|website|web ?site|landing page|business|portal|marketplace|booking|inventory|help ?desk|product|idea)\b/i.test(text) || /^(?:תבנה|בנה|תיצור|צור|תקים|הקם|תפתח|פתח)\s[\s\S]{0,40}?(?:מערכת|פלטפורמה|חנות|אתר|עסק|פורטל|CRM|ERP|מוצר|דף נחיתה)/i.test(text)) {
+    if (!/\b(?:app|application)\b|אפליקציה/i.test(text) || /system|platform|crm|store|business|מערכת|חנות|עסק/i.test(text)) return [{ agent: 'builder', tool: 'world.create', args: { text } }];
+  }
   // --- code-assisted computation (isolated sandbox) ---
   if ((m = text.match(/^(?:run code|compute with code|calculate with code|חשב בקוד|הרץ קוד)[:\s]+([\s\S]+)$/i))) return [{ agent: 'assistant', tool: 'compute.code', args: { code: m[1].trim() } }];
   // --- feedback on the previous answer (voice or text) ---

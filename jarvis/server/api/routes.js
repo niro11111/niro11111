@@ -242,6 +242,32 @@ export function createApi(s, token, opts = {}) {
   r('POST', '/api/db/backup', (req) => { if (!s.db) throw Object.assign(new Error('backups need the server database'), { status: 409 }); const b = s.db.backup(); s.audit.log(req.actor, 'db.backup', b); return b; });
   r('POST', '/api/db/query', (req) => { if (!s.db) throw Object.assign(new Error('the SQL console needs the server database'), { status: 409 }); const out = s.db.query(req.body.sql, { limit: req.body.limit }); s.audit.log(req.actor, 'db.query', { rows: out.count }); return out; });
 
+  // --- Digital World Engine ---
+  const DW = '/api/worlds';
+  const dwOwner = (req) => { if (req.actor !== 'user') throw Object.assign(new Error('only the owner can change digital worlds'), { status: 403 }); return req.actor; };
+  r('GET', DW, () => s.worlds.overview());
+  r('POST', DW, (req) => { dwOwner(req); const w = s.worlds.create({ text: req.body.text, lang: req.body.lang }, req.actor); if (req.body.run !== false && w.status !== 'needs-input') s.worlds.startPipeline(w.id, req.actor); return w; });
+  r('GET', `${DW}/integrations`, (req) => s.worlds.integrations({ verify: req.query.get('verify') === '1' }));
+  r('GET', `${DW}/:id`, (req, p) => s.worlds.dashboard(p.id));
+  r('POST', `${DW}/:id/clarify`, (req, p) => { dwOwner(req); return s.worlds.clarify(p.id, String(req.body.answer ?? ''), req.actor); });
+  r('PUT', `${DW}/:id/spec`, (req, p) => { dwOwner(req); return s.worlds.updateSpec(p.id, req.body, req.actor); });
+  r('POST', `${DW}/:id/architect`, (req, p) => { dwOwner(req); return s.worlds.architect(p.id); });
+  r('POST', `${DW}/:id/plan`, (req, p) => { dwOwner(req); return s.worlds.plan(p.id, req.actor); });
+  r('POST', `${DW}/:id/run`, async (req, p) => { dwOwner(req); if (req.body.wait) return s.worlds.runPipeline(p.id, req.actor); return s.worlds.startPipeline(p.id, req.actor); });
+  r('POST', `${DW}/:id/generate`, (req, p) => { dwOwner(req); return s.worlds.generate(p.id); });
+  r('POST', `${DW}/:id/build`, (req, p) => { dwOwner(req); return s.worlds.build(p.id); });
+  r('POST', `${DW}/:id/test`, (req, p) => { dwOwner(req); return s.worlds.test(p.id); });
+  r('POST', `${DW}/:id/verify`, (req, p) => { dwOwner(req); return s.worlds.verify(p.id); });
+  r('POST', `${DW}/:id/deploy`, (req, p) => { dwOwner(req); return s.worlds.deploy(p.id, { target: req.body.target ?? 'local-preview' }, req.actor); });
+  r('POST', `${DW}/:id/stop`, (req, p) => { dwOwner(req); return s.worlds.stop(p.id, req.actor); });
+  r('POST', `${DW}/:id/health`, (req, p) => s.worlds.healthCheck(p.id));
+  r('POST', `${DW}/:id/kill`, (req, p) => { dwOwner(req); return s.worlds.kill(p.id, req.actor, req.body.release === true); });
+  r('DELETE', `${DW}/:id`, (req, p) => { dwOwner(req); return s.worlds.archive(p.id, req.actor); });
+  r('GET', `${DW}/:id/files`, (req, p) => s.worlds.files(p.id, req.query.get('version') ? Number(req.query.get('version')) : undefined).map(({ content, ...f }) => f));
+  r('GET', `${DW}/:id/file`, (req, p) => { const f = s.worlds.files(p.id).find((x) => x.path === req.query.get('path')); if (!f) throw Object.assign(new Error('no such file'), { status: 404 }); return f; });
+  r('GET', `${DW}/:id/tests/:runId`, (req, p) => { const t = s.store.get('world_test_runs', p.runId); if (!t || t.worldId !== p.id) throw Object.assign(new Error('not found'), { status: 404 }); return t; });
+  r('GET', `${DW}/:id/logs`, (req, p) => s.worldRunner?.logs(p.id, 200) ?? []);
+
   // --- ML layer: neural intent router, categorizer, forecasting, anomalies, clustering ---
   const M = '/api/ml';
   r('GET', `${M}/status`, () => s.ml.status());
