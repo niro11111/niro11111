@@ -159,6 +159,51 @@ try {
     if (process.env.SHOTWAKE) await pw.screenshot({ path: process.env.SHOTWAKE });
     assert.deepEqual(ew, []); await ctxW.close();
   });
+  await check('claude.ai voice: 🎙 starts Claude dictation from the click, the spoken text runs, the answer is spoken in a Claude voice; wake word via dictation; diagnostics', async () => {
+    const ctxC = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+    await ctxC.addInitScript(() => {
+      const log = (window.__claudeLog = []);
+      const mk = () => { const h = { partial: [], final: [], state: [] }; return h; };
+      const dh = mk(); const th = { state: [] };
+      const dictation = {
+        start: () => { log.push('dictation.start'); setTimeout(() => dh.state.forEach((f) => f({ state: 'listening' })), 10); return Promise.resolve(); },
+        stop: () => { log.push('dictation.stop'); setTimeout(() => dh.state.forEach((f) => f({ state: 'idle', reason: 'stopped' })), 5); return Promise.resolve(); },
+        active: () => false, onPartial: (f) => { dh.partial.push(f); return () => {}; }, onFinal: (f) => { dh.final.push(f); return () => {}; }, onState: (f) => { dh.state.push(f); return () => {}; },
+      };
+      const tts = { speak: (what, opts) => { log.push(['tts.speak', what, opts]); th.state.forEach((f) => f({ state: 'speaking' })); setTimeout(() => th.state.forEach((f) => f({ state: 'idle', reason: 'completed' })), 20); return Promise.resolve({ playedMs: 900 }); }, stop: () => Promise.resolve(), onState: (f) => { th.state.push(f); return () => {}; } };
+      window.__say = (text) => dh.final.forEach((f) => f({ text }));
+      window.claude = { use: async (name) => (name === 'dictation' ? dictation : name === 'tts' ? tts : null) };
+    });
+    const pc = await ctxC.newPage(); const ec = []; pc.on('pageerror', (e) => ec.push(e.message));
+    await pc.goto(`${url}#conversation`); await pc.waitForSelector('#view .composer', { timeout: 20000 });
+    await pc.waitForFunction(() => /Claude/.test(document.getElementById('vtOut')?.textContent ?? ''), null, { timeout: 15000 });
+    assert.match(await pc.textContent('#vtOut'), /Claude/);
+    await pc.click('.composer .mic-btn');
+    assert.ok((await pc.evaluate(() => window.__claudeLog)).includes('dictation.start'), 'dictation started from the click');
+    await pc.evaluate(() => window.__say('כמה הוצאנו החודש'));
+    await pc.waitForFunction(() => /הוצאתם/.test([...document.querySelectorAll('.chat .msg.jarvis')].pop()?.textContent ?? ''), null, { timeout: 15000 });
+    await pc.waitForFunction(() => window.__claudeLog.some((x) => Array.isArray(x) && x[0] === 'tts.speak'), null, { timeout: 10000 });
+    const spoken = await pc.evaluate(() => window.__claudeLog.find((x) => Array.isArray(x) && x[0] === 'tts.speak'));
+    assert.match(spoken[1][0].text, /הוצאתם/); assert.equal(spoken[2].language, 'he');
+    // speaker test + replay button
+    await pc.click('#vtSpeak'); await pc.click('.chat .msg.jarvis .say-btn');
+    assert.ok((await pc.evaluate(() => window.__claudeLog.filter((x) => Array.isArray(x) && x[0] === 'tts.speak').length)) >= 3);
+    // mute stops automatic reading
+    await pc.click('#muteBtn'); const before = await pc.evaluate(() => window.__claudeLog.length);
+    await pc.fill('.composer input[dir=auto]', 'מה שמך'); await pc.press('.composer input[dir=auto]', 'Enter'); await pc.waitForTimeout(800);
+    assert.equal((await pc.evaluate(() => window.__claudeLog.slice(-20).filter((x) => Array.isArray(x) && x[0] === 'tts.speak').length)), (await pc.evaluate((b) => window.__claudeLog.slice(b - 20 < 0 ? 0 : b - 20, b).filter((x) => Array.isArray(x) && x[0] === 'tts.speak').length, before)));
+    await pc.click('#muteBtn');
+    // wake word through Claude dictation
+    await pc.click('#wakeBtn');
+    await pc.waitForFunction(() => document.getElementById('wakeBtn').classList.contains('live'));
+    await pc.evaluate(() => window.__say('ג׳ארוויס תוסיף משימה לקנות פרחים'));
+    await pc.waitForFunction(() => /לקנות פרחים/.test([...document.querySelectorAll('.chat .msg.jarvis')].pop()?.textContent ?? ''), null, { timeout: 15000 });
+    await pc.evaluate(() => window.__say('סתם משפט בלי מילת הפעלה'));
+    await pc.waitForTimeout(400);
+    assert.doesNotMatch(await pc.textContent('.chat'), /סתם משפט/);
+    if (process.env.SHOTVOICE) await pc.screenshot({ path: process.env.SHOTVOICE });
+    assert.deepEqual(ec, []); await ctxC.close();
+  });
   await check('dictation mode sends automatically after a pause', async () => {
     await page.goto(`${url}#conversation`); await page.waitForSelector('#view .composer');
     await page.click('.dict-btn');

@@ -13,7 +13,7 @@ export function clearChat() { messages.length = 0; local.set('messages', []); re
 
 export function renderChats() {
   $$('.chat').forEach((box) => {
-    box.innerHTML = messages.map((m) => `<div class="msg ${m.role}" dir="auto">${esc(m.text)}${m.meta ? `<span class="meta" dir="ltr">${esc(m.meta)}</span>` : ''}${m.learned ? `<a class="tag info xs" href="#brain" style="margin-top:6px;display:inline-flex">🧠 ${t('learned_pill')}</a>` : ''}${m.taskId && m.role === 'jarvis' ? `<span class="fb row" style="margin-top:6px;gap:4px">${m.rated ? `<span class="xs muted">${m.rated > 0 ? '👍' : '👎'}</span>` : `<button class="btn sm" data-fb="1" data-tid="${m.taskId}" aria-label="good answer">👍</button><button class="btn sm" data-fb="-1" data-tid="${m.taskId}" aria-label="bad answer">👎</button>`}</span>` : ''}${m.outputs?.length ? `<div class="row" style="margin-top:8px">${m.outputs.map((o) => `<a class="btn sm" href="#ai">${o.type === 'app' ? '▶' : o.type === 'file' ? '📄' : '✦'} ${esc(o.title)} · ${t('open_studio')}</a>`).join('')}</div>` : ''}${m.approval ? `<div class="approval-card"><div class="small">${esc(m.approval.consequences ?? '')}</div><div class="row" style="margin-top:8px"><button class="btn ok sm" data-approve="${m.approval.id}">${t('approve')}</button><button class="btn danger sm" data-reject="${m.approval.id}">${t('reject')}</button></div></div>` : ''}</div>`).join('')
+    box.innerHTML = messages.map((m, i) => `<div class="msg ${m.role}" dir="auto">${m.role === 'jarvis' && m.text ? `<button class="say-btn" data-say="${i}" aria-label="${t('read_aloud')}" title="${t('read_aloud')}">🔊</button>` : ''}${esc(m.text)}${m.meta ?`<span class="meta" dir="ltr">${esc(m.meta)}</span>` : ''}${m.learned ? `<a class="tag info xs" href="#brain" style="margin-top:6px;display:inline-flex">🧠 ${t('learned_pill')}</a>` : ''}${m.taskId && m.role === 'jarvis' ? `<span class="fb row" style="margin-top:6px;gap:4px">${m.rated ? `<span class="xs muted">${m.rated > 0 ? '👍' : '👎'}</span>` : `<button class="btn sm" data-fb="1" data-tid="${m.taskId}" aria-label="good answer">👍</button><button class="btn sm" data-fb="-1" data-tid="${m.taskId}" aria-label="bad answer">👎</button>`}</span>` : ''}${m.outputs?.length ? `<div class="row" style="margin-top:8px">${m.outputs.map((o) => `<a class="btn sm" href="#ai">${o.type === 'app' ? '▶' : o.type === 'file' ? '📄' : '✦'} ${esc(o.title)} · ${t('open_studio')}</a>`).join('')}</div>` : ''}${m.approval ? `<div class="approval-card"><div class="small">${esc(m.approval.consequences ?? '')}</div><div class="row" style="margin-top:8px"><button class="btn ok sm" data-approve="${m.approval.id}">${t('approve')}</button><button class="btn danger sm" data-reject="${m.approval.id}">${t('reject')}</button></div></div>` : ''}</div>`).join('')
       || `<p class="empty">${esc(t('try_hint'))}</p>`;
     box.scrollTop = box.scrollHeight;
   });
@@ -41,11 +41,14 @@ async function handleTask(task, channel) {
   push({ role: 'jarvis', text: task.response ?? task.error ?? task.state, meta: `${task.state}${task.analysis ? ` · ${task.analysis.kind} · ${task.analysis.strategy}` : ''}${steps ? ` · ${steps}` : ''}`, approval, outputs: task.outputs, taskId: task.id, learned: task.learned });
   if (local.get('dictation', false)) setTimeout(() => document.querySelector('.composer input[dir=auto]')?.focus(), 50);
   setCoreState(task.state === 'FAILED' ? 'error' : approval ? 'approval' : 'idle');
-  if ((channel === 'voice' || local.get('speakAll', false)) && task.response) speak(task.response);
+  // Answers are read aloud by default (🔇 in the top bar mutes; the setting "speak every answer" can limit it to voice requests).
+  if ((channel === 'voice' || local.get('speakAll', true)) && task.response) speak(task.response);
   chatEvents.dispatchEvent(new Event('task'));
 }
 
 document.addEventListener('click', async (e) => {
+  const say = e.target.closest('[data-say]');
+  if (say) { const m = messages[Number(say.dataset.say)]; if (m?.text) speak(m.text, { force: true }); return; }
   const f = e.target.closest('[data-fb]');
   if (f) {
     const rating = Number(f.dataset.fb);

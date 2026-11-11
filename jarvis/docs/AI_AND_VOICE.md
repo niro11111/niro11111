@@ -1,5 +1,36 @@
 # AI across JARVIS, wake word and renaming
 
+## Hearing and speaking: which engine runs where (`web/js/voice.js`)
+
+| Where JARVIS runs | Hearing (speech → text) | Speaking (text → speech) |
+|---|---|---|
+| **claude.ai** (Chrome/Edge, desktop app) | **Claude dictation** (Anthropic speech-to-text; the `dictation` capability). Starts from the 🎙 click; the platform asks for consent once | **Claude voices** (the `tts` capability): buttery, airy, glassy or rounded. Language is set per answer (he/en) |
+| Website, local server, HTML file (Chrome/Edge/Safari) | The browser's SpeechRecognition | The browser's speechSynthesis. Picks the best voice (your choice, then neural/online, then any), splits text into ≤180-character sentences, and works around Chrome's 15-second cut-off |
+| Firefox | none (typing or OS dictation) | speechSynthesis |
+
+Answers are **read aloud by default**. 🔊/🔇 in the top bar mutes, every answer has a 🔊 replay button, and "speak every answer" can limit reading to voice requests.
+
+### Voice & microphone check (Conversation screen)
+
+The check shows:
+- where JARVIS runs and the browser;
+- which hearing and speaking engines are active, and the voice chosen;
+- the installed Hebrew voices;
+- the microphone permission;
+- a list of specific problems, each with the fix.
+
+Buttons: **Test speaker** says a sentence, and **Test microphone** shows what was heard. Common problems and their fixes:
+
+| Problem | Message / fix |
+|---|---|
+| No Hebrew voice on the device (common in Chrome on Windows) | Use Edge, which has built-in Hebrew voices, install a Hebrew voice in Windows, or use claude.ai (Claude voice) |
+| Microphone blocked | Allow it from the lock icon in the address bar; inside claude.ai, from the artifact's Permissions menu |
+| HTML file opened from disk and the recognizer refuses | Use claude.ai or run the server (`npm start`) |
+| Offline in Chrome/Edge | Browser recognition needs the internet |
+| Firefox | No recognition; use Chrome/Edge or claude.ai |
+
+In claude.ai, Claude's voice cannot speak while dictation is listening. Push-to-talk stops listening before the answer is spoken. In wake mode (continuous listening) answers are shown as text, with 🔊 to hear one.
+
 ## Wake word ("Hey JARVIS" / "ג'ארוויס")
 
 | | |

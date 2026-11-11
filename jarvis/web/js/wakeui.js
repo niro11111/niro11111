@@ -4,7 +4,7 @@ import { api, toast, $$, local, confirmDialog } from './api.js';
 import { t, getLang } from './i18n.js';
 import { setCoreState } from './core.js';
 import { send } from './chat.js';
-import { voice } from './voice.js';
+import { voice, startWakeDictation, stopWakeDictation, setMuted } from './voice.js';
 import { createWakeListener, wakePhrases, matchWake } from './wake.js';
 
 export const persona = { name: 'JARVIS', wakeWord: '' };
@@ -45,8 +45,27 @@ export const wake = createWakeListener({
     if (st.startsWith('blocked')) { local.set('wakeEnabled', false); toast(he() ? 'המיקרופון חסום כאן (למשל בתוך claude.ai). השתמשו באתר, באפליקציה או בגרסת המחשב.' : 'The microphone is blocked here (e.g. inside claude.ai). Use the website, the app or the desktop version.'); }
     if (st === 'unsupported') toast(t('no_stt'));
   },
-  isBusy: () => voice.live || (window.speechSynthesis?.speaking ?? false),
+  isBusy: () => voice.live || voice.speaking || (window.speechSynthesis?.speaking ?? false),
 });
+
+// ---------- claude.ai: wake word through Claude dictation ----------
+// Dictation must start straight from the click, so this path has no extra dialog (the platform asks
+// for consent itself). While it listens, Claude's voice cannot speak: answers appear as text, with 🔊.
+const claudeWake = { on: false, awaitingUntil: 0 };
+voice.onWakeText = (txt) => {
+  if (claudeWake.awaitingUntil > Date.now()) { claudeWake.awaitingUntil = 0; render('listening'); chime(false); send(txt, 'voice'); return; }
+  const m = matchWake(txt, wakePhrases(persona.name, persona.wakeWord));
+  if (!m.matched) return;
+  if (m.command && m.command.length >= 2) { chime(false); render('heard'); send(m.command, 'voice'); }
+  else { claudeWake.awaitingUntil = Date.now() + 8000; chime(); render('awake'); setCoreState('listening'); }
+};
+addEventListener('jarvis:wake-ended', () => { claudeWake.on = false; wake.state.enabled = false; render('off'); });
+function toggleClaudeWake() {
+  if (claudeWake.on) { stopWakeDictation(); claudeWake.on = false; wake.state.enabled = false; render('off'); return; }
+  if (startWakeDictation()) { claudeWake.on = true; wake.state.enabled = true; render('listening'); toast(he() ? `מאזין ל"${wakeWordOf()}". כאן התשובות מוצגות בטקסט; לחצו 🔊 ליד תשובה כדי לשמוע אותה.` : `Listening for "${wakeWordOf()}". Here answers are shown as text; click 🔊 next to one to hear it.`); }
+}
+
+function renderMute() { const b = document.getElementById('muteBtn'); if (!b) return; b.textContent = voice.muted ? '🔇' : '🔊'; b.setAttribute('aria-pressed', String(voice.muted)); b.title = voice.muted ? (he() ? 'ההקראה מושתקת. לחצו להפעלה' : 'Reading aloud is muted. Click to unmute') : (he() ? 'התשובות מוקראות בקול. לחצו להשתקה' : 'Answers are read aloud. Click to mute'); }
 
 export function applyPersona() {
   $$('.brandmark').forEach((b) => { b.textContent = brandOf(persona.name); });
@@ -70,7 +89,10 @@ export async function toggleWake() {
 }
 
 export function initWake() {
-  document.getElementById('wakeBtn')?.addEventListener('click', toggleWake);
+  // Claude dictation needs the click itself: decide synchronously, before anything is awaited.
+  document.getElementById('wakeBtn')?.addEventListener('click', () => (voice.cap.dictation ? toggleClaudeWake() : toggleWake()));
+  document.getElementById('muteBtn')?.addEventListener('click', () => { setMuted(!voice.muted); renderMute(); });
+  renderMute();
   addEventListener('jarvis:persona', loadPersona);
   loadPersona().then(() => { if (local.get('wakeEnabled', false) && local.get('wakeConsent', false)) wake.enable(); });
 }

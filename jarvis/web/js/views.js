@@ -3,7 +3,7 @@ import { api, esc, money, toast, $, $$, local, auth, confirmDialog, promptDialog
 import { t, getLang } from './i18n.js';
 import { coreHTML, setCoreState } from './core.js';
 import { chatPanel, renderChats, clearChat, chatEvents } from './chat.js';
-import { voice, startListening, stopAll, saveVoicePrefs, toggleListening } from './voice.js';
+import { voice, startListening, stopListening, stopAll, saveVoicePrefs, toggleListening, speak, diagnose } from './voice.js';
 import { lineChart, donut, gauge } from './charts.js';
 import { learnView } from './learnview.js';
 import { neuralView, graphView, databaseView } from './mlview.js';
@@ -92,7 +92,7 @@ async function conversation(v) {
   v.innerHTML = `<div class="grid"><div class="c5 panel glass corner" style="display:flex;flex-direction:column;align-items:center;gap:12px">${coreHTML()}
     <button id="convBtn" class="talk-btn">◉ ${esc(t('talk').toUpperCase())}</button>
     <div class="row"><button id="stopBtn" class="btn sm">■ ${t('stop')}</button><span class="xs muted">Alt+Space · Esc</span></div>
-    ${voice.supported ? '' : `<p class="err small">${t('no_stt')}</p>`}
+    ${voice.supported || voice.cap.dictation ? '' : `<p class="err small">${t('no_stt')}</p>`}
     <div class="panel glass" style="width:100%;padding:12px"><div class="row"><b class="small grow">${t('mic_state')}</b><span id="micState" class="tag xs">…</span><button id="micReq" class="btn sm">🎙 ${t('mic_request')}</button></div>
       <p id="micNote" class="xs muted" style="margin:6px 0 0"></p>
       <div class="row" style="margin-top:8px"><b class="small grow">${t('notif_perm')}</b><span id="notifState" class="tag xs">…</span><button id="notifReq" class="btn sm">🔔 ${t('notif_request')}</button></div>
@@ -100,7 +100,10 @@ async function conversation(v) {
     <div class="kv small" style="width:100%"><label for="vLang">${t('language')}</label><select id="vLang"><option value="he-IL">עברית</option><option value="en-US">English</option></select>
     <label for="vVoice">${t('voice')}</label><select id="vVoice"></select>
     <label for="vRate">${t('voice_rate')}</label><input id="vRate" type="range" min="0.6" max="1.6" step="0.1">
-    <span></span><label class="row"><input id="vBarge" type="checkbox"> ${t('barge')}</label></div></div>
+    <span></span><label class="row"><input id="vBarge" type="checkbox"> ${t('barge')}</label>
+    <label for="vClaude" class="cv-only hidden">${he() ? 'קול Claude' : 'Claude voice'}</label><select id="vClaude" class="cv-only hidden">${['buttery', 'airy', 'glassy', 'rounded'].map((x) => `<option ${x === voice.claudeVoice ? 'selected' : ''}>${x}</option>`).join('')}</select></div>
+    <div class="panel glass voice-check" style="width:100%;padding:12px"><div class="row"><b class="small grow">🩺 ${he() ? 'בדיקת קול ומיקרופון' : 'Voice & microphone check'}</b><button id="vtSpeak" class="btn sm">🔊 ${he() ? 'בדיקת רמקול' : 'Test speaker'}</button><button id="vtMic" class="btn sm">🎙 ${he() ? 'בדיקת מיקרופון' : 'Test microphone'}</button></div>
+      <div id="vtOut" class="small" style="margin-top:8px"></div><div id="vtHeard" class="small" dir="auto"></div></div></div>
     <div class="c7" id="convChat"></div></div>`;
   $('#convChat').append(chatPanel({ cls: 'tall' }));
   renderChats();
@@ -130,8 +133,35 @@ async function conversation(v) {
   const showNotif = () => { const n = 'Notification' in window ? Notification.permission : 'denied'; $('#notifState').textContent = t(n === 'granted' ? 'mic_granted' : n === 'denied' ? 'mic_denied' : 'mic_prompt'); $('#notifState').className = `tag xs ${n === 'granted' ? 'ok' : n === 'denied' ? 'bad' : 'warn'}`; };
   showNotif();
   $('#notifReq').onclick = async () => { try { await Notification.requestPermission(); } catch { /* blocked in this frame */ } showNotif(); };
-  $('#speakAll').checked = local.get('speakAll', false);
+  $('#speakAll').checked = local.get('speakAll', true);
   $('#speakAll').onchange = (e) => local.set('speakAll', e.target.checked);
+  // Voice & microphone check: what this place supports, what is wrong, and a real test of each side.
+  const label = { claude: he() ? 'Claude (claude.ai)' : 'Claude (claude.ai)', browser: he() ? 'הדפדפן' : 'the browser', none: he() ? 'לא זמין' : 'not available' };
+  const showDiag = async () => {
+    const d = await diagnose();
+    if (!$('#vtOut')) return;
+    $$('.cv-only').forEach((x) => x.classList.toggle('hidden', d.tts !== 'claude'));
+    $('#vtOut').innerHTML = `<div class="kv xs"><span class="muted">${he() ? 'מקום' : 'Place'}</span><span>${esc(d.place)} · ${esc(d.browser)}</span>
+      <span class="muted">${he() ? 'שמיעה (דיבור→טקסט)' : 'Hearing (speech→text)'}</span><span><span class="tag ${d.stt === 'none' ? 'bad' : 'ok'} xs">${esc(label[d.stt])}</span></span>
+      <span class="muted">${he() ? 'דיבור (טקסט→קול)' : 'Speaking (text→speech)'}</span><span><span class="tag ${d.tts === 'none' ? 'bad' : 'ok'} xs">${esc(label[d.tts])}</span>${d.tts === 'browser' ? ` · ${esc(d.chosenVoice ?? (he() ? 'אין קול מתאים' : 'no matching voice'))}` : ''}</span>
+      ${d.tts === 'browser' ? `<span class="muted">${he() ? 'קולות עבריים' : 'Hebrew voices'}</span><span>${d.hebrewVoices.length ? esc(d.hebrewVoices.join(', ')) : `<span class="tag bad xs">${he() ? 'אין' : 'none'}</span>`}</span>` : ''}
+      <span class="muted">${he() ? 'הרשאת מיקרופון' : 'Microphone permission'}</span><span>${esc(d.micPermission)}</span></div>
+      ${d.issues.length ? `<ul class="list">${d.issues.map((x) => `<li class="xs warn">⚠ ${esc(x)}</li>`).join('')}</ul>` : `<p class="xs ok">✓ ${he() ? 'הכל מוכן. לחצו "דבר", אמרו משפט, וג׳ארוויס יענה בקול.' : 'All set. Press Talk, say something, and JARVIS answers aloud.'}</p>`}`;
+  };
+  showDiag();
+  addEventListener('jarvis:voice-ready', showDiag, { once: true });
+  const onErr = (e) => { if ($('#vtHeard')) $('#vtHeard').innerHTML = `<span class="err">✕ ${esc(e.detail.text)}</span>`; };
+  addEventListener('jarvis:voice-error', onErr); cleanups.push(() => removeEventListener('jarvis:voice-error', onErr));
+  $('#vClaude').onchange = (e) => { voice.claudeVoice = e.target.value; saveVoicePrefs(); };
+  $('#vtSpeak').onclick = () => { speak(he() ? 'שלום, אני ג׳ארוויס. אם אתם שומעים אותי, הקול עובד.' : 'Hello, I am JARVIS. If you can hear me, speech works.', { force: true }); setTimeout(showDiag, 1500); };
+  $('#vtMic').onclick = () => {
+    $('#vtHeard').textContent = he() ? '🎙 מקשיב… אמרו משפט קצר' : '🎙 Listening… say a short sentence';
+    const prev = voice.onFinal; const prevI = voice.onInterim;
+    voice.onInterim = (x) => { if (x && $('#vtHeard')) $('#vtHeard').textContent = `… ${x}`; };
+    voice.onFinal = (x) => { voice.onFinal = prev; voice.onInterim = prevI; if ($('#vtHeard')) $('#vtHeard').innerHTML = `<span class="ok">✓ ${he() ? 'נשמע' : 'Heard'}: </span><b>${esc(x)}</b>`; stopListening(); };
+    startListening(); // straight from the click: required by Claude dictation
+    setTimeout(() => { if (voice.onFinal !== prev) { voice.onFinal = prev; voice.onInterim = prevI; } }, 20000);
+  };
 }
 
 // ===================================================== System Map
