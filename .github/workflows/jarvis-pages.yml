@@ -1,0 +1,25 @@
+# Tests and builds the standalone JARVIS web app. It does NOT publish to GitHub Pages:
+# this repository's Pages site belongs to the Claude Code course (pages.yml), and a
+# repository has only one Pages site. Download the built site from the run's artifacts
+# ("jarvis-webapp") and host it anywhere static, or give JARVIS its own repository.
+name: JARVIS web app
+on:
+  push:
+    branches: [claude/jarvis-ai-system-spec-oxc6aq]
+    paths: ['jarvis/**', '.github/workflows/jarvis-pages.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: jarvis } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: jarvis/package-lock.json }
+      - run: npm ci
+      - run: npm test
+      - run: npm run build:webapp
+      - uses: actions/upload-artifact@v4
+        with: { name: jarvis-webapp, path: jarvis/dist/webapp, include-hidden-files: true }
