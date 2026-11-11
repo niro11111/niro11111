@@ -278,6 +278,8 @@ main{overflow-wrap:break-word}
 /* builders / forms */
 .form{display:grid;gap:10px;align-content:start}
 .form label{display:grid;gap:3px;font-weight:600;font-size:.92rem}
+.form label.tick{display:flex;gap:6px;align-items:center}
+[hidden]{display:none!important}   /* hidden always wins over component display rules */
 .form input,.form select,.form textarea{font:inherit;font-weight:400;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);width:100%}
 .form textarea{min-height:90px}
 .chk{display:flex;flex-wrap:wrap;gap:6px}
@@ -454,6 +456,16 @@ main{overflow-wrap:break-word}
 .btn.danger{border-color:var(--red);color:var(--red)}
 #acct .pal-box{max-width:520px}
 #acct form{margin:8px 0}
+
+/* Make section */
+.mkFlow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;direction:ltr;justify-content:flex-start;margin:10px 0 14px;font-size:.85rem}
+.mkFlow span{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 10px;font-weight:700}
+.mkFlow i{color:var(--muted);font-style:normal}
+.mlKpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.mlKpis div{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:8px;text-align:center;display:grid}
+.mlKpis b{font-size:1.3rem}.mlKpis span{color:var(--muted);font-size:.8rem}
+.mlKpis[data-lvl="lo"] div:nth-child(3) b{color:var(--red)}.mlKpis[data-lvl="hi"] div:nth-child(3) b{color:var(--ok)}
+@media (max-width:700px){.mlKpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 </head>
 <body>
@@ -1876,101 +1888,6 @@ export OTEL_RESOURCE_ATTRIBUTES="team=payments,department=rnd"</pre></div>
   <div class="note warn"><b>לפני שמשתמשים</b>כתובות שרתי MCP משתנות. אמתו כל כתובת בתיעוד הרשמי של הכלי, והעדיפו משתמשים והרשאות לקריאה בלבד במסדי נתונים ובענן.</div>
 </section>
 
-<section class="mod" id="make" data-level="אינטגרציות ופרויקטים" data-title="Make.com עם Claude ו-Claude Code">
-  <div class="eyebrow"></div>
-  <h1>Make.com עם Claude ו-Claude Code: המדריך המלא</h1>
-  <p class="lead">‏Claude Code כותב ומריץ קוד. ‏Make מחבר אפליקציות בלי קוד: Gmail, ‏Slack, ‏Sheets, ‏CRM ועוד. יחד מקבלים סוכן שגם בונה וגם פועל בעולם האמיתי. הפרק מסביר את המושגים, שש דרכים לחבר ביניהם, שישה תרחישים מלאים, ומחוללים שמייצרים את ההגדרות. כל שם, כתובת ומספר כאן נבדקו מול התיעוד הרשמי של Make בנובמבר 2026.</p>
-
-  <h2>1. המושגים של Make בחמש דקות</h2>
-  <div class="tricks" id="mkConcepts"></div>
-
-  <h2>2. שש דרכים לחבר Make ל-Claude</h2>
-  <div class="tabs" id="mkWays"></div>
-  <div id="mkWay"></div>
-
-  <h2>3. מחוללים</h2>
-  <div class="tabs" data-tabs="mkgen"><button class="on" type="button">Claude Code ← Make (Hook)</button><button type="button">Make ← Claude Code (MCP)</button><button type="button">הרצת תרחיש מה-API</button><button type="button">שרת האקדמיה ← Make</button></div>
-
-  <div class="pane on" data-pane="mkgen">
-    <p>‏Hook ששולח ל-Make אירוע בכל פעם ש-Claude Code מסיים משימה או מחכה לכם. ב-Make, תרחיש עם <b>Webhooks ‏&gt; Custom webhook</b> מקבל את האירוע ושולח הלאה: Slack, מייל, שורה ב-Sheets.</p>
-    <div class="grid2"><div class="form">
-      <b>אירועים</b><div class="chk" id="mhEvents"><label><input type="checkbox" value="Stop" checked>Stop (סיים)</label><label><input type="checkbox" value="Notification" checked>Notification (מחכה לכם)</label><label><input type="checkbox" value="SubagentStop">SubagentStop</label></div>
-      <label class="tick"><input type="checkbox" id="mhGit" checked> לצרף ענף git ושינויים אחרונים</label>
-      <label>טיימאאוט (שניות)<input type="number" id="mhTimeout" min="1" max="30" value="5"></label>
-    </div><div>
-      <div class="code" data-lang="bash" data-file=".claude/hooks/notify-make.sh" id="mhScript"><pre></pre></div>
-      <div class="code" data-lang="json" data-file=".claude/settings.json" id="mhSettings"><pre></pre></div>
-      <div class="code" data-lang="json" data-file=".claude/settings.local.json (לא ל-git)" id="mhLocal"><pre></pre></div>
-      <p class="hint">כתובת ה-webhook היא סוד: כל מי שמחזיק בה יכול להפעיל את התרחיש. היא נשמרת ב-<code>settings.local.json</code>, שלא נכנס ל-git. הסקריפט תמיד יוצא עם קוד 0 ומוגבל בזמן, כך ש-Make איטי לא יעכב את Claude.</p>
-    </div></div>
-  </div>
-
-  <div class="pane" data-pane="mkgen">
-    <p>‏Claude Code מפעיל תרחישים של Make ככלים. כל תרחיש <b>פעיל</b>, עם תזמון <b>On demand</b>, עם inputs ו-outputs מוגדרים, ועם תיאור, נהיה כלי ש-Claude יכול לקרוא לו.</p>
-    <div class="grid2"><div class="form">
-      <label>לקוח<select id="mmClient"><option value="cc">Claude Code (OAuth, מומלץ)</option><option value="cckey">Claude Code (מפתח API ב-header)</option><option value="ai">claude.ai ו-Claude Desktop</option></select></label>
-      <label id="mmZoneL">אזור (zone)<select id="mmZone"><option>eu1.make.com</option><option>eu2.make.com</option><option>us1.make.com</option><option>us2.make.com</option></select></label>
-      <label>היקף<select id="mmScope"><option value="project">פרויקט (.mcp.json, לכל הצוות)</option><option value="local" selected>אישי לפרויקט הזה</option><option value="user">אישי לכל הפרויקטים</option></select></label>
-    </div><div>
-      <div class="code" data-lang="bash" id="mmOut"><pre></pre></div>
-      <div id="mmSteps"></div>
-    </div></div>
-  </div>
-
-  <div class="pane" data-pane="mkgen">
-    <p>מפעילים תרחיש מכל סקריפט, מ-CI או מ-Claude Code עם <code class="ltr">POST /scenarios/{id}/run</code>. התרחיש חייב להיות פעיל. עם <code>responsive: true</code> הקריאה מחכה עד 40 שניות ומחזירה את ה-outputs.</p>
-    <div class="grid2"><div class="form">
-      <label>אזור<select id="mrZone"><option>eu1.make.com</option><option>eu2.make.com</option><option>us1.make.com</option><option>us2.make.com</option></select></label>
-      <label>מזהה התרחיש<input type="text" id="mrId" class="ltr" value="123456" inputmode="numeric"></label>
-      <label>inputs (JSON)<textarea id="mrData" class="ltr" rows="3">{"email": "dana@example.com", "plan": "pro"}</textarea></label>
-      <label class="tick"><input type="checkbox" id="mrResp" checked> לחכות לתוצאה (responsive)</label>
-      <p class="acErr" id="mrErr" role="alert"></p>
-    </div><div>
-      <div class="tabs" data-tabs="mr"><button class="on" type="button">curl</button><button type="button">Node.js</button><button type="button">פקודה ל-Claude Code</button></div>
-      <div class="pane on" data-pane="mr"><div class="code" data-lang="bash" id="mrCurl"><pre></pre></div></div>
-      <div class="pane" data-pane="mr"><div class="code" data-lang="text" data-file="run-make.mjs" id="mrNode"><pre></pre></div></div>
-      <div class="pane" data-pane="mr"><div class="code" data-lang="markdown" data-file=".claude/commands/make-run.md" id="mrCmd"><pre></pre></div></div>
-      <p class="hint">הטוקן: ב-Make, ‏Profile ‏← API access ‏← ‎+ API token, עם ה-scope ‏<code>scenarios:run</code>. מגבלות קצב ה-API לפי תוכנית: Core ‏60, ‏Pro ‏120, ‏Teams ‏240 ו-Enterprise ‏1,000 בקשות לדקה, אבל נקודת הקצה של הרצת תרחיש פטורה מהן.</p>
-    </div></div>
-  </div>
-
-  <div class="pane" data-pane="mkgen">
-    <p>לשרת של האקדמיה יש חיבור מובנה: הוא שולח ל-Make אירועים חתומים, ו-Make יכול לקרוא ממנו נתונים עם טוקן.</p>
-    <div class="grid2"><div class="form">
-      <label>כתובת ה-Custom webhook מ-Make<input type="url" id="msHook" class="ltr" placeholder="https://hook.eu1.make.com/..."></label>
-      <label class="tick"><input type="checkbox" id="msPii"> לכלול את אימייל המשתמש באירועים (רק אם צריך, למשל למייל ברכה)</label>
-      <button class="btn sm" type="button" id="msGen">יצירת סודות חדשים</button>
-    </div><div>
-      <div class="code" data-lang="bash" data-file=".env (בשרת)" id="msEnv"><pre></pre></div>
-      <div class="code" data-lang="json" data-file="אירוע לדוגמה (גוף הבקשה)" id="msEvent"><pre></pre></div>
-      <div class="code" data-lang="bash" data-file="Make: ‏HTTP ← academy" id="msHttp"><pre></pre></div>
-    </div></div>
-    <table><thead><tr><th scope="col">אירוע</th><th scope="col">מתי</th><th scope="col">שדות</th></tr></thead><tbody>
-      <tr><td><code>user.registered</code></td><td>משתמש חדש נרשם</td><td><code>user_id</code>, ‏<code>name</code> (ו-<code>email</code> רק עם WEBHOOK_INCLUDE_PII)</td></tr>
-      <tr><td><code>progress.milestone</code></td><td>עברו 10, ‏25 או 50 פרקים</td><td><code>user_id</code>, ‏<code>chapters</code>, ‏<code>milestone</code></td></tr>
-      <tr><td><code>certificate.issued</code></td><td>הונפקה תעודה</td><td><code>certificate_id</code>, ‏<code>name</code>, ‏<code>score</code>, ‏<code>verify_url</code></td></tr>
-      <tr><td><code>user.deleted</code></td><td>חשבון נמחק</td><td><code>user_id</code></td></tr>
-    </tbody></table>
-  </div>
-
-  <h2>4. שישה תרחישים מלאים</h2>
-  <div class="tabs" id="mkRecipes"></div>
-  <div id="mkRecipe"></div>
-
-  <h2>5. כללים לעבודה מקצועית עם Make</h2>
-  <ol>
-    <li><b>תיאור טוב לכל תרחיש-כלי</b>: ‏Claude בוחר כלי לפי התיאור. כתבו מה התרחיש עושה, מתי להשתמש בו ומה הוא מחזיר.</li>
-    <li><b>הרשאות מינימליות</b>: חברו ל-Claude רק את מה שצריך. ‏<b>MCP toolboxes</b> מגבילים אילו תרחישים חשופים, ו-OAuth מאפשר לבחור ארגון אחד.</li>
-    <li><b>‏Webhook response בסוף התרחיש</b>: אם הוא באמצע ומודול אחריו נכשל, התרחיש לא יושבת ולא תקבלו התראה, וזה עלול לבזבז קרדיטים.</li>
-    <li><b>טיפול בשגיאות</b>: ‏Retry לשירותים שנופלים לרגע (שומר incomplete executions), ‏Resume עם ערך חלופי, ‏Skip לפריט בעייתי, ו-Commit או Rollback לעצירה.</li>
-    <li><b>סדר וקצב</b>: אם סדר הבקשות חשוב, מפעילים <b>Process data in order</b>. מגבלת הקצב של תרחיש היא 100 כברירת מחדל, והתור של כל webhook מוגבל (667 פריטים לכל 10,000 קרדיטים בחודש, ועד 10,000).</li>
-    <li><b>סודות לא בתרחיש</b>: מפתחות נשמרים ב-connections של Make, לא בטקסט של מודול. כתובות webhook מתייחסים אליהן כמו לסיסמה.</li>
-    <li><b>גיבוי וגרסאות</b>: מייצאים blueprint (קובץ JSON) לפני שינוי גדול. ה-connections לא נכללים בו, ולכן אפשר לשתף אותו.</li>
-    <li><b>עלות</b>: באפליקציות רגילות כל operation הוא קרדיט אחד. ב-Simple Text Prompt הקרדיטים לפי טוקנים. עם מפתח API משלכם, Make גובה לפי operations, ואת הטוקנים משלמים ישירות ל-Anthropic.</li>
-  </ol>
-  <div class="quiz" data-q="make"></div>
-</section>
-
 <section class="mod" id="buildalong" data-level="אינטגרציות ופרויקטים" data-title="פרויקט מלא בבנייה משותפת">
   <div class="eyebrow"></div>
   <h1>בונים יחד מקצה לקצה: "קיצור", שירות קיצור קישורים</h1>
@@ -2222,6 +2139,193 @@ fly deploy</pre></div></li>
 </section>
 
 <!-- ================= EXPERT TOOLBOX ================= -->
+<!-- ================= MAKE.COM ================= -->
+<section class="mod" id="make" data-level="Make.com" data-title="Make + Claude: המדריך המרכזי">
+  <div class="eyebrow"></div>
+  <h1>Make.com עם Claude ו-Claude Code: המדריך המלא</h1>
+  <p class="lead">‏Claude Code כותב ומריץ קוד. ‏Make מחבר אפליקציות בלי קוד: Gmail, ‏Slack, ‏Sheets, ‏CRM ועוד. יחד מקבלים סוכן שגם בונה וגם פועל בעולם האמיתי. הפרק מסביר את המושגים, שש דרכים לחבר ביניהם, שישה תרחישים מלאים, ומחוללים שמייצרים את ההגדרות. כל שם, כתובת ומספר כאן נבדקו מול התיעוד הרשמי של Make בנובמבר 2026.</p>
+
+  <h2>1. המושגים של Make בחמש דקות</h2>
+  <div class="tricks" id="mkConcepts"></div>
+
+  <h2>2. שש דרכים לחבר Make ל-Claude</h2>
+  <div class="tabs" id="mkWays"></div>
+  <div id="mkWay"></div>
+
+  <h2>3. מחוללים</h2>
+  <div class="tabs" data-tabs="mkgen"><button class="on" type="button">Claude Code ← Make (Hook)</button><button type="button">Make ← Claude Code (MCP)</button><button type="button">הרצת תרחיש מה-API</button><button type="button">שרת האקדמיה ← Make</button></div>
+
+  <div class="pane on" data-pane="mkgen">
+    <p>‏Hook ששולח ל-Make אירוע בכל פעם ש-Claude Code מסיים משימה או מחכה לכם. ב-Make, תרחיש עם <b>Webhooks ‏&gt; Custom webhook</b> מקבל את האירוע ושולח הלאה: Slack, מייל, שורה ב-Sheets.</p>
+    <div class="grid2"><div class="form">
+      <b>אירועים</b><div class="chk" id="mhEvents"><label><input type="checkbox" value="Stop" checked>Stop (סיים)</label><label><input type="checkbox" value="Notification" checked>Notification (מחכה לכם)</label><label><input type="checkbox" value="SubagentStop">SubagentStop</label></div>
+      <label class="tick"><input type="checkbox" id="mhGit" checked> לצרף ענף git ושינויים אחרונים</label>
+      <label>טיימאאוט (שניות)<input type="number" id="mhTimeout" min="1" max="30" value="5"></label>
+    </div><div>
+      <div class="code" data-lang="bash" data-file=".claude/hooks/notify-make.sh" id="mhScript"><pre></pre></div>
+      <div class="code" data-lang="json" data-file=".claude/settings.json" id="mhSettings"><pre></pre></div>
+      <div class="code" data-lang="json" data-file=".claude/settings.local.json (לא ל-git)" id="mhLocal"><pre></pre></div>
+      <p class="hint">כתובת ה-webhook היא סוד: כל מי שמחזיק בה יכול להפעיל את התרחיש. היא נשמרת ב-<code>settings.local.json</code>, שלא נכנס ל-git. הסקריפט תמיד יוצא עם קוד 0 ומוגבל בזמן, כך ש-Make איטי לא יעכב את Claude.</p>
+    </div></div>
+  </div>
+
+  <div class="pane" data-pane="mkgen">
+    <p>‏Claude Code מפעיל תרחישים של Make ככלים. כל תרחיש <b>פעיל</b>, עם תזמון <b>On demand</b>, עם inputs ו-outputs מוגדרים, ועם תיאור, נהיה כלי ש-Claude יכול לקרוא לו.</p>
+    <div class="grid2"><div class="form">
+      <label>לקוח<select id="mmClient"><option value="cc">Claude Code (OAuth, מומלץ)</option><option value="cckey">Claude Code (מפתח API ב-header)</option><option value="ai">claude.ai ו-Claude Desktop</option></select></label>
+      <label id="mmZoneL">אזור (zone)<select id="mmZone"><option>eu1.make.com</option><option>eu2.make.com</option><option>us1.make.com</option><option>us2.make.com</option></select></label>
+      <label>היקף<select id="mmScope"><option value="project">פרויקט (.mcp.json, לכל הצוות)</option><option value="local" selected>אישי לפרויקט הזה</option><option value="user">אישי לכל הפרויקטים</option></select></label>
+    </div><div>
+      <div class="code" data-lang="bash" id="mmOut"><pre></pre></div>
+      <div id="mmSteps"></div>
+    </div></div>
+  </div>
+
+  <div class="pane" data-pane="mkgen">
+    <p>מפעילים תרחיש מכל סקריפט, מ-CI או מ-Claude Code עם <code class="ltr">POST /scenarios/{id}/run</code>. התרחיש חייב להיות פעיל. עם <code>responsive: true</code> הקריאה מחכה עד 40 שניות ומחזירה את ה-outputs.</p>
+    <div class="grid2"><div class="form">
+      <label>אזור<select id="mrZone"><option>eu1.make.com</option><option>eu2.make.com</option><option>us1.make.com</option><option>us2.make.com</option></select></label>
+      <label>מזהה התרחיש<input type="text" id="mrId" class="ltr" value="123456" inputmode="numeric"></label>
+      <label>inputs (JSON)<textarea id="mrData" class="ltr" rows="3">{"email": "dana@example.com", "plan": "pro"}</textarea></label>
+      <label class="tick"><input type="checkbox" id="mrResp" checked> לחכות לתוצאה (responsive)</label>
+      <p class="acErr" id="mrErr" role="alert"></p>
+    </div><div>
+      <div class="tabs" data-tabs="mr"><button class="on" type="button">curl</button><button type="button">Node.js</button><button type="button">פקודה ל-Claude Code</button></div>
+      <div class="pane on" data-pane="mr"><div class="code" data-lang="bash" id="mrCurl"><pre></pre></div></div>
+      <div class="pane" data-pane="mr"><div class="code" data-lang="text" data-file="run-make.mjs" id="mrNode"><pre></pre></div></div>
+      <div class="pane" data-pane="mr"><div class="code" data-lang="markdown" data-file=".claude/commands/make-run.md" id="mrCmd"><pre></pre></div></div>
+      <p class="hint">הטוקן: ב-Make, ‏Profile ‏← API access ‏← ‎+ API token, עם ה-scope ‏<code>scenarios:run</code>. מגבלות קצב ה-API לפי תוכנית: Core ‏60, ‏Pro ‏120, ‏Teams ‏240 ו-Enterprise ‏1,000 בקשות לדקה, אבל נקודת הקצה של הרצת תרחיש פטורה מהן.</p>
+    </div></div>
+  </div>
+
+  <div class="pane" data-pane="mkgen">
+    <p>לשרת של האקדמיה יש חיבור מובנה: הוא שולח ל-Make אירועים חתומים, ו-Make יכול לקרוא ממנו נתונים עם טוקן.</p>
+    <div class="grid2"><div class="form">
+      <label>כתובת ה-Custom webhook מ-Make<input type="url" id="msHook" class="ltr" placeholder="https://hook.eu1.make.com/..."></label>
+      <label class="tick"><input type="checkbox" id="msPii"> לכלול את אימייל המשתמש באירועים (רק אם צריך, למשל למייל ברכה)</label>
+      <button class="btn sm" type="button" id="msGen">יצירת סודות חדשים</button>
+    </div><div>
+      <div class="code" data-lang="bash" data-file=".env (בשרת)" id="msEnv"><pre></pre></div>
+      <div class="code" data-lang="json" data-file="אירוע לדוגמה (גוף הבקשה)" id="msEvent"><pre></pre></div>
+      <div class="code" data-lang="bash" data-file="Make: ‏HTTP ← academy" id="msHttp"><pre></pre></div>
+    </div></div>
+    <table><thead><tr><th scope="col">אירוע</th><th scope="col">מתי</th><th scope="col">שדות</th></tr></thead><tbody>
+      <tr><td><code>user.registered</code></td><td>משתמש חדש נרשם</td><td><code>user_id</code>, ‏<code>name</code> (ו-<code>email</code> רק עם WEBHOOK_INCLUDE_PII)</td></tr>
+      <tr><td><code>progress.milestone</code></td><td>עברו 10, ‏25 או 50 פרקים</td><td><code>user_id</code>, ‏<code>chapters</code>, ‏<code>milestone</code></td></tr>
+      <tr><td><code>certificate.issued</code></td><td>הונפקה תעודה</td><td><code>certificate_id</code>, ‏<code>name</code>, ‏<code>score</code>, ‏<code>verify_url</code></td></tr>
+      <tr><td><code>user.deleted</code></td><td>חשבון נמחק</td><td><code>user_id</code></td></tr>
+    </tbody></table>
+  </div>
+
+  <h2>4. שישה תרחישים מלאים</h2>
+  <div class="tabs" id="mkRecipes"></div>
+  <div id="mkRecipe"></div>
+
+  <h2>5. כללים לעבודה מקצועית עם Make</h2>
+  <ol>
+    <li><b>תיאור טוב לכל תרחיש-כלי</b>: ‏Claude בוחר כלי לפי התיאור. כתבו מה התרחיש עושה, מתי להשתמש בו ומה הוא מחזיר.</li>
+    <li><b>הרשאות מינימליות</b>: חברו ל-Claude רק את מה שצריך. ‏<b>MCP toolboxes</b> מגבילים אילו תרחישים חשופים, ו-OAuth מאפשר לבחור ארגון אחד.</li>
+    <li><b>‏Webhook response בסוף התרחיש</b>: אם הוא באמצע ומודול אחריו נכשל, התרחיש לא יושבת ולא תקבלו התראה, וזה עלול לבזבז קרדיטים.</li>
+    <li><b>טיפול בשגיאות</b>: ‏Retry לשירותים שנופלים לרגע (שומר incomplete executions), ‏Resume עם ערך חלופי, ‏Skip לפריט בעייתי, ו-Commit או Rollback לעצירה.</li>
+    <li><b>סדר וקצב</b>: אם סדר הבקשות חשוב, מפעילים <b>Process data in order</b>. מגבלת הקצב של תרחיש היא 100 כברירת מחדל, והתור של כל webhook מוגבל (667 פריטים לכל 10,000 קרדיטים בחודש, ועד 10,000).</li>
+    <li><b>סודות לא בתרחיש</b>: מפתחות נשמרים ב-connections של Make, לא בטקסט של מודול. כתובות webhook מתייחסים אליהן כמו לסיסמה.</li>
+    <li><b>גיבוי וגרסאות</b>: מייצאים blueprint (קובץ JSON) לפני שינוי גדול. ה-connections לא נכללים בו, ולכן אפשר לשתף אותו.</li>
+    <li><b>עלות</b>: באפליקציות רגילות כל operation הוא קרדיט אחד. ב-Simple Text Prompt הקרדיטים לפי טוקנים. עם מפתח API משלכם, Make גובה לפי operations, ואת הטוקנים משלמים ישירות ל-Anthropic.</li>
+  </ol>
+  <div class="quiz" data-q="make"></div>
+</section>
+
+<section class="mod" id="makecore" data-level="Make.com" data-title="Make מאפס: תרחיש מקצועי צעד אחר צעד">
+  <div class="eyebrow"></div>
+  <h1>Make מאפס: בונים תרחיש מקצועי צעד אחר צעד</h1>
+  <p class="lead">בונים יחד תרחיש אמיתי: פנייה נכנסת מטופס, ‏Claude מסווג ומסכם אותה, ולפי הדחיפות היא מגיעה ל-Slack או לגיליון, עם טיפול בשגיאות והגדרות של production. כל צעד מסביר מה עושים, למה, ומה הטעות הנפוצה. בסוף יש רשימת בדיקה לפני הפעלה, וההתקדמות נשמרת.</p>
+  <div class="mkFlow" aria-hidden="true"><span>Custom webhook</span><i>→</i><span>Filter</span><i>→</i><span>Anthropic Claude</span><i>→</i><span>Parse JSON</span><i>→</i><span>Router</span><i>⇉</i><span>Slack · Sheets</span></div>
+  <div id="mcSteps" class="agStages"></div>
+  <h2>הגדרות התרחיש: מה כל מתג עושה</h2>
+  <div class="tblwrap"><table><thead><tr><th scope="col">הגדרה</th><th scope="col">מה היא עושה</th><th scope="col">מתי להפעיל</th></tr></thead><tbody id="mcSettings"></tbody></table></div>
+  <h2>קיצורי המקלדת של עורך התרחישים</h2>
+  <div class="tblwrap"><table><thead><tr><th scope="col">פעולה</th><th scope="col">Windows</th><th scope="col">Mac</th></tr></thead><tbody id="mcKeys"></tbody></table></div>
+  <h2>רשימת בדיקה לפני הפעלה</h2>
+  <ul class="agChecks" id="mcCheck"></ul>
+  <p class="hint" id="mcCheckN" aria-live="polite"></p>
+  <div class="quiz" data-q="makecore"></div>
+</section>
+
+<section class="mod" id="makefx" data-level="Make.com" data-title="מיפוי, פונקציות, משתנים ונתונים">
+  <div class="eyebrow"></div>
+  <h1>מיפוי, פונקציות, משתנים ונתונים ב-Make</h1>
+  <p class="lead">הכוח האמיתי של Make הוא במיפוי: לקחת שדה ממודול אחד, לעבד אותו ולהעביר הלאה. בפרק: כל הפונקציות החשובות עם תחביר ודוגמה, מחולל נוסחאות למשימות נפוצות, ארבעה סוגי משתנים ומתי להשתמש בכל אחד, ‏data stores, ‏subscenarios, ויכולות Enterprise.</p>
+  <div class="note"><b>תחביר:</b> ב-Make מפרידים בין ארגומנטים בנקודה-פסיק: <code class="ltr">formatDate(date; format; timezone)</code>. מחרוזות כותבים בלי מירכאות, ושמות שדות במיפוי לפי ה-raw name. ב-<code>get()</code> האינדקס הראשון הוא 1, וב-<code>slice()</code> הוא 0.</div>
+  <h2>מחולל נוסחאות</h2>
+  <div class="grid2"><div class="form">
+    <label>מה רוצים לעשות?<select id="fxTask"></select></label>
+    <div id="fxInputs"></div>
+  </div><div>
+    <div class="code" data-lang="text" data-file="נוסחה למיפוי" id="fxOut"><pre></pre></div>
+    <p class="hint" id="fxWhy"></p>
+  </div></div>
+  <h2>מדריך הפונקציות</h2>
+  <div class="row"><label>חיפוש פונקציה<input type="text" id="fxQ" class="ltr" placeholder="date, array, if…"></label></div>
+  <div class="tabs" id="fxCats"></div>
+  <div class="tblwrap"><table><thead><tr><th scope="col">פונקציה</th><th scope="col">מה היא עושה</th><th scope="col">דוגמה</th></tr></thead><tbody id="fxRows"></tbody></table></div>
+  <h2>ארבעה סוגי משתנים</h2>
+  <div class="tricks" id="fxVars"></div>
+  <h2>נתונים, תרחישי-משנה ויכולות מתקדמות</h2>
+  <div class="tricks" id="fxMore"></div>
+  <div class="quiz" data-q="makefx"></div>
+</section>
+
+<section class="mod" id="makeai" data-level="Make.com" data-title="AI ב-Make: סוכנים, Maia, ‏Grid ו-Skills">
+  <div class="eyebrow"></div>
+  <h1>AI ב-Make: סוכנים, Maia, ‏Grid, ‏Skills ו-MCP toolboxes</h1>
+  <p class="lead">‏Make כבר לא רק "מחבר אפליקציות". יש בו סוכני AI עם כלים וידע, עוזרת (Maia) שבונה ומתקנת תרחישים, מפת תלויות לכל המערכת (Grid), ו-Skills שמלמדים את Claude Code לבנות תרחישים בעצמו. הפרק מסביר כל אחד, כמה הוא עולה, ומתי לבחור במה.</p>
+  <div id="aiCards"></div>
+  <h2>טבלת עלויות של סוכנים (קרדיטים)</h2>
+  <div class="tblwrap"><table><thead><tr><th scope="col">מקור</th><th scope="col">ספק ה-AI של Make</th><th scope="col">connection משלכם (למשל Anthropic Claude)</th></tr></thead><tbody id="aiCost"></tbody></table></div>
+  <h2>מה לבחור?</h2>
+  <div class="tblwrap"><table><thead><tr><th scope="col">רוצים ש…</th><th scope="col">הכלי הנכון</th></tr></thead><tbody id="aiPick"></tbody></table></div>
+  <div class="quiz" data-q="makeai"></div>
+</section>
+
+<section class="mod" id="makesecrets" data-level="Make.com" data-title="סודות Make: יכולות שרוב האנשים לא מכירים">
+  <div class="eyebrow"></div>
+  <h1>סודות Make: יכולות שרוב האנשים לא מכירים</h1>
+  <p class="lead">טריקים של מקצוענים מהתיעוד הרשמי, שמשנים את איך שעובדים: הרצה חוזרת של נתונים ישנים, דיבאג ברמת בקשת ה-API, דפוסי נוסחאות, הגנה מאובדן נתונים, ושילובים מתקדמים עם Claude. סמנו כל סוד שלמדתם.</p>
+  <div class="row"><label>חיפוש<input type="text" id="msQ" placeholder="replay, DevTool, Claude…"></label><span class="hint" id="msCount"></span></div>
+  <div class="tabs" id="msCats"></div>
+  <div class="tricks" id="msList"></div>
+  <div class="quiz" data-q="makesecrets"></div>
+</section>
+
+<section class="mod" id="makelab" data-level="Make.com" data-title="מעבדת Make: מתכנן תרחישים ומחשבון קרדיטים">
+  <div class="eyebrow"></div>
+  <h1>מעבדת Make: מתכנן תרחישים ומחשבון קרדיטים</h1>
+  <p class="lead">מתארים את האוטומציה ומקבלים תוכנית מלאה: אילו מודולים, איפה פילטר ואיפה טיפול בשגיאות, אילו הגדרות להפעיל, הערכת קרדיטים לחודש ובדיקה שהתור של ה-webhook מספיק. בסוף מקבלים פרומפט מוכן ל-Maia, או ל-Claude Code עם Make Skills, שיבנו את התרחיש בשבילכם.</p>
+  <div class="grid2"><div class="form" id="mlForm">
+    <label>שם האוטומציה<input type="text" id="mlName" value="מיון פניות מהאתר"></label>
+    <label>מה מפעיל אותה?<select id="mlTrigger"><option value="webhook">Webhook (מיידי, מכל שירות)</option><option value="instant">טריגר מיידי של אפליקציה</option><option value="poll">בדיקה מחזורית (polling)</option><option value="schedule">לפי לוח זמנים (דוח)</option><option value="mcp">‏Claude או MCP (On demand)</option></select></label>
+    <label>הפעלות ביום (בערך)<input type="number" id="mlRuns" min="1" value="40"></label>
+    <label>מודולים בכל ריצה (כולל הטריגר)<input type="number" id="mlMods" min="1" value="5"></label>
+    <label class="tick"><input type="checkbox" id="mlIter"> יש Iterator (פריטים בכל ריצה)</label>
+    <label id="mlItemsL" hidden>פריטים בכל ריצה<input type="number" id="mlItems" min="1" value="10"></label>
+    <label id="mlIterModsL" hidden>מודולים אחרי ה-Iterator<input type="number" id="mlIterMods" min="1" value="2"></label>
+    <label>‏Claude בתרחיש<select id="mlAi"><option value="none">בלי</option><option value="simple">‏Simple Text Prompt (בלי מפתח, קרדיטים לפי טוקנים)</option><option value="own">‏Create a Prompt (המפתח שלכם, טוקנים ל-Anthropic)</option><option value="agent">‏Make AI Agent (New)</option></select></label>
+    <label>קרדיטים בתוכנית בחודש<input type="number" id="mlPlan" min="1000" step="1000" value="10000"></label>
+    <b>דרישות</b>
+    <div class="chk"><label><input type="checkbox" id="mlOrder"> הסדר חשוב</label><label><input type="checkbox" id="mlPii"> יש מידע אישי</label><label><input type="checkbox" id="mlFlaky" checked> שירות חיצוני שנופל לפעמים</label><label><input type="checkbox" id="mlResp"> השולח מחכה לתשובה</label></div>
+  </div><div>
+    <div class="mlKpis" id="mlKpis"></div>
+    <div class="tabs" data-tabs="ml"><button class="on" type="button">התוכנית</button><button type="button">פרומפט ל-Maia</button><button type="button">פרומפט ל-Claude Code</button></div>
+    <div class="pane on" data-pane="ml"><div class="code" data-lang="markdown" data-file="scenario-plan.md" id="mlPlanOut"><pre></pre></div></div>
+    <div class="pane" data-pane="ml"><div class="code" data-lang="text" data-file="Maia · Plan mode" id="mlMaia"><pre></pre></div></div>
+    <div class="pane" data-pane="ml"><div class="code" data-lang="text" data-file="Claude Code + Make MCP + Make Skills" id="mlClaude"><pre></pre></div></div>
+    <div class="row"><button class="btn pri" type="button" id="mlSave">שמירת התוכנית</button><button class="btn" type="button" id="mlDl">הורדת scenario-plan.md</button></div>
+    <p class="hint">ההערכה מבוססת על הכללים בתיעוד: באפליקציות רגילות operation אחד = קרדיט אחד. מודולי AI עם החיוב של Make מוסיפים קרדיטים לפי טוקנים, ולכן במודולים כאלה זה רק הערכה מינימלית. את הצריכה בפועל רואים בהיסטוריית ההרצות.</p>
+  </div></div>
+  <h3>התוכניות ששמרתי</h3>
+  <ul class="pgLib" id="mlLib"></ul>
+</section>
+
 <section class="mod" id="cmdpack" data-level="ארגז הכלים של המומחה" data-title="חבילת פקודות, סוכנים ו-Skills">
   <div class="eyebrow"></div>
   <h1>חבילת המומחה: 25 פקודות, 8 סוכנים ו-6 Skills מוכנים</h1>
@@ -2827,7 +2931,7 @@ const store = {
   get(k, d){ try{ const v = localStorage.getItem("cca-"+k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
   set(k, v){ try{ localStorage.setItem("cca-"+k, JSON.stringify(v)); }catch(e){} if(typeof onStoreChange === "function") onStoreChange(k); }
 };
-const LEVEL_COLOR = {"פתיחה":"var(--lv5)","מתחילים":"var(--lv1)","בינוני":"var(--lv2)","מתקדמים":"var(--lv3)","מומחים":"var(--lv4)","מאסטר":"var(--lv7)","המדריך המלא":"var(--lv1)","סודות מתקדמים":"var(--lv9)","אינטגרציות ופרויקטים":"var(--lv10)","ארגז הכלים של המומחה":"var(--lv11)","מצגות":"var(--lv8)","סדנת תרגול":"var(--lv5)","מבחן גמר":"var(--lv6)"};
+const LEVEL_COLOR = {"פתיחה":"var(--lv5)","מתחילים":"var(--lv1)","בינוני":"var(--lv2)","מתקדמים":"var(--lv3)","מומחים":"var(--lv4)","מאסטר":"var(--lv7)","המדריך המלא":"var(--lv1)","סודות מתקדמים":"var(--lv9)","אינטגרציות ופרויקטים":"var(--lv10)","Make.com":"var(--lv4)","ארגז הכלים של המומחה":"var(--lv11)","מצגות":"var(--lv8)","סדנת תרגול":"var(--lv5)","מבחן גמר":"var(--lv6)"};
 const mods = $$(".mod");
 const ids = mods.map(m => m.id);
 let state = store.get("state", {done:{}, xp:0, awarded:{}, days:[]});
@@ -3161,6 +3265,26 @@ const Q = {
     ["איך מחברים את Make ל-Claude Code?", ["npm install make","‏claude mcp add --transport http make https://mcp.make.com/claude","מעתיקים קבצים","אי אפשר"], 1, "ואז ‎/mcp למסך ההסכמה של OAuth."],
     ["איפה שמים את כתובת ה-webhook של Make בפרויקט?", ["ב-CLAUDE.md","ב-settings.local.json, שלא נכנס ל-git","ב-README","בקוד"], 1, "הכתובת היא סוד: מי שמחזיק בה מפעיל את התרחיש."],
     ["איזה error handler שומר incomplete executions כדי להריץ אותן שוב?", ["Skip","Retry","Resume","Commit"], 1, "‏Retry מתאים לשירות שנופל לרגע."]
+  ],
+  makecore: [
+    ["איפה שמים את Webhook response?", ["בתחילת התרחיש","בסוף התרחיש","באמצע","לא משנה"], 1, "באמצע, שגיאה במודול שאחריו לא משביתה את התרחיש ולא שולחת התראה."],
+    ["מה עושה Run with existing data?", ["מוחק נתונים","מריץ את התרחיש המעודכן עם נתוני הטריגר של הרצה קודמת","מייבא blueprint","משנה תזמון"], 1, "כך בודקים שינוי בלי ליצור הזמנה או טופס חדש."],
+    ["מה קורה עם Process data in order כשיש incomplete execution?", ["כלום","הרצות חדשות ממתינות עד שהיא נפתרת","התרחיש נמחק","הנתונים נמחקים"], 1, "הסדר נשמר, ולכן צריך התראה כדי לא להיתקע בשקט."]
+  ],
+  makefx: [
+    ["מה מפריד בין ארגומנטים בפונקציה של Make?", ["פסיק","נקודה-פסיק","רווח","קו נטוי"], 1, "למשל formatDate(now; DD.MM.YYYY; Asia/Jerusalem)."],
+    ["איך שולפים ערך לפי מפתח ממערך של מפתח-ערך?", ["Iterator ו-Aggregator","first(map(array; value; key; wanted))","split","אי אפשר"], 1, "בלי מודולים נוספים ובלי קרדיטים נוספים."],
+    ["איפה לא שומרים סיסמאות?", ["ב-connections","במשתנים מותאמים, כי הם לא מוצפנים","בשום מקום","ב-API key"], 1, "משתנים נשמרים כטקסט רגיל, וחברי הצוות יכולים לראות אותם."]
+  ],
+  makeai: [
+    ["מה ההבדל בין Maia ל-Make AI Agent?", ["אין הבדל","‏Maia בונה ומתקנת תרחישים, וסוכן מבצע משימות בזמן ריצה","‏Maia רק לתמונות","סוכן רק לדוחות"], 1, "‏Maia עובדת בעורך, וסוכן רץ בתוך תרחיש."],
+    ["למה משמש MCP toolbox?", ["לגיבוי","לחשוף ללקוח MCP רק תרחישים שבחרתם, עם מפתחות והגבלת IP","להאצת Make","לתשלומים"], 1, "שליטה מדויקת ושיתוף בטוח."],
+    ["מה Make Skills נותנים ל-Claude Code?", ["כלום","ידע והנחיות לבנות תרחישים ולהגדיר מודולים, יחד עם שרת ה-MCP","מפתח API","גישה לכל המחשב"], 1, "קבצי Markdown עם שיטות עבודה של Make."]
+  ],
+  makesecrets: [
+    ["איך משלימים נתונים אחרי שתיקנתם באג?", ["מריצים ידנית מחדש את כל המקורות","‏Replay של ההרצות שנכשלו בגרסה החדשה","מוחקים את התרחיש","אי אפשר"], 1, "מ-Scenario history, או מה-API עד 100 בבת אחת."],
+    ["מה רואים ב-Live Stream של Make DevTool?", ["רק שמות מודולים","את הבקשה והתשובה המלאות של כל מודול","את הקרדיטים בלבד","כלום"], 1, "‏URL, ‏headers ו-body. מושלם לשגיאות API."],
+    ["מה אומר 429 עם IM310 מה-API?", ["מפתח שגוי","הארגון הגיע למכסה ותרחישים לא יופעלו","שגיאת תחביר","השרת למטה"], 1, "צריך להוסיף קרדיטים או לחכות לחודש הבא."]
   ],
   promptpro: [
     ["מתי משתמשים בפרה-מורטם?", ["אחרי שהכול נשבר","לפני שינוי גדול, כדי לצפות כשלים מראש","אף פעם","רק בבדיקות"], 1, "מדמיינים כישלון ומונעים אותו מראש."],
@@ -4832,7 +4956,7 @@ document.addEventListener("change", e => {
 }, true);
 
 // ================= dashboard =================
-const LEVEL_ORDER = ["פתיחה","מתחילים","בינוני","מתקדמים","מומחים","מאסטר","סודות מתקדמים","אינטגרציות ופרויקטים","ארגז הכלים של המומחה","מצגות","סדנת תרגול","מבחן גמר"];
+const LEVEL_ORDER = ["פתיחה","מתחילים","בינוני","מתקדמים","מומחים","מאסטר","סודות מתקדמים","אינטגרציות ופרויקטים","Make.com","ארגז הכלים של המומחה","מצגות","סדנת תרגול","מבחן גמר"];
 function nextRecommended(){
   const t = TRACKS[store.get("track", null)];
   const order = t ? t.m.concat(ids) : ids;
@@ -5319,7 +5443,7 @@ checkBadges(true);
 // ================= sync v3: every key, per-key timestamps, resets and deletions sync =================
 // Progress that only grows (XP, badges, flashcard boxes, records) is merged as a union / max.
 // Everything a person edits or can undo (notes, checklists, settings, look) follows the newest write.
-const SYNC_KEYS = ["state","cards","sim","best","badges","daily","srbest","surprises","tricks","proj","ba","notes","track","mistakes","place","look","packSel","theme","lastReal","name","retro","ag","pglib","pgDraft","ecoSel","edSeen","qbest","mtime"];
+const SYNC_KEYS = ["state","cards","sim","best","badges","daily","srbest","surprises","tricks","proj","ba","notes","track","mistakes","place","look","packSel","theme","lastReal","name","retro","ag","pglib","pgDraft","ecoSel","edSeen","qbest","mkChk","mkSec","mkPlans","mtime"];
 isSyncKey = k => SYNC_KEYS.includes(k) || /^ch\d+$/.test(k);
 const GROW_UNION = ["cards","badges","daily"], GROW_MAX = ["sim","best","srbest","surprises","qbest"];
 function readMtime(){ try{ return JSON.parse(localStorage.getItem("cca-mtime") || "{}"); }catch(e){ return {}; } }
@@ -7090,6 +7214,221 @@ BADGES.push(["reviewer","🔍","סוקרי קוד","הרצתם ריוויו על
 
 Object.keys(TRACKS).forEach(k => { if(!TRACKS[k].m.includes("make")) TRACKS[k].m.push("make"); });
 BADGES.push(["automator","⚙","אוטומטורים","חיברתם את Claude ל-Make", () => !!(state.awarded["mk-server"] || state.awarded["quiz-make"])]);
+// ================= Make.com section: core, functions, AI, secrets, lab (checked against help.make.com, Nov 2026) =================
+(function(){
+  const code = (lang, txt, file) => '<div class="code" data-lang="' + lang + '"' + (file ? ' data-file="' + esc(file) + '"' : '') + '><pre>' + esc(txt) + '</pre></div>';
+
+  // ---------- makecore: build a production scenario ----------
+  const STEPS = [
+    {t:"תכנון לפני הבנייה", d:"כותבים במשפט אחד מה נכנס, מה יוצא ומה קורה כשמשהו נכשל. כאן: פנייה מטופס נכנסת, ‏Claude מחזיר JSON עם סוג, דחיפות וסיכום, פנייה דחופה הולכת ל-Slack, וכל פנייה נרשמת בגיליון.", trap:"להתחיל לגרור מודולים בלי לדעת מה הפלט הרצוי. כך נבנים תרחישים עם 30 מודולים."},
+    {t:"טריגר: Webhooks ‏&gt; Custom webhook", d:"‏Create scenario ← הפלוס הגדול ← Webhooks ‏&gt; Custom webhook ← Add. מעתיקים את הכתובת ושולחים אליה בקשה אחת לדוגמה, כדי ש-Make יזהה את מבנה הנתונים (data structure).", trap:"לא לשלוח דוגמה. בלי דוגמה אין שדות למפות."},
+    {t:"פילטר: רק מה שצריך להמשיך", d:"לוחצים על הקו בין שני מודולים ← Set up a filter. למשל: <code>message</code> קיים (Exists) ואורכו מעל 10 תווים. ספאם ובקשות ריקות נעצרים כאן, לפני שהם עולים קרדיטים.", trap:"לסנן מאוחר מדי, אחרי שכבר שילמתם על מודול ה-AI."},
+    {t:"Claude מסווג ומסכם", d:"‏Anthropic Claude ‏&gt; Create a Prompt (או Simple Text Prompt בלי מפתח). בפרומפט מבקשים פלט JSON בלבד, ממפים את שדות הפנייה, ומגדירים שדה חסר כ-null.", trap:"לבקש \"תסכם\" בלי פורמט. בלי JSON אי אפשר להחליט מה לעשות בהמשך."},
+    {t:"‏Parse JSON", d:"מוסיפים מודול שמפרק את טקסט ה-JSON משדה התשובה לשדות שאפשר למפות: <code>type</code>, ‏<code>urgency</code>, ‏<code>summary_he</code>.", trap:"למפות את כל הטקסט כמחרוזת אחת ולחפש בו מילים."},
+    {t:"‏Router לפי דחיפות", d:"‏Router עם שני מסלולים. בראשון פילטר <code>urgency = high</code> ← Slack. השני הוא fallback ← רק רישום. ב-Router אפשר לסמן מסלול כ-fallback, שרץ כשאף מסלול אחר לא התאים.", trap:"מסלולים בלי פילטרים: כל פנייה רצה בכל המסלולים."},
+    {t:"פעולות: Slack ו-Sheets", d:"ממפים שדות ולא טקסט קבוע. בסוף הודעת Slack כדאי לצרף קישור להרצה, דרך משתני המערכת (Scenario URL, ‏Execution ID).", trap:"להעתיק טקסט ידנית במקום למפות. בפעם הבאה ההודעה תהיה שגויה."},
+    {t:"טיפול בשגיאות", d:"לחיצה ימנית על מודול ← Add error handler. ‏<b>Retry</b> לשירות שנופל לרגע (נשמר כ-incomplete execution), ‏<b>Resume</b> עם ערך חלופי (למשל urgency=normal אם ה-AI נכשל), ‏<b>Skip</b> לפריט בעייתי, ‏<b>Commit</b> או <b>Rollback</b> לעצירה.", trap:"בלי handlers: שגיאה אחת עוצרת הכול, ואחרי כמה כשלונות רצופים התרחיש מושבת."},
+    {t:"תשובה למי ששלח: Webhook response", d:"אם הטופס מחכה לתשובה, שמים <b>Webhook response</b> בסוף התרחיש. בלי המודול, Make עונה <code>200 Accepted</code> כשהבקשה נכנסת לתור.", trap:"לשים אותו באמצע. אם מודול אחריו נכשל, התרחיש לא יושבת ולא תקבלו התראה."},
+    {t:"בדיקה עם Run once ו-Run with existing data", d:"‏Run once (<kbd>Ctrl+Enter</kbd>) עם בקשה אמיתית. אחרי כל שינוי: <b>Run with existing data</b> (<kbd>Ctrl+Shift+Enter</kbd>) מריץ שוב עם נתוני הטריגר הקודמים, בלי לשלוח טופס חדש.", trap:"לבדוק רק את המסלול המוצלח. שלחו גם פנייה ריקה, גם פנייה ארוכה, וגם פנייה באנגלית."},
+    {t:"הגדרות production", d:"גלגל השיניים: <b>Store incomplete executions</b> (לא לאבד נתונים), ‏<b>Process data in order</b> אם הסדר חשוב, ‏<b>Keep data confidential</b> אם יש מידע אישי. שומרים גרסה (<kbd>Ctrl+Shift+S</kbd>) ומייצאים blueprint.", trap:"להפעיל עם הגדרות ברירת המחדל: כשל ראשון מאבד את הפנייה."},
+    {t:"הפעלה וניטור", d:"מפעילים, ובודקים בהיסטוריה (Scenario history) אחרי שעה ואחרי יום. אם משהו נכשל: מתקנים, ואז Replay run להרצות שנכשלו, אחת-אחת או יחד.", trap:"להפעיל ולשכוח. תרחיש בלי ניטור נכשל בשקט."}
+  ];
+  $("#mcSteps").innerHTML = STEPS.map((s, i) => '<details class="agStage"' + (i < 2 ? " open" : "") + '><summary><span class="agN">' + (i + 1) + '</span><b>' + s.t + '</b></summary><div class="agBody"><p>' + s.d + '</p><p class="hint">⚠ ' + s.trap + '</p></div></details>').join("");
+  const SETTINGS = [
+    ["Process data in order","כל הרצה מסתיימת לפני שהבאה מתחילה. אם יש incomplete execution, הרצות חדשות ממתינות עד שהיא נפתרת. חל גם על webhooks, שכברירת מחדל רצים במקביל.","כשהסדר חשוב: מלאי, יתרות, רצף אירועים"],
+    ["Keep data confidential","‏Make לא שומר את תוכן הנתונים ביומני ההרצה. רואים שהייתה הרצה, אבל בלי התוכן.","מידע אישי או רגיש. המחיר: הרבה יותר קשה לדבג"],
+    ["Store incomplete executions","הרצה שנכשלה נשמרת כדי שאפשר יהיה להמשיך ממקום העצירה, ידנית או אוטומטית. כבויה כברירת מחדל.","כמעט תמיד ב-production"],
+    ["Discard data if storage is full","כשהאחסון של incomplete executions מלא, הנתונים שנכשלו נמחקים והתרחיש ממשיך. כשההגדרה כבויה, התזמון נעצר עד שמפנים מקום.","רק אם עדיף לאבד נתונים מאשר לעצור"],
+    ["Use updated variable values","בהרצה חוזרת של incomplete execution: להשתמש בערכים העדכניים של משתני הצוות והארגון, או בערכים מזמן ההרצה המקורית.","כשתיקנתם ערך של משתנה וצריך שההרצה החוזרת תשתמש בו"]
+  ];
+  $("#mcSettings").innerHTML = SETTINGS.map(s => '<tr><td><b class="ltr">' + s[0] + '</b></td><td>' + esc(s[1]) + '</td><td>' + esc(s[2]) + '</td></tr>').join("");
+  const KEYS = [["שמירה","Ctrl+S","⌘+S"],["הרצה אחת (Run once)","Ctrl+Enter","⌘+Enter"],["הרצה עם נתונים קיימים","Ctrl+Shift+Enter","⌘+⇧+Enter"],["שמירת גרסה","Ctrl+Shift+S","⌘+⇧+S"],["סידור אוטומטי","Shift+A","⇧+A"],["העתקה והדבקה של מודול","Ctrl+C / Ctrl+V","⌘+C / ⌘+V"],["בחירה של כמה מודולים","Shift+גרירה","Shift+גרירה"],["הזזת כל המודולים","Space+גרירה","Space+גרירה"],["ביטול וחזרה","Ctrl+Z / Ctrl+Y","⌘+Z / ⌘+Y"],["חיפוש מודול או משתנה","Ctrl+F","⌘+F"],["זום","+ / -","+ / -"]];
+  $("#mcKeys").innerHTML = KEYS.map(k => '<tr><td>' + esc(k[0]) + '</td><td><kbd class="ltr">' + k[1] + '</kbd></td><td><kbd class="ltr">' + k[2] + '</kbd></td></tr>').join("");
+  const CHECK = ["הרצתי עם נתונים אמיתיים, כולל מקרי קצה (ריק, ארוך, שפה אחרת)","יש פילטר לפני כל מודול שעולה כסף (AI, API בתשלום)","לכל מודול חיצוני יש error handler מתאים","‏Store incomplete executions מופעל","‏Webhook response (אם יש) נמצא בסוף","סודות נמצאים ב-connections, לא בטקסט של מודול או במשתנים","לתרחיש יש שם ותיאור ברורים","שמרתי גרסה וייצאתי blueprint","יש התראה כשמשהו נכשל (מייל או Slack)","בדקתי כמה קרדיטים הרצה אחת עולה בהיסטוריה"];
+  const ck = () => store.get("mkChk", {});
+  $("#mcCheck").innerHTML = CHECK.map((c, i) => '<li><label class="tick"><input type="checkbox" data-mkc="' + i + '"' + (ck()[i] ? " checked" : "") + '> ' + esc(c) + '</label></li>').join("");
+  const ckN = () => { const n = Object.keys(ck()).length; $("#mcCheckN").textContent = n + "/" + CHECK.length + (n === CHECK.length ? " · מוכן להפעלה ✓" : ""); if(n === CHECK.length) award("mk-check", 15, "תרחיש מוכן ל-production"); };
+  $("#mcCheck").addEventListener("change", e => { const i = e.target.dataset.mkc; if(i == null) return; const c = ck(); if(e.target.checked) c[i] = 1; else delete c[i]; store.set("mkChk", c); ckN(); });
+  ckN();
+  REFRESH.push(() => { $$("#mcCheck [data-mkc]").forEach(x => x.checked = !!ck()[x.dataset.mkc]); ckN(); });
+
+  // ---------- makefx: functions, formulas, variables ----------
+  const FX = [
+    ["כללי","if(expression; value1; value2)","ערך 1 אם התנאי נכון, אחרת ערך 2","if(urgency = high; 🔴; ⚪)"],
+    ["כללי","ifempty(value1; value2)","ערך 1 אם הוא לא ריק, אחרת ערך 2: ברירת מחדל","ifempty(name; לקוח יקר)"],
+    ["כללי","switch(expression; value1; result1; …; [else])","בוחר תוצאה לפי ערך, כמו טבלת המרה","switch(type; bug; באג; feature; בקשה; אחר)"],
+    ["כללי","get(object or array; path)","שולף ערך לפי נתיב. האינדקס הראשון במערך הוא 1","get(attachments; 1.name)"],
+    ["כללי","set(object; path; value)","מוסיף או משנה ערך בתוך אובייקט","set(user; address.city; Haifa)"],
+    ["כללי","pick / omit","בוחר או מוריד מפתחות מאובייקט","omit(user; password)"],
+    ["כללי","equal(value; value)","האם שני ערכים שווים","equal(status; paid)"],
+    ["טקסט","replace(text; search; replacement)","החלפת טקסט (גם עם regex)","replace(phone; -; )"],
+    ["טקסט","split(text; separator)","מפצל טקסט למערך","split(tags; ,)"],
+    ["טקסט","substring(text; start; end)","חלק מטקסט","substring(id; 0; 8)"],
+    ["טקסט","trim / lower / upper / capitalize","ניקוי רווחים ושינוי אותיות","lower(trim(email))"],
+    ["טקסט","stripHTML(text)","מסיר תגיות HTML, למשל מגוף מייל","stripHTML(body)"],
+    ["טקסט","contains / indexOf / length","חיפוש ובדיקת אורך","contains(subject; urgent)"],
+    ["טקסט","encodeURL / escapeJSON / escapeHTML","קידוד בטוח ל-URL, ל-JSON ול-HTML","encodeURL(query)"],
+    ["טקסט","base64 / md5 / sha256","קידוד ו-hash","sha256(email)"],
+    ["תאריך","formatDate(date; format; [timezone])","תאריך לטקסט בפורמט ובאזור זמן","formatDate(now; DD.MM.YYYY HH:mm; Asia/Jerusalem)"],
+    ["תאריך","parseDate(text; format; [timezone])","טקסט לתאריך","parseDate(01/02/2026; DD/MM/YYYY)"],
+    ["תאריך","addDays / addHours / addMonths…","הוספה או הפחתה של זמן","addDays(now; -1)"],
+    ["תאריך","setDay / setDate / setMonth…","קובע חלק בתאריך","setDate(now; 1)"],
+    ["מערך","map(complex array; key; [filter key]; [values])","שולף שדה מכל פריט, עם סינון אופציונלי","map(items; price)"],
+    ["מערך","first / last","הפריט הראשון או האחרון","first(map(meta; value; key; 20642))"],
+    ["מערך","join(array; separator)","מערך לטקסט","join(map(items; name); , )"],
+    ["מערך","sort(array; [order]; [key])","מיון","sort(items; desc; price)"],
+    ["מערך","deduplicate / distinct","הסרת כפילויות","deduplicate(emails)"],
+    ["מערך","slice(array; start; [end])","חלק ממערך. כאן האינדקס מתחיל ב-0","slice(results; 0; 5)"],
+    ["מערך","merge / flatten / arrayDiff / arrayIntersect","איחוד, שיטוח והשוואה של מערכים","arrayDiff(new; old)"],
+    ["מערך","toCollection(array; key; value)","מערך של זוגות מפתח-ערך לאובייקט","toCollection(fields; name; value)"],
+    ["מספר","formatNumber / parseNumber","מספר לטקסט ובחזרה, עם מפרידים","parseNumber(1 756,456; ,)"],
+    ["מספר","round / ceil / floor / trunc","עיגול","round(total * 1.17)"],
+    ["מספר","sum / average / median / min / max","סטטיסטיקה על מערך","sum(map(items; price))"]
+  ];
+  const cats = ["הכול", ...new Set(FX.map(f => f[0]))]; let fcat = "הכול";
+  $("#fxCats").innerHTML = cats.map((c, i) => '<button type="button"' + (i ? "" : ' class="on"') + '>' + esc(c) + '</button>').join("");
+  const fxRows = () => { const q = $("#fxQ").value.trim().toLowerCase(); $("#fxRows").innerHTML = FX.filter(f => (fcat === "הכול" || f[0] === fcat) && (!q || f.join(" ").toLowerCase().includes(q))).map(f => '<tr><td><code class="ltr">' + esc(f[1]) + '</code></td><td>' + esc(f[2]) + '</td><td><code class="ltr">' + esc(f[3]) + '</code></td></tr>').join("") || '<tr><td colspan="3">לא נמצאה פונקציה</td></tr>'; };
+  $("#fxCats").addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; fcat = b.textContent; $$("#fxCats button").forEach(x => x.classList.toggle("on", x === b)); fxRows(); });
+  $("#fxQ").addEventListener("input", fxRows); fxRows();
+  const TASKS = [
+    {n:"תאריך ושעה בישראל", f:[["fld","השדה של התאריך","Date created"],["fmt","פורמט","DD.MM.YYYY HH:mm"]], out:v => "formatDate(" + v.fld + "; " + v.fmt + "; Asia/Jerusalem)", why:"‏Make שומר זמנים ב-UTC. בלי timezone השעה תצא שגויה בשעתיים או בשלוש."},
+    {n:"ערך ברירת מחדל לשדה ריק", f:[["fld","השדה","First name"],["def","ברירת מחדל","לקוח יקר"]], out:v => "ifempty(" + v.fld + "; " + v.def + ")", why:"מונע \"שלום ,\" במיילים כשהשם חסר."},
+    {n:"ערך לפי מפתח במערך", f:[["arr","המערך","Meta data"],["val","raw name של הערך","value"],["key","raw name של המפתח","key"],["k","המפתח שמחפשים","color"]], out:v => "first(map(" + v.arr + "; " + v.val + "; " + v.key + "; " + v.k + "))", why:"‏map() מחזיר מערך (כי יכולות להיות כמה התאמות), ו-first() לוקח את הראשונה. השמות הם raw names ותלויי אותיות."},
+    {n:"רשימה לטקסט אחד", f:[["arr","המערך","Items"],["key","raw name של השדה","name"],["sep","מפריד",", "]], out:v => "join(map(" + v.arr + "; " + v.key + "); " + v.sep + ")", why:"שימושי לסיכום הזמנה במייל או בהודעת Slack."},
+    {n:"תרגום ערכים", f:[["fld","השדה","status"],["pairs","זוגות (מקור=יעד, מופרדים בפסיק)","new=חדש, open=פתוח, closed=סגור"],["els","אחרת","לא ידוע"]], out:v => "switch(" + v.fld + "; " + v.pairs.split(",").map(p => p.split("=").map(x => x.trim()).join("; ")).join("; ") + "; " + v.els + ")", why:"במקום Router עם מסלול לכל ערך."},
+    {n:"ניקוי אימייל", f:[["fld","השדה","Email"]], out:v => "lower(trim(" + v.fld + "))", why:"‏\" Dana@Example.com\" ו-\"dana@example.com\" הם אותו לקוח. בלי ניקוי נוצרות כפילויות ב-CRM."},
+    {n:"אתמול (לשאילתות)", f:[["fmt","פורמט","YYYY-MM-DD"]], out:v => "formatDate(addDays(now; -1); " + v.fmt + ")", why:"לדוח יומי: ‏\"כל מה שנוצר מאתמול\"."}
+  ];
+  $("#fxTask").innerHTML = TASKS.map((t, i) => '<option value="' + i + '">' + esc(t.n) + '</option>').join("");
+  function fx(){
+    const t = TASKS[+$("#fxTask").value]; const v = {};
+    $$("#fxInputs input").forEach(i => v[i.dataset.k] = i.value !== "" ? i.value : i.placeholder);   // no trim: spaces matter (e.g. the ", " separator)
+    setCode("#fxOut", t.out(v)); $("#fxWhy").textContent = t.why;
+  }
+  const fxForm = () => { const t = TASKS[+$("#fxTask").value]; $("#fxInputs").innerHTML = t.f.map(f => '<label>' + esc(f[1]) + '<input type="text" class="ltr" data-k="' + f[0] + '" value="' + esc(f[2]) + '" placeholder="' + esc(f[2]) + '"></label>').join(""); fx(); award("mk-fx", 5); };
+  $("#fxTask").addEventListener("change", fxForm); $("#fxInputs").addEventListener("input", fx); fxForm();
+  const VARS = [
+    ["משתני תרחיש (Set / Get variable)","קיימים רק בזמן הרצה אחת. להעברת ערך בין מסלולים ומודולים, למונים ולדגלים. אורך החיים: cycle אחד או הרצה אחת."],
+    ["משתנים מותאמים (צוות או ארגון)","נשמרים בין הרצות ומשותפים לכמה תרחישים. למשל <code>TestMode = true</code> שמשנה את המסלול בכל התרחישים בבת אחת. בתוכניות Pro ומעלה. <b>לא לשמור בהם סודות:</b> הם לא מוצפנים."],
+    ["משתנה מצטבר (Increment function)","מונה שגדל בכל הרצה, ואפשר לבחור מתי הוא מתאפס. בשילוב עם <code>mod</code> מקבלים חלוקה סיבובית: פנייה זוגית לדנה, אי-זוגית ליוסי."],
+    ["משתני מערכת","מידע ש-Make מספק: מזהה וקישור לתרחיש ולהרצה, צוות, ארגון, ו-<b>Operations left</b>. שימושי להתראה כשהקרדיטים עומדים להיגמר, ולצירוף קישור להרצה בהודעת שגיאה."]
+  ];
+  $("#fxVars").innerHTML = VARS.map(v => '<div class="trick"><h3>' + esc(v[0]) + '</h3><p>' + v[1] + '</p></div>').join("");
+  const MORE = [
+    ["‏Data stores","מסד נתונים מובנה של Make לשמירת רשומות בין הרצות: מה כבר טופל, מזהים, מטמון. מגדירים מבנה נתונים (data structure) לכל store."],
+    ["‏Subscenarios","תרחיש-אב מפעיל תרחישי-משנה עם <b>Scenarios ‏&gt; Call a scenario</b>. כותבים לוגיקה פעם אחת (למשל עדכון מלאי) וקוראים לה מכל מקום. תרחיש-משנה יכול להיות גם כלי לסוכן AI, ללקוח MCP ולקריאת API."],
+    ["‏Text parser","‏<b>Match pattern</b> (regex), ‏<b>Get elements from HTML</b> ו-<b>Replace</b>, לחילוץ טקסט שלא צריך בשבילו AI: דטרמיניסטי, מהיר וזול."],
+    ["‏Custom functions (Enterprise)","פונקציות JavaScript ‏(ES6, בלי ספריות חיצוניות) שנוספות לעורך המיפוי. כותב רק Team Admin, וכל חברי הצוות יכולים להשתמש."],
+    ["‏Dynamic connections (Enterprise)","משתנה שמחזיק connection. בוחרים בכל הרצה מאיזה חשבון לפעול, למשל Gmail של מנהל האזור, בלי Router ובלי לשכפל תרחישים."],
+    ["‏erase","‏\"גלולה\" שמחליפה ערך בריק: מחרוזת או מספר הופכים ל-null, מערך ל-[], ואובייקט ל-{}. כך מוחקים שדה ב-update, במקום להשאיר את הערך הישן."]
+  ];
+  $("#fxMore").innerHTML = MORE.map(v => '<div class="trick"><h3>' + esc(v[0]) + '</h3><p>' + v[1] + '</p></div>').join("");
+
+  // ---------- makeai ----------
+  const AI = [
+    ["‏Make AI Agent (New)","בטא פתוחה, בכל התוכניות עם ספק ה-AI של Make, ו-connection משלכם (Anthropic Claude למשל) בתוכניות בתשלום.","<ul><li><b>הוראות</b>: תפקיד, מטרות, צעדים וכללים.</li><li><b>ידע</b>: קבצים קבועים (FAQ, מדיניות, מדריכים).</li><li><b>קלט</b>: מה שמשתנה בכל הרצה (הודעת Slack, מייל).</li><li><b>כלים</b>: מודולים, תרחישים, כלי MCP וסוכנים אחרים.</li><li><b>Reasoning</b>: רואים את החשיבה צעד אחר צעד, לדיבאג.</li></ul><p>טריגרים נפוצים: צ'אט, מייל, טופס, webhook, ‏Slack ו-Telegram.</p>"],
+    ["‏Maia by Make","עוזרת AI בתוך עורך התרחישים: בונה, משנה ומתקנת תרחישים לפי פרומפט. בטא ציבורית בתוכניות בתשלום, וניסיון של 30 יום בתוכנית החינמית.","<ul><li><b>Build mode</b> בונה איתכם. <b>Plan mode</b> מציג קודם תוכנית ותצוגה מקדימה, ואתם מאשרים, מבקשים תיקון או דוחים.</li><li>אפשר להעלות שרטוט: עד 3 תמונות בסשן, ‏PNG, ‏JPEG או WebP, עד 1.5MB לתמונה. התמונות לא נשמרות.</li><li>היא רואה את היסטוריית ההרצות והיומנים, ולכן מתאימה לבקשה \"למה זה נכשל ותתקני\".</li><li>חזרה לגרסה קודמת: Revert to this version.</li></ul>"],
+    ["‏Make Grid","מפת תלויות שמתעדכנת כמעט בזמן אמת: איך התרחישים, האפליקציות, ה-data stores ורכיבי ה-AI מחוברים.","<ul><li>מסמנת שגיאות, כך שקל למצוא תקלה שעוברת בין כמה תרחישים.</li><li>מראה מה יושפע לפני שמשנים משהו.</li><li>אפשר לראות בה את צריכת ה-AI וה-operations.</li><li>עבודה משותפת: רואים את חברי הצוות ואת הסמנים שלהם.</li></ul>"],
+    ["‏Make Skills (ל-Claude ול-Claude Code)","קבצי zip עם Markdown, שמלמדים עוזר AI לבצע משימות של Make כמו שצריך. בטא פתוחה.","<ul><li><b>Scenario building</b>: בונה ומשנה תרחישים.</li><li><b>Module configuration</b>: מגדיר מודולים.</li><li><b>MCP referencing</b>: חיבור לשרת ה-MCP ופתרון תקלות (מומלץ ל-Claude Code).</li><li><b>API shell workflow</b>: מחברים לשירותים מהטרמינל (Claude Code).</li></ul><p>זרימה: מתקינים Skills ← מחברים את שרת ה-MCP של Make ← מבקשים \"Create a scenario that watches unread emails\". ההתקנה ל-Claude Code ולכלים אחרים מופיעה ב-skills.make.com. ב-claude.ai: ‏Customize ← Skills ← Upload a skill.</p>"],
+    ["‏MCP toolboxes","שרתי MCP ייעודיים, שכל אחד חושף רק את התרחישים שבחרתם. דרך מאובטחת לשתף כלים עם צוות או לקוח.","<ul><li>כתובת ייחודית לכל toolbox, וכמה מפתחות לכל toolbox (מפתח נפרד לכל לקוח).</li><li>כל כלי מסומן כ-Read only או כ-Read &amp; write, עם תווית ותיאור משלו.</li><li>אפשר להגביל גישה לכתובות IP.</li><li>מפתח ב-header: ‏<code class=\"ltr\">Authorization: Bearer &lt;key&gt;</code>. מפתח בכתובת: ‏<code class=\"ltr\">&lt;MCP server URL&gt;/t/&lt;key&gt;</code>.</li></ul>" + code("bash", "claude mcp add --transport http sales-tools https://eu2.make.com/mcp/server/<id> \\\n  --header \"Authorization: Bearer $MAKE_TOOLBOX_KEY\"")]
+  ];
+  $("#aiCards").innerHTML = AI.map(a => '<details class="agStage"><summary><b>' + a[0] + '</b></summary><div class="agBody"><p><b>' + esc(a[1]) + '</b></p>' + a[2] + '</div></details>').join("");
+  $$("#aiCards .code").forEach(decorate);
+  const COST = [["הרצת סוכן","1 קרדיט ל-operation + קרדיטים לפי טוקנים","1 קרדיט ל-operation"],["צ'אט","1 ל-operation + 1 ל-operation של כל כלי שנקרא + טוקנים","1 ל-operation + 1 ל-operation של כל כלי"],["ידע (PDF ו-DOCX)","1 ל-operation + 10 טוקנים לעמוד + טוקנים לתיאור הקובץ ול-embedding","1 ל-operation + טוקני embedding"],["כלים","1 ל-operation + קרדיטים לפי טוקנים","1 ל-operation"]];
+  $("#aiCost").innerHTML = COST.map(c => '<tr><td>' + esc(c[0]) + '</td><td>' + esc(c[1]) + '</td><td>' + esc(c[2]) + '</td></tr>').join("");
+  const PICK = [["‏Claude יסכם, יסווג או יחלץ בתוך תרחיש","אפליקציית Anthropic Claude (Create a Prompt או Simple Text Prompt)"],["תהליך עסקי שמחליט לבד באיזה כלי להשתמש","‏Make AI Agent (New)"],["לבנות תרחיש מתיאור או לתקן שגיאה","‏Maia (Plan mode)"],["‏Claude Code יבנה וינהל תרחישים מהטרמינל","שרת ה-MCP של Make + Make Skills"],["ללקוח יהיו רק 3 תרחישים ככלים, עם מפתח משלו","‏MCP toolbox"],["להבין מה מחובר למה לפני שמשנים","‏Make Grid"]];
+  $("#aiPick").innerHTML = PICK.map(p => '<tr><td>' + esc(p[0]) + '</td><td><b>' + esc(p[1]) + '</b></td></tr>').join("");
+
+  // ---------- makesecrets ----------
+  const SEC = [
+    ["דיבאג","Run with existing data","‏<kbd>Ctrl+Shift+Enter</kbd> מריץ את התרחיש המעודכן עם נתוני הטריגר של הרצה קודמת. לא צריך לשלם שוב, ליצור הזמנה או לשלוח טופס כדי לבדוק."],
+    ["דיבאג","‏Replay להשלמת נתונים","תיקנתם באג? ב-Scenario history בוחרים את ההרצות שנכשלו ומריצים אותן שוב בגרסה החדשה, אחת-אחת או יחד. ככה משלימים נתונים שפוספסו."],
+    ["דיבאג","‏Make DevTool","תוסף Chrome שמוסיף לשונית ל-DevTools. ‏<b>Live Stream</b> מציג את הבקשה והתשובה המלאות של כל מודול: URL, ‏headers ו-body. בדיוק מה שצריך כשה-API מחזיר שגיאה לא ברורה."],
+    ["דיבאג","העתקת פילטר","בעורך אי אפשר להעתיק פילטר, אבל ב-DevTool יש כלי Copy filter שמעתיק אותו בין חיבורים."],
+    ["דיבאג","משתני מערכת בהודעת שגיאה","בהודעת השגיאה ל-Slack מצרפים את Scenario URL ו-Execution ID, כך שלחיצה אחת מגיעה בדיוק להרצה שנכשלה."],
+    ["אמינות","‏Process data in order עוצר על שגיאה","עם ההגדרה הזו, incomplete execution עוצר הרצות חדשות עד שהיא נפתרת, ובקשות webhook ממתינות בתור. טוב לשמירה על הסדר, אבל צריך התראה כדי לא להיתקע בשקט."],
+    ["אמינות","‏Webhook response תמיד בסוף","באמצע התרחיש, שגיאה אחריו לא משביתה את התרחיש, אין התראה, והקרדיטים ממשיכים לרדת."],
+    ["אמינות","גודל התור של webhook","עד 667 פריטים בתור לכל 10,000 קרדיטים בחודש, ועד 10,000. כשהתור מלא, בקשות נדחות עם <code>400 Queue is full</code>. שימו לב לזה בקמפיינים."],
+    ["אמינות","מגבלת קצב לתרחיש","לתרחיש עם טריגר מיידי יש מגבלת קצב (100 כברירת מחדל). מעבר לה Make מחזיר <code>429</code>, וכך שירות שמוצף לא מפיל אתכם."],
+    ["אמינות","‏Resume עם ערך חלופי","אם Claude נכשל, ‏Resume מחזיר <code>{\"urgency\":\"normal\"}</code> והתרחיש ממשיך, במקום לאבד את הפנייה."],
+    ["אמינות","התראה לפני שהקרדיטים נגמרים","‏Router עם פילטר על משתנה המערכת <b>Operations left</b> (בין 1000 ל-5000) שולח מייל לפני שהכול נעצר."],
+    ["נוסחאות","‏<code>first(map())</code> לחיפוש לפי מפתח","שולף ערך ממערך של מפתח-ערך (metadata, שדות מותאמים) בלי Iterator, בלי Aggregator ובלי קרדיטים נוספים."],
+    ["נוסחאות","‏TestMode גלובלי","משתנה ארגוני <code>TestMode=true</code>, ופילטר בכל התרחישים ששולח הכול לערוץ בדיקות. מעבר ל-production במקום אחד."],
+    ["נוסחאות","חלוקה סיבובית עם <code>mod</code>","‏Increment function שלא מתאפס, ו-Router עם <code>mod(counter; 2)</code>: פניות מתחלקות לסירוגין בין שני אנשים."],
+    ["נוסחאות","‏erase מוחק שדה באמת","בעדכון רשומה, שדה ריק לרוב משאיר את הערך הישן. ‏erase שולח null, ‏[] או {}, וכך הערך באמת נמחק."],
+    ["Claude","‏Claude Code מריץ תרחישים","‏<code class=\"ltr\">claude mcp add --transport http make https://mcp.make.com/claude</code>. כל תרחיש פעיל עם On demand ותיאור נהיה כלי."],
+    ["Claude","‏Claude Code בונה תרחישים","שרת ה-MCP עם scopes של ניהול (בתוכניות בתשלום) ו-Make Skills: ‏\"Build a Make scenario that…\". ‏Claude יוצר את התרחיש, ואתם בודקים ומפעילים."],
+    ["Claude","‏Simple Text Prompt בלי מפתח","‏Claude בתרחיש בלי חשבון Anthropic. נוח לניסוי, והחיוב בקרדיטים לפי טוקנים."],
+    ["Claude","‏Skills ו-Files דרך Make","באפליקציית Anthropic Claude יש מודולים ל-Skills ולקבצים, ו-Download a File מוריד קבצים ש-Claude יצר."],
+    ["Claude","‏callbackUrl לריצות ארוכות","עם <code>responsive: true</code>, ה-API מחכה עד 40 שניות. לריצה ארוכה מעבירים <code>callbackUrl</code>, ו-Make שולח אליו <code>executionId</code> וכתובת סטטוס כשהריצה מסתיימת."],
+    ["Claude","‏Replay דרך ה-API","‏<code class=\"ltr\">POST /scenarios/{id}/replay</code> מריץ שוב עד 100 הרצות בקריאה אחת. ‏Claude Code יכול לתקן ולהשלים נתונים בעצמו."],
+    ["Claude","הרצת תרחיש פטורה ממגבלת הקצב","‏<code>/scenarios/{id}/run</code> לא נספר במגבלה של ה-API לפי התוכנית (60 עד 1,000 בקשות לדקה). ‏429 עם <code>IM310</code> פירושו שהארגון הגיע למכסה."],
+    ["ארגון","‏Subscenarios במקום תרחיש ענק","‏Call a scenario מפצל תרחיש של 40 מודולים לחלקים שאפשר לבדוק ולשתף. אותו תרחיש-משנה יכול להיות כלי לסוכן, ל-MCP ולקריאת API."],
+    ["ארגון","‏MCP toolbox לכל לקוח","‏toolbox עם 3 כלים, מפתח לכל לקוח, הגבלת IP, וסימון read-only. בטוח הרבה יותר מגישה לכל הארגון."],
+    ["ארגון","‏Keep data confidential","לתרחישים עם מידע אישי: היומנים לא שומרים את התוכן. המחיר הוא דיבאג קשה יותר, אז בודקים לפני שמפעילים."],
+    ["ארגון","‏Blueprint כגיבוי וכתבנית","קובץ JSON שאפשר לשמור ב-git ולשתף. ה-connections לא נכללים בו, כך שהוא בטוח לשיתוף."],
+    ["ארגון","‏Maia עם שרטוט","מצלמים שרטוט מהלוח ומעלים ל-Maia ב-Plan mode, והיא בונה ממנו תרחיש."]
+  ];
+  const mcats = ["הכול", ...new Set(SEC.map(s => s[0]))]; let mc = "הכול";
+  const learned = () => store.get("mkSec", {});
+  $("#msCats").innerHTML = mcats.map((c, i) => '<button type="button"' + (i ? "" : ' class="on"') + '>' + esc(c) + '</button>').join("");
+  function secs(){
+    const q = $("#msQ").value.trim().toLowerCase(), L = learned();
+    const list = SEC.map((s, i) => [s, i]).filter(([s]) => (mc === "הכול" || s[0] === mc) && (!q || s.join(" ").toLowerCase().includes(q)));
+    $("#msList").innerHTML = list.map(([s, i]) => '<div class="trick' + (L[i] ? " got" : "") + '"><span class="pill">' + esc(s[0]) + '</span><h3>' + s[1] + '</h3><p>' + s[2] + '</p><label class="tick"><input type="checkbox" data-mks="' + i + '"' + (L[i] ? " checked" : "") + '> למדתי</label></div>').join("") || '<p class="box">לא נמצא סוד כזה.</p>';
+    $("#msCount").textContent = Object.keys(L).length + "/" + SEC.length + " סודות נלמדו";
+  }
+  $("#msCats").addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; mc = b.textContent; $$("#msCats button").forEach(x => x.classList.toggle("on", x === b)); secs(); });
+  $("#msQ").addEventListener("input", secs);
+  $("#msList").addEventListener("change", e => { const i = e.target.dataset.mks; if(i == null) return; const L = learned(); if(e.target.checked) L[i] = 1; else delete L[i]; store.set("mkSec", L); secs(); if(Object.keys(L).length === SEC.length) award("mk-secrets", 40, "כל סודות Make"); });
+  secs(); REFRESH.push(secs);
+
+  // ---------- makelab: planner and credit calculator ----------
+  const num = (id, d) => Math.max(0, +$(id).value || d);
+  function plan(){
+    const tr = $("#mlTrigger").value, runs = num("#mlRuns", 1), mods = Math.max(1, num("#mlMods", 1)), iter = $("#mlIter").checked, items = iter ? Math.max(1, num("#mlItems", 1)) : 1, imods = iter ? num("#mlIterMods", 1) : 0, ai = $("#mlAi").value, credits = Math.max(1000, num("#mlPlan", 10000));
+    $("#mlItemsL").hidden = $("#mlIterModsL").hidden = !iter;
+    const perRun = mods + imods * (items - 1), month = Math.round(perRun * runs * 30);
+    const queue = Math.min(10000, Math.floor(credits / 10000 * 667));
+    const pct = Math.round(100 * month / credits);
+    const name = $("#mlName").value.trim() || "Scenario";
+    const flags = {order: $("#mlOrder").checked, pii: $("#mlPii").checked, flaky: $("#mlFlaky").checked, resp: $("#mlResp").checked};
+    $("#mlKpis").innerHTML = [["לכל ריצה", perRun + (ai !== "none" && ai !== "own" ? "+" : "")], ["בחודש", month.toLocaleString("he-IL") + (ai !== "none" && ai !== "own" ? "+" : "")], ["מהתוכנית", pct + "%"], ["תור webhook", tr === "webhook" ? queue.toLocaleString("he-IL") : "—"]].map(k => '<div><b>' + k[1] + '</b><span>' + k[0] + '</span></div>').join("");
+    $("#mlKpis").dataset.lvl = pct > 100 ? "lo" : pct > 70 ? "mid" : "hi";
+    const trig = {webhook:"Webhooks > Custom webhook (instant)", instant:"the app's instant trigger", poll:"the app's polling trigger, scheduled At regular intervals", schedule:"a schedule (e.g. every day at 08:00) with a search module", mcp:"On demand scheduling with scenario inputs (callable from Claude via Make MCP server)"}[tr];
+    const aiStep = {none:"", simple:"Anthropic Claude > Simple Text Prompt that returns only JSON", own:"Anthropic Claude > Create a Prompt (own API key) that returns only JSON", agent:"Make AI Agent (New) with instructions, the needed tools and knowledge"}[ai];
+    const steps = ["Trigger: " + trig, "Filter right after the trigger to drop empty or irrelevant data"]
+      .concat(aiStep ? [aiStep, "Parse JSON from the AI output"] : [])
+      .concat(iter ? ["Iterator over the items (" + items + " per run), then " + imods + " module(s) per item, then an Array aggregator"] : [])
+      .concat(["Router with filtered routes and one fallback route", "Action modules mapped from fields (not hard-coded text)"])
+      .concat(flags.resp ? ["Webhook response as the LAST module"] : [])
+      .concat(tr === "mcp" ? ["Scenarios > Return output mapped to the scenario outputs, and a clear scenario description"] : []);
+    const handlers = [flags.flaky ? "Retry on external API modules (stores incomplete executions)" : null, ai !== "none" ? "Resume on the AI step with a safe default (e.g. urgency=normal)" : null, "Skip for single bad items inside an Iterator", "An error notification route that includes the scenario URL and execution ID"].filter(Boolean);
+    const settings = ["Store incomplete executions: ON"].concat(flags.order ? ["Process data in order: ON"] : []).concat(flags.pii ? ["Keep data confidential: ON (test thoroughly first)"] : []);
+    const warn = [];
+    if(pct > 100) warn.push("Estimated usage is " + pct + "% of the plan: add filters earlier, aggregate, or upgrade.");
+    if(tr === "webhook" && runs > queue) warn.push("A burst of " + runs + " requests could exceed the webhook queue (" + queue + "). Spread the load or raise the plan.");
+    if(flags.resp && flags.order) warn.push("Process data in order with a waiting sender: requests queue up while one run is still going. Keep the scenario fast.");
+    if(ai === "simple" || ai === "agent") warn.push("AI with Make's provider adds token-based credits on top of this estimate.");
+    const md = "# " + name + "\n\n## Modules\n" + steps.map((s, i) => (i + 1) + ". " + s).join("\n") + "\n\n## Error handling\n" + handlers.map(h => "- " + h).join("\n") + "\n\n## Scenario settings\n" + settings.map(s => "- " + s).join("\n") + "\n\n## Credits (estimate)\n- Per run: " + perRun + " operations" + (iter ? " (" + mods + " + " + imods + " x " + (items - 1) + " extra items)" : "") + "\n- Per month (" + runs + " runs/day): " + month + " (" + pct + "% of " + credits + ")" + (tr === "webhook" ? "\n- Webhook queue capacity on this plan: " + queue : "") + (warn.length ? "\n\n## Warnings\n" + warn.map(w => "- " + w).join("\n") : "") + "\n\n## Before activating\n- Run once with real and edge-case data, then Run with existing data after each change\n- Save a version (Ctrl+Shift+S) and export the blueprint\n";
+    setCode("#mlPlanOut", md);
+    setCode("#mlMaia", "Plan first. Build a scenario called \"" + name + "\".\n\n" + steps.map((s, i) => (i + 1) + ". " + s).join("\n") + "\n\nError handling: " + handlers.join("; ") + ".\nSettings: " + settings.join("; ") + ".\nShow me the plan and the scenario preview before building. Use field mapping, not hard-coded values.");
+    setCode("#mlClaude", "Use the Make MCP server and the Make Skills (scenario building, module configuration).\n\nBuild a Make scenario named \"" + name + "\" with these modules:\n" + steps.map((s, i) => (i + 1) + ". " + s).join("\n") + "\n\nAdd error handling: " + handlers.join("; ") + ".\nApply settings: " + settings.join("; ") + ".\n\nLeave the scenario inactive. When you're done, list every module, filter and handler you created, and tell me what I must check before activating it.");
+    return {md, name};
+  }
+  $("#mlForm").addEventListener("input", plan); $("#mlForm").addEventListener("change", plan);
+  const lib = () => store.get("mkPlans", []);
+  const drawLib = () => { $("#mlLib").innerHTML = lib().map((x, i) => '<li><span><b>' + esc(x.name) + '</b> <span class="hint">' + new Date(x.at).toLocaleDateString("he-IL") + '</span></span><span class="row"><button class="btn sm" type="button" data-mll="' + i + '">טעינה</button><button class="btn sm" type="button" data-mld="' + i + '" aria-label="מחיקת ' + esc(x.name) + '">מחיקה</button></span></li>').join("") || '<li class="hint">עוד לא נשמרו תוכניות.</li>'; };
+  const FIELDS = ["mlName","mlTrigger","mlRuns","mlMods","mlIter","mlItems","mlIterMods","mlAi","mlPlan","mlOrder","mlPii","mlFlaky","mlResp"];
+  $("#mlSave").onclick = () => { const r = plan(), v = {}; FIELDS.forEach(f => { const el = $("#" + f); v[f] = el.type === "checkbox" ? el.checked : el.value; }); const L = lib().filter(x => x.name !== r.name); L.unshift({name: r.name, at: Date.now(), v}); store.set("mkPlans", L.slice(0, 30)); drawLib(); toast("התוכנית נשמרה ✓"); markDone("makelab"); award("mk-lab", 20, "תוכנית תרחיש"); };
+  $("#mlDl").onclick = () => { const r = plan(); saveFile("scenario-plan.md", r.md); markDone("makelab"); };
+  $("#mlLib").addEventListener("click", e => { const L = lib(); const l = e.target.dataset.mll, d = e.target.dataset.mld; if(l != null && L[+l]){ Object.entries(L[+l].v).forEach(([k, v]) => { const el = $("#" + k); if(el.type === "checkbox") el.checked = v; else el.value = v; }); plan(); toast("נטען ✓"); } if(d != null && L[+d]){ L.splice(+d, 1); store.set("mkPlans", L); drawLib(); } });
+  plan(); drawLib(); REFRESH.push(drawLib);
+  window.__makeLab = {plan};
+})();
+
+Object.keys(TRACKS).forEach(k => ["makecore","makefx","makeai","makesecrets","makelab"].forEach(id => { if(!TRACKS[k].m.includes(id)) TRACKS[k].m.push(id); }));
+BADGES.push(["makepro","🧩","מומחי Make","השלמתם את כל פרקי Make", () => ["make","makecore","makefx","makeai","makesecrets","makelab"].every(id => state.done[id])]);
 checkBadges(true);
 
 renderStats();

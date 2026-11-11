@@ -28,6 +28,8 @@ const U = 'file://' + path.resolve(__dirname, '..') + '/index.html';
   ok(unlabeled.length === 0, 'every field has a label ' + unlabeled.slice(0, 8).join(','));
   const nameless = await p.evaluate(() => [...document.querySelectorAll('button')].filter(x => !(x.textContent.trim() || x.getAttribute('aria-label') || x.title)).map(x => x.id || x.className));
   ok(nameless.length === 0, 'every button has an accessible name ' + nameless.slice(0, 8).join(','));
+  const shown = await p.evaluate(() => { const mods = [...document.querySelectorAll('.mod')]; const was = mods.map(m => m.classList.contains('on')); mods.forEach(m => m.classList.add('on')); const out = [...document.querySelectorAll('[hidden]')].filter(e => { const r = e.getBoundingClientRect(); return r.width > 0 || r.height > 0; }).map(e => e.id || e.className || e.tagName); mods.forEach((m, i) => m.classList.toggle('on', was[i])); return out; });
+  ok(shown.length === 0, 'every [hidden] element is really hidden ' + shown.slice(0, 8).join(','));
   const ids = await p.$$eval('.mod', x => x.map(m => m.id));
 
   // 2. every chapter, JSON examples, empty sections

@@ -55,6 +55,7 @@ const U = 'file://' + path.resolve(__dirname, '..') + '/index.html';
   await go('promptlab'); await p.click('[data-pl="2"]');
   await go('analyzer'); await p.click('#azDemo');
   await go('codeterm'); await p.evaluate(() => { window.__ct.run('demo'); window.__ct.run('scan'); });
+  await go('makelab'); await p.click('#mlSave');
   await go('errdoc'); await p.click('[data-eds="0"]');
   await go('quizgen');
   for (let i = 0; i < 10; i++) { await p.evaluate(() => { const c = window.__qgCur; document.querySelector('#qgCard input[value="' + c.a + '"]').click(); }); await p.click('#qgNext'); }
