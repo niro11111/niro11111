@@ -125,21 +125,26 @@ export async function buildApp({ config, db, logger, emitter, ai }) {
   });
 
   // ---------- session ----------
+  const cookieOpts = () => ({ httpOnly: true, secure: config.cookieSecure, sameSite: "lax", path: "/", maxAge: config.SESSION_DAYS * 86400 });
   const setSession = (reply, userId, req) => {
     const token = newToken(), now = Date.now(), exp = now + config.SESSION_DAYS * DAY;
     q.insertSession.run(sha256(token), userId, now, exp, String(req.headers["user-agent"] || "").slice(0, 200));
-    reply.setCookie(COOKIE, token, { httpOnly: true, secure: config.cookieSecure, sameSite: "lax", path: "/", maxAge: config.SESSION_DAYS * 86400 });
+    reply.setCookie(COOKIE, token, cookieOpts());
     return sha256(token);
   };
   app.decorateRequest("user", null);
-  app.addHook("preHandler", async req => {
+  app.addHook("preHandler", async (req, reply) => {
     const token = req.cookies[COOKIE];
     if (!token || token.length > 100) return;
     const s = q.session.get(sha256(token), Date.now());
     if (!s) return;
     req.user = { id: s.user_id, email: s.email, name: s.name, sid: s.id_hash };
-    // sliding expiry: renew when less than half the lifetime is left
-    if (s.expires_at - Date.now() < (config.SESSION_DAYS * DAY) / 2) q.extendSession.run(Date.now() + config.SESSION_DAYS * DAY, s.id_hash);
+    // sliding expiry: renew when less than half the lifetime is left, in the database AND in the browser
+    // (renewing only the database row would still log people out when the original cookie expires)
+    if (s.expires_at - Date.now() < (config.SESSION_DAYS * DAY) / 2) {
+      q.extendSession.run(Date.now() + config.SESSION_DAYS * DAY, s.id_hash);
+      reply.setCookie(COOKIE, token, cookieOpts());
+    }
   });
   const auth = async (req, reply) => { if (!req.user) return reply.code(401).send({ error: "unauthorized", message: "צריך להתחבר." }); };
   const parse = (schema, body, reply) => {

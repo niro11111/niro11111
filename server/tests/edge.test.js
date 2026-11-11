@@ -71,6 +71,25 @@ describe("odd input", () => {
   });
 });
 
+describe("sessions", () => {
+  it("sliding expiry renews the cookie too, not only the database row", async () => {
+    const c = cookieOf(await req("POST", "/api/auth/register", { email: "a@example.com", password: "correct horse battery" }));
+    const fresh = await req("GET", "/api/me", undefined, c);
+    expect(fresh.headers["set-cookie"]).toBeUndefined();   // plenty of time left: nothing to renew
+    db.prepare("UPDATE sessions SET expires_at = ?").run(Date.now() + 2 * 86400000);   // close to expiry
+    const r = await req("GET", "/api/me", undefined, c);
+    expect(r.json().user).not.toBeNull();
+    const set = String(r.headers["set-cookie"] || "");
+    expect(set).toContain(c.split("=")[1]); expect(set).toMatch(/Max-Age=2592000/); expect(set).toMatch(/HttpOnly/i);
+    expect(db.prepare("SELECT expires_at FROM sessions").get().expires_at).toBeGreaterThan(Date.now() + 29 * 86400000);
+  });
+  it("an expired session is refused even if the browser still sends the cookie", async () => {
+    const c = cookieOf(await req("POST", "/api/auth/register", { email: "a@example.com", password: "correct horse battery" }));
+    db.prepare("UPDATE sessions SET expires_at = ?").run(Date.now() - 1000);
+    expect((await req("GET", "/api/me", undefined, c)).json().user).toBeNull();
+  });
+});
+
 describe("headers and URLs", () => {
   it("odd Origin values are refused, not crashed on", async () => {
     for (const origin of ["null", "garbage", "http://", "file://", "http://evil.example"]) {
