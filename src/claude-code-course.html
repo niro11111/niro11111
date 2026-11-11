@@ -464,6 +464,24 @@ main{overflow-wrap:break-word}
 .mlKpis b{font-size:1.3rem}.mlKpis span{color:var(--muted);font-size:.8rem}
 .mlKpis[data-lvl="lo"] div:nth-child(3) b{color:var(--red)}.mlKpis[data-lvl="hi"] div:nth-child(3) b{color:var(--ok)}
 @media (max-width:700px){.mlKpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* cheat sheet */
+.csTop{grid-template-columns:minmax(0,1fr) minmax(0,2fr)}
+.csSheet{background:#fff;color:#111;border:1px solid var(--line);border-radius:10px;padding:14px;max-height:70vh;overflow:auto}
+.csHead{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #111;padding-bottom:6px;margin-bottom:10px;gap:12px;flex-wrap:wrap}
+.csHead b{font-size:1.1rem}.csHead span{color:#555;font-size:.8rem}
+.csBody{column-gap:18px}
+.csSec{break-inside:avoid-column;margin:0 0 10px}
+.csSec h2{font-size:1.05em;margin:0 0 4px;padding:2px 6px;background:#eef2f1;border-inline-start:3px solid #0d7568;color:#111}
+.csSec dl{margin:0}.csSec dt{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:700;margin-top:3px;unicode-bidi:plaintext}.csSec dd{margin:0 0 2px;color:#333}
+@media (max-width:700px){.csTop{grid-template-columns:minmax(0,1fr)}.csBody{column-count:1!important}}
+@media print{
+  body.printing-cheat > *:not(.app){display:none!important}
+  body.printing-cheat .app > *:not(main), body.printing-cheat main > *:not(#cheatsheet), body.printing-cheat #cheatsheet > *:not(.csTop), body.printing-cheat .csTop > .form{display:none!important}
+  body.printing-cheat .csTop{display:block}
+  body.printing-cheat .csSheet{border:0;max-height:none;overflow:visible;padding:0}
+  @page{margin:12mm}
+}
 </style>
 
 <div class="app" dir="rtl" lang="he">
@@ -2539,6 +2557,25 @@ fly deploy</pre></div></li>
   <div class="qgCard" id="scDrill" aria-live="polite"></div>
   <div class="row"><button class="btn pri" type="button" id="scNext">שאלה הבאה</button><span class="hint" id="scScore"></span></div>
   <div class="quiz" data-q="workspace"></div>
+</section>
+
+<section class="mod" id="cheatsheet" data-level="ארגז הכלים של המומחה" data-title="דף עזר אישי להדפסה">
+  <div class="eyebrow"></div>
+  <h1>דף עזר אישי: בוחרים, מדפיסים, תולים ליד המסך</h1>
+  <p class="lead">בוחרים את הנושאים שאתם צריכים ומקבלים דף עזר מסודר: פקודות, דגלים, קיצורים, הגדרות, ‏Hooks, טריקים, שגיאות נפוצות ופונקציות של Make. אפשר להדפיס או לשמור כ-PDF, להוריד כקובץ HTML עצמאי, או סתם להשאיר פתוח בלשונית.</p>
+  <div class="grid2 csTop"><div class="form" id="csForm">
+    <b>נושאים</b>
+    <div class="chk" id="csTopics"></div>
+    <label>כותרת<input type="text" id="csTitle" value="דף העזר שלי ל-Claude Code"></label>
+    <label>עמודות<select id="csCols"><option>1</option><option selected>2</option><option>3</option></select></label>
+    <label>גודל טקסט<select id="csSize"><option value="11">קטן (הרבה על דף)</option><option value="12.5" selected>רגיל</option><option value="14">גדול</option></select></label>
+    <label class="tick"><input type="checkbox" id="csDesc" checked> עם הסברים</label>
+    <label class="tick"><input type="checkbox" id="csOnlyMine"> רק מה שסימנתי כ"למדתי" (טריקים וסודות)</label>
+    <div class="row"><button class="btn pri" type="button" id="csPrint">הדפסה / PDF</button><button class="btn" type="button" id="csDl">הורדת HTML</button></div>
+    <p class="hint" id="csCount" aria-live="polite"></p>
+  </div><div>
+    <div class="csSheet" id="csSheet"></div>
+  </div></div>
 </section>
 
 <section class="mod" id="gallery" data-level="ארגז הכלים של המומחה" data-title="גלריית התאמה אישית">
@@ -4661,7 +4698,7 @@ renderMissions();
 
 // ================= command palette (Ctrl+K) =================
 (function(){
-  document.body.insertAdjacentHTML("beforeend", '<div class="pal" id="pal" hidden role="dialog" aria-label="חיפוש בכל הקורס"><div class="pal-box"><input id="palIn" type="search" placeholder="חיפוש בכל הקורס: פרקים, טריקים, פקודות, פרומפטים, מונחים…" aria-label="חיפוש"><ul id="palList"></ul><div class="hint">Enter לפתיחה · Esc לסגירה · ↑↓ לבחירה</div></div></div>');
+  document.body.insertAdjacentHTML("beforeend", '<div class="pal" id="pal" hidden role="dialog" aria-label="חיפוש בכל הקורס"><div class="pal-box"><input id="palIn" type="search" placeholder="חיפוש בכל הקורס: שגיאות, חבילות, Make, פרקים, טריקים, פקודות, פרומפטים, מונחים…" aria-label="חיפוש"><ul id="palList"></ul><div class="hint">Enter לפתיחה · Esc לסגירה · ↑↓ לבחירה</div></div></div>');
   $(".rail-tools").insertAdjacentHTML("afterbegin", '<button class="btn sm" id="palBtn" type="button">🔍 חיפוש (Ctrl+K)</button><button class="btn sm" id="badgeBtn" type="button">🏅 הישגים</button>');
   const idx = () => [
     ...mods.map(m => ({k:"פרק", t:m.dataset.title, s:m.innerText.slice(0, 2000), go:m.id})),
@@ -4669,7 +4706,10 @@ renderMissions();
     ...REF.map(r => ({k:"פקודה", t:r[1], s:r[2], go:"reference"})),
     ...PROMPTS.map(p => ({k:"פרומפט", t:p[1], s:p[2], go:"prompts"})),
     ...GLOSS.map(g => ({k:"מונח", t:g[0] + " · " + g[1], s:g[2], go:"glossary"})),
-    ...SECRETS.slice(0, secUnlocked()).map(s => ({k:"סוד", t:s[0], s:s[1], go:"hidden"}))
+    ...SECRETS.slice(0, secUnlocked()).map(s => ({k:"סוד", t:s[0], s:s[1], go:"hidden"})),
+    ...(typeof ERRS !== "undefined" ? ERRS : []).map(e => ({k:"שגיאה", t:e[1], s:e[3] + " " + e[4], go:"errdoc", tab:["#edCats", e[0]]})),
+    ...(typeof ECO !== "undefined" ? ECO : []).map(e => ({k:"חבילה", t:e.n, s:e.d + " " + e.r + " " + e.w, go:"ecosystem", fill:"#ecQ", q:e.n})),
+    ...(window.__mkIdx || [])
   ];
   let items = [], sel = 0;
   const draw = () => {
@@ -4680,7 +4720,12 @@ renderMissions();
   };
   const openP = () => { $("#pal").hidden = false; $("#palIn").value = ""; sel = 0; draw(); $("#palIn").focus(); };
   const closeP = () => { $("#pal").hidden = true; };
-  const go = i => { const x = items[i]; if(!x) return; closeP(); show(x.go); if(x.k === "טריק" || x.k === "פקודה"){ const el = x.k === "טריק" ? $("#trSearch") : $("#refSearch"); el.value = x.t; el.dispatchEvent(new Event("input")); } };
+  const go = i => {
+    const x = items[i]; if(!x) return; closeP(); show(x.go);
+    if(x.k === "טריק" || x.k === "פקודה"){ const el = x.k === "טריק" ? $("#trSearch") : $("#refSearch"); el.value = x.t; el.dispatchEvent(new Event("input")); }
+    if(x.fill){ const el = $(x.fill); if(el){ el.value = x.q || x.t; el.dispatchEvent(new Event("input")); } }
+    if(x.tab){ const b = [...$$(x.tab[0] + " button")].find(b => b.textContent === x.tab[1]); if(b) b.click(); setTimeout(() => { const h = [...$$("#edAll h3")].find(h => h.textContent === x.t); if(h) h.scrollIntoView({block:"center"}); }, 50); }
+  };
   $("#palBtn").onclick = openP;
   $("#palIn").addEventListener("input", () => { sel = 0; draw(); });
   $("#palIn").addEventListener("keydown", e => { if(e.key === "ArrowDown"){ e.preventDefault(); sel = Math.min(items.length - 1, sel + 1); draw(); } else if(e.key === "ArrowUp"){ e.preventDefault(); sel = Math.max(0, sel - 1); draw(); } else if(e.key === "Enter"){ e.preventDefault(); go(sel); } else if(e.key === "Escape") closeP(); });
@@ -5462,7 +5507,7 @@ checkBadges(true);
 // ================= sync v3: every key, per-key timestamps, resets and deletions sync =================
 // Progress that only grows (XP, badges, flashcard boxes, records) is merged as a union / max.
 // Everything a person edits or can undo (notes, checklists, settings, look) follows the newest write.
-const SYNC_KEYS = ["state","cards","sim","best","badges","daily","srbest","surprises","tricks","proj","ba","notes","track","mistakes","place","look","packSel","theme","lastReal","name","retro","ag","pglib","pgDraft","ecoSel","edSeen","qbest","mkChk","mkSec","mkPlans","mtime"];
+const SYNC_KEYS = ["state","cards","sim","best","badges","daily","srbest","surprises","tricks","proj","ba","notes","track","mistakes","place","look","packSel","theme","lastReal","name","retro","ag","pglib","pgDraft","ecoSel","edSeen","qbest","mkChk","mkSec","mkPlans","csSel","mtime"];
 isSyncKey = k => SYNC_KEYS.includes(k) || /^ch\d+$/.test(k);
 const GROW_UNION = ["cards","badges","daily"], GROW_MAX = ["sim","best","srbest","surprises","qbest"];
 function readMtime(){ try{ return JSON.parse(localStorage.getItem("cca-mtime") || "{}"); }catch(e){ return {}; } }
@@ -7401,6 +7446,8 @@ BADGES.push(["automator","⚙","אוטומטורים","חיברתם את Claude 
   $("#msQ").addEventListener("input", secs);
   $("#msList").addEventListener("change", e => { const i = e.target.dataset.mks; if(i == null) return; const L = learned(); if(e.target.checked) L[i] = 1; else delete L[i]; store.set("mkSec", L); secs(); if(Object.keys(L).length === SEC.length) award("mk-secrets", 40, "כל סודות Make"); });
   secs(); REFRESH.push(secs);
+  window.__mkIdx = FX.map(f => ({k:"פונקציית Make", t:f[1], s:f[2] + " · " + f[3], go:"makefx", fill:"#fxQ", q:f[1].split(/[ (]/)[0]}))
+    .concat(SEC.map((x, i) => ({k:"סוד Make", t:x[1].replace(/<[^>]+>/g, ""), s:x[2].replace(/<[^>]+>/g, ""), go:"makesecrets", fill:"#msQ", q:x[1].replace(/<[^>]+>/g, "").replace(/[‏]/g, "").split(" ")[0], i})));
 
   // ---------- makelab: planner and credit calculator ----------
   const num = (id, d) => Math.max(0, +$(id).value || d);
@@ -7448,6 +7495,76 @@ BADGES.push(["automator","⚙","אוטומטורים","חיברתם את Claude 
 
 Object.keys(TRACKS).forEach(k => ["makecore","makefx","makeai","makesecrets","makelab"].forEach(id => { if(!TRACKS[k].m.includes(id)) TRACKS[k].m.push(id); }));
 BADGES.push(["makepro","🧩","מומחי Make","השלמתם את כל פרקי Make", () => ["make","makecore","makefx","makeai","makesecrets","makelab"].every(id => state.done[id])]);
+// ================= cheat sheet, Make flashcards =================
+(function(){
+  // Make flashcards join the spaced-repetition deck (appended, so saved boxes keep their positions)
+  CARDS.push(
+    ["Make: מה הופך תרחיש לכלי ש-Claude קורא לו?","פעיל + תזמון On demand + inputs/outputs + Return output + תיאור"],
+    ["Make: חיבור ל-Claude Code","claude mcp add --transport http make https://mcp.make.com/claude ואז /mcp"],
+    ["Make: איפה שמים Webhook response?","בסוף התרחיש. באמצע, שגיאה אחריו לא משביתה ולא מתריעה"],
+    ["Make: Run with existing data","Ctrl+Shift+Enter: מריץ את הגרסה החדשה עם נתוני טריגר קודמים"],
+    ["Make: חמשת ה-error handlers","Skip · Retry · Resume · Commit · Rollback"],
+    ["Make: Retry error handler","שומר incomplete execution שאפשר להריץ שוב"],
+    ["Make: מפריד ארגומנטים בפונקציות","נקודה-פסיק: formatDate(date; format; timezone)"],
+    ["Make: ערך לפי מפתח ממערך","first(map(array; value; key; wanted))"],
+    ["Make: get() מול slice()","ב-get האינדקס הראשון 1, ב-slice הוא 0"],
+    ["Make: הרצת תרחיש מה-API","POST {zone}/api/v2/scenarios/{id}/run עם Authorization: Token"],
+    ["Make: responsive: true","ה-API מחכה עד 40 שניות ומחזיר סטטוס ו-outputs"],
+    ["Make: 429 עם IM310","הארגון הגיע למכסה, תרחישים לא יופעלו"],
+    ["Make: Process data in order","הרצה מסתיימת לפני הבאה. incomplete execution עוצר הרצות חדשות"],
+    ["Make: למה לא לשמור סודות במשתנים?","משתנים לא מוצפנים, וחברי הצוות רואים אותם"],
+    ["Make: MCP toolbox","שרת MCP עם תרחישים נבחרים, מפתח לכל לקוח, הגבלת IP"],
+    ["Make: Maia","עוזרת שבונה ומתקנת תרחישים. Plan mode מציג תוכנית לפני הבנייה"]
+  );
+
+  // ---------- cheat sheet ----------
+  const learnedTricks = () => store.get("tricks", {}), learnedMake = () => store.get("mkSec", {});
+  const refOf = cat => REF.filter(r => r[0] === cat).map(r => [r[1], r[2]]);
+  const TOPICS = [
+    ["slash","פקודות סלאש",() => refOf("פקודות סלאש"), true],
+    ["keys","קיצורי מקלדת",() => refOf("קיצורי מקלדת"), true],
+    ["flags","דגלי CLI",() => refOf("דגלי CLI"), true],
+    ["sub","תתי-פקודות",() => refOf("תתי-פקודות"), false],
+    ["settings","מפתחות הגדרה",() => refOf("מפתחות הגדרה"), false],
+    ["env","משתני סביבה",() => refOf("משתני סביבה"), false],
+    ["hooks","אירועי Hooks",() => refOf("אירועי Hooks"), false],
+    ["tricks","טריקים",() => TRICKS.filter((t, i) => !$("#csOnlyMine").checked || learnedTricks()[i]).map(t => [t[1], t[2]]), false],
+    ["secrets","סודות (שנפתחו)",() => SECRETS.slice(0, secUnlocked()).map(s => [s[0], s[1]]), false],
+    ["errors","שגיאות נפוצות ופתרון",() => (typeof ERRS !== "undefined" ? ERRS : []).map(e => [e[1], e[3] + " " + e[5].split("\n")[0]]), false],
+    ["makefx","פונקציות Make",() => (window.__mkIdx || []).filter(x => x.k === "פונקציית Make").map(x => [x.t, x.s]), false],
+    ["makesec","סודות Make",() => (window.__mkIdx || []).filter((x, i) => x.k === "סוד Make" && (!$("#csOnlyMine").checked || learnedMake()[x.i])).map(x => [x.t, x.s]), false]
+  ];
+  const saved = store.get("csSel", null);
+  $("#csTopics").innerHTML = TOPICS.map(t => '<label><input type="checkbox" value="' + t[0] + '"' + ((saved ? saved.includes(t[0]) : t[3]) ? " checked" : "") + '>' + esc(t[1]) + '</label>').join("");
+  const strip = s => String(s).replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+  function sheet(){
+    const sel = $$("#csTopics input:checked").map(i => i.value), desc = $("#csDesc").checked, cols = +$("#csCols").value, size = +$("#csSize").value;
+    let n = 0;
+    const secs = TOPICS.filter(t => sel.includes(t[0])).map(t => { const rows = t[2](); n += rows.length; return rows.length ? '<section class="csSec"><h2>' + esc(t[1]) + '</h2><dl>' + rows.map(r => '<dt dir="auto">' + esc(strip(r[0])) + '</dt>' + (desc ? '<dd>' + esc(strip(r[1])).slice(0, 220) + '</dd>' : "")).join("") + '</dl></section>' : ""; }).join("");
+    const title = $("#csTitle").value.trim() || "דף עזר";
+    const html = '<header class="csHead"><b>' + esc(title) + '</b><span>' + new Date().toLocaleDateString("he-IL") + ' · אקדמיית Claude Code</span></header><div class="csBody" style="column-count:' + cols + ';font-size:' + size + 'px">' + (secs || '<p>בחרו לפחות נושא אחד.</p>') + '</div>';
+    $("#csSheet").innerHTML = html;
+    $("#csCount").textContent = n + " פריטים ב-" + sel.length + " נושאים";
+    store.set("csSel", sel);
+    return {html, title, n};
+  }
+  $("#csForm").addEventListener("input", sheet); $("#csForm").addEventListener("change", sheet);
+  const CSS = 'body{font-family:system-ui,"Segoe UI",Arial,sans-serif;margin:16px;color:#111;background:#fff}.csHead{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #111;padding-bottom:6px;margin-bottom:10px;gap:12px}.csHead b{font-size:18px}.csHead span{color:#555;font-size:12px}.csBody{column-gap:18px}.csSec{break-inside:avoid-column;margin:0 0 10px}.csSec h2{font-size:1.05em;margin:0 0 4px;padding:2px 6px;background:#eef2f1;border-inline-start:3px solid #0d7568}dl{margin:0}dt{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:700;margin-top:3px;unicode-bidi:plaintext}dd{margin:0 0 2px;color:#333}@page{margin:12mm}';
+  $("#csDl").onclick = () => { const r = sheet(); saveFile("claude-code-cheatsheet.html", '<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + esc(r.title) + '</title><style>' + CSS + '</style></head><body>' + r.html + '</body></html>'); markDone("cheatsheet"); award("cheat", 15, "דף עזר אישי"); };
+  $("#csPrint").onclick = () => {
+    sheet(); markDone("cheatsheet"); award("cheat", 15, "דף עזר אישי");
+    document.body.classList.add("printing-cheat");
+    const done = () => { document.body.classList.remove("printing-cheat"); window.removeEventListener("afterprint", done); };
+    window.addEventListener("afterprint", done);
+    try{ window.print(); }catch(e){ toast("ההדפסה לא זמינה כאן. הורידו את קובץ ה-HTML והדפיסו ממנו"); }
+    setTimeout(done, 1500);
+  };
+  sheet();
+  REFRESH.push(sheet);
+  window.__cheat = {sheet};
+})();
+
+Object.keys(TRACKS).forEach(k => { if(!TRACKS[k].m.includes("cheatsheet")) TRACKS[k].m.push("cheatsheet"); });
 checkBadges(true);
 
 renderStats();

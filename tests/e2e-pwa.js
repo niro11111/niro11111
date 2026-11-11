@@ -14,9 +14,9 @@ ok(await p.evaluate(()=>!!navigator.serviceWorker.controller),'service worker co
 const man=await p.evaluate(async()=>{const l=document.querySelector('link[rel=manifest]');const j=await (await fetch(l.href)).json();return j;});
 ok(man.name&&man.start_url&&man.display==='standalone'&&man.icons.some(i=>i.sizes==='512x512'),'manifest valid ('+man.short_name+')');
 for(const i of man.icons){const s=await p.evaluate(async u=>(await fetch(u)).status,new URL(i.src,'http://localhost:8765/').href);ok(s===200,'icon '+i.src);}
-ok(await p.$$eval('#toc button',x=>x.length)===69,'69 chapters online');
+ok(await p.$$eval('#toc button',x=>x.length)===70,'70 chapters online');
 await ctx.setOffline(true);await p.reload();await p.waitForTimeout(800);
-ok(await p.$$eval('#toc button',x=>x.length)===69,'app opens offline with 69 chapters');
+ok(await p.$$eval('#toc button',x=>x.length)===70,'app opens offline with 70 chapters');
 await p.goto('http://localhost:8765/#sim');await p.waitForTimeout(300);ok(await p.$eval('.mod.on',e=>e.id)==='sim','offline deep link #sim');
 await p.waitForTimeout(1200);ok((await p.$eval('#syncStatus',e=>e.textContent)).includes('לא מקוון'),'status shows offline note');
 await ctx.setOffline(false);
