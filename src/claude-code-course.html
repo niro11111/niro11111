@@ -158,7 +158,7 @@ body.has-tutor .code .ask{display:inline-block}
 .tutor-sugg{display:flex;gap:6px;flex-wrap:wrap;padding:0 12px 8px}
 .tutor-in{border-top:1px solid var(--line);padding:8px 12px;display:grid;gap:6px}
 .tutor-in textarea{font:inherit;border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:var(--bg);color:var(--ink);resize:none}
-.trick.locked{opacity:.6;border-style:dashed;text-align:center;display:grid;place-content:center;min-height:140px}
+.trick.locked{border-style:dashed;color:var(--muted);text-align:center;display:grid;place-content:center;min-height:140px}
 .phases{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:10px 0}
 .phase{display:flex;gap:10px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--surface);min-width:0}
 .phase .pn{flex:none;width:28px;height:28px;border-radius:50%;background:var(--lv9);color:var(--surface);display:grid;place-items:center;font-weight:800}
@@ -203,6 +203,9 @@ html.retro main::after{content:"";position:fixed;inset:0;pointer-events:none;bac
 .skip:focus{inset-inline-start:8px}
 button:disabled{opacity:.45;cursor:not-allowed}
 .cp-grid{display:grid;gap:6px;margin:10px 0}
+.cpRow{display:flex;gap:8px;align-items:flex-start}
+.cpRow .cpTick{margin-top:12px}
+.cpRow details.cp{flex:1;min-width:0}
 details.cp{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:6px 12px}
 details.cp.on{border-color:var(--lv11)}
 details.cp summary{display:flex;gap:8px;align-items:center;cursor:pointer;flex-wrap:wrap}
@@ -894,7 +897,7 @@ description: Writes release notes from git history in the team's format. Use whe
     <li><b>מיקום</b>: <code>~/.claude/skills</code> לאישי, <code>.claude/skills</code> לצוות, או בתוך Plugin להפצה.</li>
   </ul>
   <div class="tbl"><table>
-    <tr><th scope="col"></th><th scope="col">CLAUDE.md</th><th scope="col">פקודה</th><th scope="col">Skill</th><th scope="col">Subagent</th></tr>
+    <tr><th scope="col"><span class="sr-only">היבט</span></th><th scope="col">CLAUDE.md</th><th scope="col">פקודה</th><th scope="col">Skill</th><th scope="col">Subagent</th></tr>
     <tr><td>נטען</td><td>תמיד</td><td>כשמקלידים <code>/</code></td><td>אוטומטית לפי תיאור, או <code>/</code></td><td>כש-Claude מאציל משימה</td></tr>
     <tr><td>הקשר</td><td>משותף</td><td>משותף</td><td>משותף</td><td><b>נפרד</b></td></tr>
     <tr><td>מתאים ל</td><td>עובדות וכללים קבועים</td><td>תהליך שמפעילים ידנית</td><td>מומחיות עם קבצים וסקריפטים</td><td>משימה עצמאית שמחזירה סיכום</td></tr>
@@ -2728,7 +2731,7 @@ Do not change test expectations to make them pass.</textarea></label>
   <div class="eyebrow"></div>
   <h1>כרטיסיות חזרה עם חזרה מרווחת</h1>
   <p class="lead">לחצו על הכרטיס כדי להפוך אותו. "ידעתי" מעביר אותו לקופסה הבאה, ו"לא ידעתי" מחזיר אותו לקופסה 1. כרטיסים בקופסה 1 מופיעים הכי הרבה.</p>
-  <div class="card3d"><div class="fc" id="fc" tabindex="0" role="button" aria-label="הפוך כרטיס"><div class="front" id="fcF"></div><div class="back" id="fcB"></div></div></div>
+  <div class="card3d"><div class="fc" id="fc" tabindex="0" role="button"><span class="sr-only">הפיכת הכרטיס: </span><div class="front" id="fcF"></div><div class="back" id="fcB"></div></div></div>
   <div class="row" style="justify-content:center;margin:8px 0"><button class="btn" id="fcNo" type="button">לא ידעתי</button><button class="btn pri" id="fcYes" type="button">ידעתי</button></div>
   <div class="boxes" id="fcBoxes"></div>
 </section>
@@ -2821,7 +2824,7 @@ Do not change test expectations to make them pass.</textarea></label>
   <div class="eyebrow"></div>
   <h1>מנתח הפרויקט שלכם</h1>
   <p class="lead">גררו לכאן קבצים מהפרויקט שלכם (או בחרו תיקייה שלמה), והמנתח יזהה שפה, framework, בדיקות, לינטרים, מסד נתונים ותשתית. בסוף מקבלים ערכת Claude Code מותאמת בדיוק לפרויקט. <b>הקבצים לא יוצאים מהדפדפן</b>: הניתוח קורה כאן בלבד.</p>
-  <div class="drop" id="azDrop" tabindex="0" role="button" aria-label="בחירת קבצים לניתוח">
+  <div class="drop" id="azDrop">
     <b>גררו קבצים או תיקייה לכאן</b>
     <span class="hint">package.json · pyproject.toml · requirements.txt · go.mod · Cargo.toml · Gemfile · composer.json · README.md · Dockerfile · docker-compose.yml · .github/workflows · Makefile</span>
     <div class="row" style="justify-content:center;margin-top:8px"><label class="btn sm">בחירת קבצים<input type="file" id="azFiles" multiple hidden></label><label class="btn sm">בחירת תיקייה<input type="file" id="azDir" webkitdirectory multiple hidden></label><button class="btn sm" type="button" id="azDemo">דוגמה</button></div>
@@ -2842,7 +2845,7 @@ Do not change test expectations to make them pass.</textarea></label>
   <h1>טרמינל קוד: מעלים פרויקט ומקבלים ריוויו, המלצות ואפיון</h1>
   <p class="lead">מעלים קבצים, תיקייה שלמה או ZIP, ועובדים מול טרמינל אמיתי בתוך המערכת: <code>ls</code>, <code>cat</code> ו-<code>grep</code> על הקוד שלכם, ו-<code>scan</code> שמריץ מעל 35 בדיקות אבטחה, איכות, בדיקות, נגישות ותשתית. משם מקבלים המלצות לפי עדיפות, רעיונות לפיצ'רים שחסרים, אפיון מלא (SPEC.md), תוכנית עבודה ופרומפט מוכן ל-Claude Code לכל המלצה. כשהמורה זמין, <code>ai</code> נותן ל-Claude לקרוא בעצמו את הקבצים שלכם ולענות.</p>
   <div class="ctLoad">
-    <div class="drop" id="ctDrop" tabindex="0" role="button" aria-label="העלאת קוד לטרמינל">
+    <div class="drop" id="ctDrop">
       <b>גררו לכאן קבצים, תיקייה או ZIP</b>
       <span class="hint">‏node_modules, ‏.git, ‏dist וקבצים בינאריים מסוננים אוטומטית. הקוד נשאר בדפדפן שלכם ולא נשמר ולא נשלח לשום מקום, אלא אם תשאלו את המורה.</span>
       <div class="row" style="justify-content:center;margin-top:8px">
@@ -3035,6 +3038,28 @@ function setCode(id, text){
   box.querySelector(".lbl").textContent = box.dataset.file || box.dataset.lang || "";
 }
 $$(".code").forEach(decorate);
+// a code block that scrolls must be reachable by keyboard (WCAG 2.1.1); blocks that fit stay out of the Tab order
+function fixScrollFocus(root){
+  (root || document).querySelectorAll(".mod.on .code pre, .pal:not([hidden]) .code pre").forEach(pre => {
+    const scrolls = pre.scrollWidth > pre.clientWidth + 1 || pre.scrollHeight > pre.clientHeight + 1;
+    if(scrolls){ pre.tabIndex = 0; if(!pre.hasAttribute("aria-label")) pre.setAttribute("aria-label", "קוד (גלילה בחיצים)"); }
+    else if(pre.tabIndex === 0 && pre.getAttribute("aria-label") === "קוד (גלילה בחיצים)"){ pre.removeAttribute("tabindex"); pre.removeAttribute("aria-label"); }
+  });
+}
+// screen readers get a heading outline without skipped levels (an h3 right after the h1 is announced as level 2)
+function fixHeadingLevels(){
+  const m = document.querySelector(".mod.on"); if(!m) return;
+  let prev = 1;
+  m.querySelectorAll("h1,h2,h3,h4").forEach(h => {
+    if(h.offsetParent === null && !h.closest("details")) return;
+    const native = +h.tagName[1], want = Math.min(native, prev + 1);
+    if(want !== native) h.setAttribute("aria-level", want); else h.removeAttribute("aria-level");
+    prev = want;
+  });
+}
+let fsfT = 0; const scheduleScrollFocus = () => { cancelAnimationFrame(fsfT); fsfT = requestAnimationFrame(() => { fixScrollFocus(); fixHeadingLevels(); }); };
+new MutationObserver(scheduleScrollFocus).observe(document.body, {subtree:true, childList:true, attributes:true, attributeFilter:["class","hidden"]});
+window.addEventListener("resize", scheduleScrollFocus);
 
 // tabs
 $$("[data-tabs]").forEach(t => {
@@ -5208,7 +5233,7 @@ function packFile(p, scope){
     $("#cpFilter").innerHTML = cats.map(c => '<button type="button" class="'+(c===f?"on":"")+'">'+esc(c)+'</button>').join("");
     const list = PACK_FIX.filter(p => match(p) && (!q || p.join(" ").toLowerCase().includes(q)));
     $("#cpList").innerHTML = list.map(p => { const [path, content] = packFile(p, scope());
-      return '<details class="cp'+(sel.has(p[1])?" on":"")+'"><summary><label class="tick cpTick"><input type="checkbox" data-cp="'+esc(p[1])+'" '+(sel.has(p[1])?"checked":"")+'></label><span class="pill">'+({cmd:"/",agent:"🤖",skill:"🧩"}[p[0]])+'</span><b class="ltr">'+(p[0]==="cmd"?"/":"")+esc(p[1])+'</b><span class="hint">'+esc(p[3])+'</span></summary><div class="code" data-lang="markdown" data-file="'+esc(path)+'"><pre>'+esc(content)+'</pre></div></details>'; }).join("");
+      return '<div class="cpRow"><label class="tick cpTick"><input type="checkbox" data-cp="'+esc(p[1])+'" '+(sel.has(p[1])?"checked":"")+' aria-label="'+esc("להוסיף להתקנה: " + (p[0]==="cmd"?"/":"") + p[1])+'"></label><details class="cp'+(sel.has(p[1])?" on":"")+'"><summary><span class="pill">'+({cmd:"/",agent:"🤖",skill:"🧩"}[p[0]])+'</span><b class="ltr">'+(p[0]==="cmd"?"/":"")+esc(p[1])+'</b><span class="hint">'+esc(p[3])+'</span></summary><div class="code" data-lang="markdown" data-file="'+esc(path)+'"><pre>'+esc(content)+'</pre></div></details></div>'; }).join("");
     $$("#cpList .code").forEach(decorate);
     $$("#cpList .cpTick").forEach(l => l.addEventListener("click", e => e.stopPropagation()));   // no inline handlers (CSP)
     script();
@@ -5225,7 +5250,7 @@ function packFile(p, scope){
   };
   $("#cpFilter").addEventListener("click", e => { const b = e.target.closest("button"); if(b){ f = b.textContent; draw(); } });
   $("#cpSearch").addEventListener("input", draw);
-  $("#cpList").addEventListener("change", e => { const c = e.target.closest("[data-cp]"); if(!c) return; c.checked ? sel.add(c.dataset.cp) : sel.delete(c.dataset.cp); c.closest("details").classList.toggle("on", c.checked); script(); });
+  $("#cpList").addEventListener("change", e => { const c = e.target.closest("[data-cp]"); if(!c) return; c.checked ? sel.add(c.dataset.cp) : sel.delete(c.dataset.cp); const d = c.closest(".cpRow"); if(d) d.querySelector("details.cp").classList.toggle("on", c.checked); script(); });   // the checkbox sits next to its <details>, not inside it
   $("#cpAll").onclick = () => { PACK_FIX.filter(match).forEach(p => sel.add(p[1])); draw(); };
   $("#cpNone").onclick = () => { sel.clear(); draw(); };
   $$('input[name="cpScope"]').forEach(r => r.addEventListener("change", draw));

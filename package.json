@@ -1,0 +1,7 @@
+{
+  "name": "claude-code-academy",
+  "private": true,
+  "description": "Build and test tooling for the course (the server has its own package.json)",
+  "scripts": { "test": "tests/run-all.sh" },
+  "devDependencies": { "axe-core": "^4.10.0" }
+}

@@ -161,7 +161,13 @@ export async function buildApp({ config, db, logger, emitter, ai }) {
     const b = parse(schemas.register, req.body, reply); if (!b) return;
     if (q.userByEmail.get(b.email)) return reply.code(409).send({ error: "exists", message: "כבר יש חשבון עם האימייל הזה. נסו להתחבר." });
     const hash = await hashPassword(b.password);
-    const info = q.insertUser.run(b.email, b.name, hash, Date.now());
+    let info;
+    try { info = q.insertUser.run(b.email, b.name, hash, Date.now()); }
+    catch (err) {
+      // two sign-ups with the same email at once both pass the check above (hashing awaits); the UNIQUE index decides
+      if (err && err.code === "SQLITE_CONSTRAINT_UNIQUE") return reply.code(409).send({ error: "exists", message: "כבר יש חשבון עם האימייל הזה. נסו להתחבר." });
+      throw err;
+    }
     const id = Number(info.lastInsertRowid);
     setSession(reply, id, req); q.setLogin.run(Date.now(), id); log(id, "register", req);
     events.emit("user.registered", { user_id: id, name: b.name, ...(config.WEBHOOK_INCLUDE_PII ? { email: b.email } : {}) });

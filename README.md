@@ -112,10 +112,14 @@ docker compose up -d --build    # או: fly launch --no-deploy && fly volumes cr
 **הכול בפקודה אחת:** `tests/run-all.sh` (בונה ומריץ את כל הבדיקות).
 
 - `node tests/e2e-complete-course.js` – משלים את כל 69 הפרקים בדרך האמיתית של כל אחד (בחנים, אתגרים, פרויקטים, תרחישים, ספידראן ומבחן גמר) ובודק 100%, תעודה, ושכל 57 פקודות הסימולטור עונות.
-- `cd server && npm test` – ‏39 בדיקות API (כולל webhooks חתומים עם retries, ‏API האינטגרציה ושער ה-AI מול Claude API מדומה): חשבונות, ‏CSRF, הגבלות קצב ונעילה, הפרדה בין משתמשים, 409 בסנכרון, תעודות כולל XSS, ייצוא ומחיקה, ‏path traversal, גיבוי ודחיסה.
+- `cd server && npm test` – ‏50 בדיקות API (כולל webhooks חתומים עם retries, ‏API האינטגרציה ושער ה-AI מול Claude API מדומה): חשבונות, ‏CSRF, הגבלות קצב ונעילה, הפרדה בין משתמשים, 409 בסנכרון, תעודות כולל XSS, ייצוא ומחיקה, ‏path traversal, גיבוי ודחיסה.
 - `node tests/e2e-fullstack.js` – השרת האמיתי עם מסד זמני ושני דפדפנים כשני מכשירים: הרשמה, סנכרון בין מכשירים, שינויים בו-זמניים, תעודה ודף אימות, ייצוא, מחשב משותף, מחיקת חשבון, ובלי הפרות CSP.
 - `node tests/e2e-ai-gateway.js` – השרת עם Claude API מדומה ודפדפן אמיתי: המורה, שאלות AI כ-JSON, ו-`ai review` עם לולאת כלים מלאה.
 - `node tests/e2e-make.js` – פרק Make: כל המחוללים, וה-Hook שנוצר רץ באמת מול שרת שמחקה webhook של Make.
+- `node tests/xss-fuzz.js` – מזריק קוד זדוני לכל שדה בכל 69 הפרקים, לוחץ על הכפתורים ובודק שדבר לא רץ ושלא נוצר HTML מהקלט.
+- `node tests/a11y-axe.js` – בדיקת נגישות עם axe-core (כללי WCAG) על כל הפרקים, במצב בהיר וכהה.
+- `node tests/monkey.js [seed] [steps]` – אלפי פעולות אקראיות עם seed קבוע (אפשר לשחזר כל כשל).
+- `cd server && npm test` כולל גם מקרי קצה: הרשמה כפולה בו-זמנית, ‏Unicode, ניסיונות prototype pollution, גוף גדול מדי ו-Origin משונים.
 - `node tests/contrast.js` – ניגודיות WCAG ‏(4.5:1) בכל 7 הערכות, במצב בהיר וכהה.
 - `node tests/audit-buttons.js` – לוחץ על כל כפתור בכל פרק ומדווח על כפתורים בלי השפעה ועל שגיאות.
 - `node tests/e2e-toolbox.js [dir]` – חבילת הפקודות (שומר את סקריפט ההתקנה ב-dir/packtest), בונה הפרומפטים, הגלריה, מחולל הפרוטוטייפים וערכות העיצוב.

@@ -3,6 +3,7 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 ./build.sh || exit 1
+[ -d node_modules/axe-core ] || npm install --silent || exit 1   # axe-core for the accessibility audit
 fail=0
 run(){ local name=$1; shift; local out; out=$("$@" 2>&1); local code=$?
   if [ $code -ne 0 ] || grep -qE '^FAIL|errors \[[^]]' <<<"$out"; then echo "✗ $name"; grep -E '^FAIL|errors \[' <<<"$out" | head -5; fail=1; else echo "✓ $name"; fi; }
@@ -24,6 +25,9 @@ run "full stack: real server + two browsers" node tests/e2e-fullstack.js
 run "AI gateway: tutor, JSON, tool loop" node tests/e2e-ai-gateway.js
 run "Make chapter + real hook run"     node tests/e2e-make.js
 run "Make.com section (6 chapters)"     node tests/e2e-make-section.js
+run "XSS attack on every input"        node tests/xss-fuzz.js
+run "accessibility audit (axe-core)"   node tests/a11y-axe.js
+run "monkey: 3000 random actions"      bash -c "node tests/monkey.js 1 1500 && node tests/monkey.js 2 1500"
 run "every button in every chapter"       node tests/audit-buttons.js
 [ $fail -eq 0 ] && echo "all tests passed" || echo "some tests failed"
 exit $fail
