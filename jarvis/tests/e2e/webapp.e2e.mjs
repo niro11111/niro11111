@@ -124,6 +124,41 @@ try {
     await page.click('[data-wtab=code]'); await page.waitForSelector('[data-file="server.js"]');
     assert.deepEqual(errors, []);
   });
+  await check('wake word: "ג׳ארוויס …" from (simulated) speech runs the command; rename changes the brand and the wake word; copilot opens on every screen', async () => {
+    const ctxW = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+    // A stand-in for the browser's speech service: tests push "heard" sentences into it.
+    await ctxW.addInitScript(() => {
+      class FakeSR { constructor() { window.__sr = this; this.continuous = false; } start() { setTimeout(() => this.onstart?.(), 10); } stop() { setTimeout(() => this.onend?.(), 5); } abort() { this.stop(); } }
+      window.SpeechRecognition = FakeSR; window.webkitSpeechRecognition = FakeSR;
+      window.__hear = (text) => { window.speechSynthesis?.cancel(); const alt = { transcript: text, confidence: 0.9 }; const res = Object.assign([alt], { isFinal: true }); window.__sr?.onresult?.({ resultIndex: 0, results: [res] }); };
+    });
+    const pw = await ctxW.newPage(); const ew = []; pw.on('pageerror', (e) => ew.push(e.message));
+    await pw.goto(`${url}#conversation`); await pw.waitForSelector('#view .composer', { timeout: 15000 });
+    await pw.click('#wakeBtn'); await pw.click('.dlg-yes');
+    await pw.waitForFunction(() => document.getElementById('wakeBtn').classList.contains('live'));
+    assert.match(await pw.textContent('#wakeLabel'), /JARVIS/i);
+    await pw.evaluate(() => window.__hear('ג׳ארוויס כמה הוצאנו החודש'));
+    await pw.waitForFunction(() => /הוצאתם/.test([...document.querySelectorAll('.chat .msg.jarvis')].pop()?.textContent ?? ''), null, { timeout: 15000 });
+    await pw.evaluate(() => window.__hear('תדליק את האור בבקשה')); // no wake word → ignored
+    await pw.waitForTimeout(500);
+    assert.doesNotMatch([...await pw.$$eval('.chat .msg.user', (m) => m.map((x) => x.textContent))].join('|'), /תדליק את האור/);
+    // rename by voice → brand + wake word change
+    await pw.evaluate(() => window.__hear('ג׳ארוויס מעכשיו קוראים לך פריידי'));
+    await pw.waitForFunction(() => /פריידי/.test([...document.querySelectorAll('.chat .msg.jarvis')].pop()?.textContent ?? ''), null, { timeout: 15000 });
+    await pw.goto(`${url}#preferences`); await pw.waitForSelector('#wkT');
+    await pw.waitForFunction(() => /פריידי/.test(document.querySelector('.brandmark')?.textContent ?? ''), null, { timeout: 10000 });
+    await pw.fill('#wkT input', 'פרידי תזכיר לי לקנות חלב'); await pw.click('#wkT button');
+    assert.match(await pw.textContent('#wkR'), /✓.*תזכיר לי לקנות חלב/);
+    await pw.evaluate(() => window.__hear('פריידי, מה שמך'));
+    await pw.goto(`${url}#conversation`); await pw.waitForSelector('#view .composer');
+    await pw.waitForFunction(() => [...document.querySelectorAll('.chat .msg.jarvis')].some((m) => /אני פריידי/.test(m.textContent)), null, { timeout: 15000 });
+    // copilot: available on every screen; without a model it says what is missing
+    await pw.goto(`${url}#wealth`); await pw.waitForTimeout(500);
+    await pw.click('#copilotBtn'); await pw.waitForSelector('[data-cq]');
+    await pw.click('[data-cq]'); await pw.waitForFunction(() => /מודל AI|AI model/.test(document.getElementById('cpOut')?.textContent ?? ''), null, { timeout: 10000 });
+    if (process.env.SHOTWAKE) await pw.screenshot({ path: process.env.SHOTWAKE });
+    assert.deepEqual(ew, []); await ctxW.close();
+  });
   await check('dictation mode sends automatically after a pause', async () => {
     await page.goto(`${url}#conversation`); await page.waitForSelector('#view .composer');
     await page.click('.dict-btn');

@@ -30,7 +30,9 @@ export async function send(text, channel = 'text') {
 }
 
 async function handleTask(task, channel) {
-  const steps = task.plan?.steps?.map((s) => `${s.agent}:${s.tool}${s.verified ? '✓' : s.status === 'proposed' ? '?' : ''}`).join(' → ') ?? '';
+  // A rename / new wake word takes effect in the UI (brand, wake listener) immediately.
+  if (task.state === 'COMPLETED' && task.plan?.tools?.some((x) => x === 'settings.rename' || x === 'settings.wake')) dispatchEvent(new Event('jarvis:persona'));
+  const steps =task.plan?.steps?.map((s) => `${s.agent}:${s.tool}${s.verified ? '✓' : s.status === 'proposed' ? '?' : ''}`).join(' → ') ?? '';
   let approval = null;
   if (task.state === 'AWAITING_APPROVAL') {
     const list = await api('/api/approvals').catch(() => []);

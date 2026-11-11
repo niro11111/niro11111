@@ -17,6 +17,8 @@ export const TOOL_SCHEMAS = {
   'wealth.transfer': S({ action: str(true) }),
   'shopping.add': S({ item: str(true, { max: 200 }) }),
   'computer.open_app': S({ name: str(true) }),
+  'settings.rename': S({ name: str(true), wakeWord: str() }),
+  'settings.wake': S({ word: str(true) }),
   'world.create': S({ text: str(true) }),
   'world.architect': S({ worldId: str(true) }),
   'world.generate': S({ worldId: str(true) }),

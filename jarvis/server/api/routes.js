@@ -246,7 +246,12 @@ export function createApi(s, token, opts = {}) {
   const DW = '/api/worlds';
   const dwOwner = (req) => { if (req.actor !== 'user') throw Object.assign(new Error('only the owner can change digital worlds'), { status: 403 }); return req.actor; };
   r('GET', DW, () => s.worlds.overview());
-  r('POST', DW, (req) => { dwOwner(req); const w = s.worlds.create({ text: req.body.text, lang: req.body.lang }, req.actor); if (req.body.run !== false && w.status !== 'needs-input') s.worlds.startPipeline(w.id, req.actor); return w; });
+  r('POST', DW, async (req) => { dwOwner(req); const w = await s.worlds.createSmart({ text: req.body.text, lang: req.body.lang, ai: req.body.ai === true }, req.actor); if (req.body.run !== false && w.status !== 'needs-input') s.worlds.startPipeline(w.id, req.actor); return w; });
+
+  // --- AI across JARVIS ---
+  r('GET', '/api/ai/status', async () => { const { aiAvailable } = await import('../ai/assist.js'); const route = s.router.route({ complexity: 'medium' }); return { available: aiAvailable(s), providers: Object.keys(s.router.providers), route: { tier: route.tier, model: route.model, degraded: !!route.degraded }, features: ['chat with tools', 'copilot on every screen', 'AI world designer', 'deep thinking', 'decisions', 'research with sources', 'vision', 'generators and app builder', 'model benchmarks'] }; });
+  r('GET', '/api/ai/suggested', async (req) => { const { SUGGESTED } = await import('../ai/assist.js'); const k = SUGGESTED[req.query.get('screen')] ? req.query.get('screen') : 'default'; return SUGGESTED[k][req.query.get('lang') === 'en' ? 'en' : 'he']; });
+  r('POST', '/api/ai/copilot', async (req) => (await import('../ai/assist.js')).copilot(s, { screen: String(req.body.screen ?? 'command').slice(0, 30), question: req.body.question, worldId: req.body.worldId, lang: req.body.lang === 'en' ? 'en' : 'he' }));
   r('GET', `${DW}/integrations`, (req) => s.worlds.integrations({ verify: req.query.get('verify') === '1' }));
   r('GET', `${DW}/:id`, (req, p) => s.worlds.dashboard(p.id));
   r('POST', `${DW}/:id/clarify`, (req, p) => { dwOwner(req); return s.worlds.clarify(p.id, String(req.body.answer ?? ''), req.actor); });

@@ -30,8 +30,19 @@ export class Worlds {
   setFeature(w, key, patch) { const list = w.features ?? []; const f = list.find((x) => x.key === key); if (f) Object.assign(f, patch, { at: now() }); else list.push({ key, ...patch, at: now() }); w.features = list; }
 
   // ---------------- Stage 1-2: understand + architect ----------------
-  create({ text, lang } = {}, actor = 'user') {
-    const spec = understand(text, { lang });
+  /** Like create(), but asks the AI designer when no template fits (or when ai=true) and a model is available. */
+  async createSmart({ text, lang, ai = false } = {}, actor = 'user') {
+    const { designWorld, aiAvailable } = await import('../ai/assist.js');
+    let base = null; try { base = understand(text, { lang }); } catch { /* too short: let the designer try */ }
+    if ((ai || !base || base.status === 'needs-input' || base.type === 'custom') && aiAvailable(this.s)) {
+      const r = await designWorld(this.s, text, { lang });
+      if (r.spec) { const w = this.create({ text, lang, spec: r.spec }, actor); this.audit(w, 'ai.designed', { model: r.spec.aiModel }, actor); return w; }
+    }
+    return this.create({ text, lang }, actor);
+  }
+
+  create({ text, lang, spec: given = null } = {}, actor = 'user') {
+    const spec = given ?? understand(text, { lang });
     const w = this.s.store.insert('worlds', {
       title: spec.title ?? String(text).slice(0, 60), slug: spec.slug ?? 'world', type: spec.type ?? 'custom', request: String(text).slice(0, 2000), owner: actor,
       status: spec.status === 'needs-input' ? 'needs-input' : 'specified', version: 1, spec, architecture: null, features: [], stages: {},

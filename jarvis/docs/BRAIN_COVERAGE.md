@@ -1,11 +1,11 @@
 # JARVIS BRAIN: capability coverage
 
-Generated 2026-11-10 by `npm run brain:report`.
+Generated 2026-11-11 by `npm run brain:report`.
 
-- **Implemented and tested**: 65
+- **Implemented and tested**: 70
 - **Implemented but not fully tested**: 1
 - **Partially implemented**: 4
-- **Planned**: 4
+- **Planned**: 5
 - **Blocked by external dependency**: 6
 - **Unsupported**: 1
 
@@ -65,6 +65,12 @@ Generated 2026-11-10 by `npm run brain:report`.
 | §25 API & events | Versioned API /api/v1/brain and typed event contracts v1 | Implemented and tested | api/routes.js · brain/events.js · tests/brain2 |
 | §26 Security | Prompt-injection, permission, duplicate, tool-isolation tests | Implemented and tested | tests/*, eval suite |
 | §26 Security | Load tests | Implemented and tested | scripts/load-test.mjs (npm run load:test): ~2,000 req/s, p95 ≈ 18 ms in-memory |
+| §Voice | Wake word (browser): tolerant he/en matching, one-time privacy notice, chime, self-voice suppression, command passed as spoken | Implemented and tested | web/js/wake.js, wakeui.js · tests/assistant · e2e (simulated speech) |
+| §Voice | Rename the assistant and its wake word by voice, chat or settings; name stripped from commands | Implemented and tested | settings.rename / settings.wake · tests/assistant · e2e |
+| §Voice | On-device wake word and local speech recognition (no browser, no cloud) | Planned | desktop app + openWakeWord/whisper.cpp (docs/BREAKTHROUGH.he.md) |
+| §AI | Copilot on every screen grounded in server-side screen data | Implemented and tested | server/ai/assist.js · web/js/copilot.js · tests/assistant · e2e |
+| §AI | AI world designer: schema-constrained JSON, validated with corrective retry, marked AI-proposed | Implemented and tested | server/ai/assist.js · tests/assistant |
+| §AI | Provider: prompt caching, server-side refusal fallbacks, structured outputs, refusal category | Implemented and tested | providers/anthropic.js · tests/assistant |
 | §DW Worlds | Idea → spec (he/en, templates, explicit entities, clarification) → architecture → mission with the Builder agent | Implemented and tested | worlds/spec.js, engine.js · tests/worlds |
 | §DW Worlds | Code generation → real build (node --check, packaging, signed artifact) → real tests (node --test) → live HTTP verification | Implemented and tested | worlds/generator.js, runner.js · tests/worlds · e2e |
 | §DW Worlds | Local deployment, health checks, logs, incidents, kill switch, budget, owner-only API, isolation | Implemented and tested | worlds/engine.js, runner.js · tests/worlds · e2e |

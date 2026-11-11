@@ -271,3 +271,17 @@ td.n, th.n { text-align: end; font-variant-numeric: tabular-nums; }
 .pstage.ok { border-color: color-mix(in srgb, var(--green, #22e08a) 60%, transparent); box-shadow: inset 0 0 18px #22e08a14; }
 .pstage.bad { border-color: var(--red, #ff5d6c); } .pstage.warn { border-color: var(--amber, #ffbf3c); }
 .warn { color: var(--amber, #ffbf3c); }
+
+/* Wake word button */
+.wake-btn.live { border-color: var(--cyan, #2ee6ff); color: var(--cyan, #2ee6ff); box-shadow: 0 0 0 0 #2ee6ff66; animation: wake-pulse 2.2s ease-out infinite; }
+.wake-btn.awake { background: var(--cyan, #2ee6ff); color: #001018; animation: none; box-shadow: 0 0 18px #2ee6ff; }
+@keyframes wake-pulse { 0% { box-shadow: 0 0 0 0 #2ee6ff55; } 70% { box-shadow: 0 0 0 10px #2ee6ff00; } 100% { box-shadow: 0 0 0 0 #2ee6ff00; } }
+@media (prefers-reduced-motion: reduce) { .wake-btn.live { animation: none; } }
+
+/* AI copilot */
+.copilot-btn { position: fixed; inset-inline-start: 18px; bottom: 18px; z-index: 60; width: 52px; height: 52px; border-radius: 50%; border: 1px solid var(--cyan, #2ee6ff); background: radial-gradient(circle at 35% 30%, #2ee6ff55, #050a12 70%); color: var(--cyan, #2ee6ff); font-size: 22px; cursor: pointer; box-shadow: 0 0 22px #2ee6ff44; transition: transform .2s, box-shadow .2s; }
+.copilot-btn:hover, .copilot-btn:focus-visible { transform: scale(1.06); box-shadow: 0 0 30px #2ee6ff88; }
+.copilot { position: fixed; inset-inline-start: 18px; bottom: 82px; z-index: 61; width: min(440px, calc(100vw - 36px)); max-height: min(70vh, 640px); overflow: auto; padding: 14px; border-radius: 16px; display: grid; gap: 10px; }
+.copilot.hidden { display: none; }
+.copilot .cp-answer { line-height: 1.6; }
+@media (max-width: 760px) { .copilot-btn { bottom: 76px; } .copilot { bottom: 136px; } }

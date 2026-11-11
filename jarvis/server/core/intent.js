@@ -25,6 +25,14 @@ export function parseClause(raw, convo = {}) {
   }
   // --- code-assisted computation (isolated sandbox) ---
   if ((m = text.match(/^(?:run code|compute with code|calculate with code|חשב בקוד|הרץ קוד)[:\s]+([\s\S]+)$/i))) return [{ agent: 'assistant', tool: 'compute.code', args: { code: m[1].trim() } }];
+  // --- rename the assistant / change the wake word ---
+  if ((m = text.match(/^(?:from now on )?(?:call yourself|your (?:new )?name is|i(?:'ll| will) call you|rename yourself(?: to)?)\s+["'“]?([^"'”.!?]{2,30})["'”]?[.!]?$/i) ?? text.match(/^(?:מעכשיו |מהיום )?(?:קוראים לך|תקרא לעצמך|השם (?:החדש )?שלך (?:הוא|יהיה)|אני אקרא לך|שנה את השם שלך ל-?)\s*["'“]?([^"'”.!?]{2,30})["'”]?[.!]?$/))) {
+    return [{ agent: 'assistant', tool: 'settings.rename', args: { name: m[1].trim() } }];
+  }
+  if ((m = text.match(/^(?:change|set) (?:the |your )?wake word (?:to|as)\s+["'“]?([^"'”.!?]{2,40})["'”]?[.!]?$/i) ?? text.match(/^(?:שנה|תשנה|קבע|תקבע) את מילת ה(?:הפעלה|קוד|השכמה) ל-?\s*["'“]?([^"'”.!?]{2,40})["'”]?[.!]?$/))) {
+    return [{ agent: 'assistant', tool: 'settings.wake', args: { word: m[1].trim() } }];
+  }
+  if (/^(?:who are you|what(?:'s| is) your name|מי אתה|איך קוראים לך|מה שמך)[\s?!.]*$/i.test(text)) return [{ agent: 'assistant', tool: 'chat.smalltalk', args: { text } }];
   // --- feedback on the previous answer (voice or text) ---
   if ((m = text.match(/^(?:jarvis,?\s*)?(?:that(?:'s| was| is)|this (?:is|was)|it(?:'s| was))\s+(wrong|incorrect|not right|not what i asked|too long|too short|great|perfect|exactly right|helpful)[\s.!]*$/i) ?? text.match(/^(?:זה|זו|התשובה)\s+(?:היה |הייתה |היתה )?(לא נכון|לא נכונה|שגוי|שגויה|לא מה שביקשתי|ארוך מדי|ארוכה מדי|קצר מדי|קצרה מדי|מצוין|מצוינת|מעולה|בדיוק מה שרציתי|עזר(?:ה)?)[\s.!]*$/))) {
     const w = m[1].toLowerCase();

@@ -247,7 +247,7 @@ ${(a.memories ?? []).map((m) => `- ${m.content} [${m.provenance}]`).join('\n') |
   // ---------- Digital World Engine (each stage re-reads its stored result to verify it) ----------
   const W2 = (fn, summary) => async (a) => { const r = await fn(a); if (r && r.ok === false) throw new Error(r.blocked ? `BLOCKED: ${r.reason}` : `stage failed: ${summary(r)}`); return { data: { worldId: a.worldId, ...r }, summary: summary(r) }; };
   def('world.create', { risk: RISK.WRITE, desc: 'Digital World Engine: turn an idea into a project (spec → architecture → code → build → tests → verification)', run: async (a, ctx) => {
-    const w = s.worlds.create({ text: a.text }, ctx.actor ?? 'user');
+    const w = await s.worlds.createSmart({ text: a.text, lang: ctx.lang }, ctx.actor ?? 'user');
     const he2 = ctx.lang === 'he';
     if (w.status === 'needs-input') return { data: { worldId: w.id, status: w.status }, summary: `${he2 ? 'כדי לבנות צריך עוד פרט' : 'One detail needed'}: ${w.spec.question}` };
     s.worlds.startPipeline(w.id, ctx.actor ?? 'user');
@@ -287,10 +287,22 @@ ${(a.memories ?? []).map((m) => `- ${m.content} [${m.provenance}]`).join('\n') |
     const rec = s.learning.feedback({ taskId: prev.id, rating: a.rating, note: a.note ?? '', category: a.category ?? null, source: ctx.channel === 'voice' ? 'voice' : 'conversation' });
     return { data: { feedbackId: rec.id, taskId: prev.id, category: rec.category }, summary: a.rating > 0 ? (he2 ? 'תודה, רשמתי שזה עזר.' : 'Thanks, noted that this helped.') : (he2 ? `תודה, רשמתי את המשוב${rec.category ? ` (${rec.category})` : ''}. אלמד מזה רק אם זה יחזור.` : `Thanks, feedback recorded${rec.category ? ` (${rec.category})` : ''}. I only learn from it if it repeats.`) };
   } });
+  def('settings.rename', { risk: RISK.WRITE, desc: 'Give the assistant a new name (also its default wake word)', run: async (a, ctx) => {
+    const before = s.personality.get().name;
+    const p = s.personality.set({ name: a.name, ...(a.wakeWord !== undefined ? { wakeWord: a.wakeWord } : {}) });
+    s.audit.log(ctx.actor ?? 'user', 'settings.rename', { from: before, to: p.name });
+    return { data: { name: p.name, wakeWord: p.wakeWord || p.name }, summary: ctx.lang === 'he' ? `מעכשיו קוראים לי ${p.name}. אפשר להעיר אותי ב"${p.wakeWord || p.name}".` : `From now on my name is ${p.name}. Wake me with "${p.wakeWord || p.name}".` };
+  }, verify: (r) => s.personality.get().name === r.data.name });
+  def('settings.wake', { risk: RISK.WRITE, desc: 'Change the wake word', run: async (a, ctx) => {
+    const p = s.personality.set({ wakeWord: a.word });
+    s.audit.log(ctx.actor ?? 'user', 'settings.wake', { word: p.wakeWord });
+    return { data: { wakeWord: p.wakeWord }, summary: ctx.lang === 'he' ? `מילת ההפעלה עכשיו: "${p.wakeWord}" (וגם השם ${p.name}).` : `The wake word is now "${p.wakeWord}" (and the name ${p.name}).` };
+  }, verify: (r) => s.personality.get().wakeWord === r.data.wakeWord });
   def('chat.smalltalk', { risk: RISK.READ, desc: 'Greetings and thanks (no model needed)', run: async (a, ctx) => {
     const x = String(a.text).toLowerCase(); const he2 = ctx.lang === 'he';
     const reply = /thank|תודה/.test(x) ? (he2 ? 'בשמחה. עוד משהו?' : 'You are welcome. Anything else?')
       : /how are you|מה שלומך|מה נשמע|מה קורה/.test(x) ? (he2 ? 'אני תוכנה, אז אין לי מצב רוח, אבל כל המערכות פועלות. במה אפשר לעזור?' : "I'm software, so I don't have moods, but every system is running. How can I help?")
+      : /who are you|what(?:'s| is) your name|מי אתה|איך קוראים לך|מה שמך/.test(x) ? (he2 ? `אני ${s.personality.get().name}, העוזר האישי שלך.` : `I'm ${s.personality.get().name}, your personal assistant.`)
       : (he2 ? 'שלום! במה אפשר לעזור?' : 'Hello! How can I help?');
     return { data: {}, summary: reply };
   } });

@@ -23,6 +23,7 @@ const PRESETS = [
 const STAGE_HE = { understand: 'הבנה', architect: 'ארכיטקטורה', plan: 'תכנון', build: 'בנייה', integrate: 'אינטגרציה', test: 'בדיקות', deploy: 'פריסה', operate: 'הפעלה', improve: 'שיפור' };
 
 export async function worldsView(v) {
+  if (tab === 'world' && current) document.body.dataset.worldId = current; else delete document.body.dataset.worldId; // copilot context
   const ov = await api(W);
   const TABS = [['overview', 'Digital Worlds', 'עולמות דיגיטליים'], ['create', 'Create New World', 'יצירת עולם חדש'], ['integrations', 'Integration Center', 'מרכז אינטגרציות'], ['security', 'Security & Audit', 'אבטחה ותיעוד']];
   v.innerHTML = `<div class="grid">
@@ -53,11 +54,12 @@ export async function worldsView(v) {
 function createTab(el, open) {
   el.innerHTML = `<div class="grid"><div class="c12 panel glass corner"><h2>${L('Describe what to build', 'תארו מה לבנות')}</h2>
     <form id="wF"><textarea name="text" dir="auto" rows="4" style="width:100%" required placeholder="${L('e.g. Build a booking system for my clinic with services, customers and appointments', 'למשל: תבנה מערכת תורים לקליניקה עם שירותים, לקוחות ותורים')}"></textarea>
-    <div class="row" style="margin-top:8px"><label class="small"><input type="checkbox" name="run" checked> ${L('Run the full pipeline now (architecture → code → build → tests → verification)', 'להריץ עכשיו את כל הצינור (ארכיטקטורה ← קוד ← בנייה ← בדיקות ← אימות)')}</label><button class="btn primary right">◈ ${L('Create', 'צור')}</button></div></form>
+    <div class="row" style="margin-top:8px"><label class="small"><input type="checkbox" name="run" checked> ${L('Run the full pipeline now (architecture → code → build → tests → verification)', 'להריץ עכשיו את כל הצינור (ארכיטקטורה ← קוד ← בנייה ← בדיקות ← אימות)')}</label>
+      <label class="small"><input type="checkbox" name="ai"> ✦ ${L('Design the data model with AI (needs a model; the result is validated and marked "proposed by AI")', 'לתכנן את מבנה הנתונים עם AI (דורש מודל; התוצאה נבדקת ומסומנת "הוצע על ידי AI")')}</label><button class="btn primary right">◈ ${L('Create', 'צור')}</button></div></form>
     <h3 class="small" style="margin-top:14px">${L('Builders', 'בונים')}</h3><div class="row">${PRESETS.map(([en, h, pen, phe], i) => `<button class="btn sm" data-pre="${i}" title="${esc(he() ? phe : pen)}">${esc(L(en, h))}</button>`).join('')}</div>
     <p class="xs muted" style="margin-top:10px">${L('JARVIS never invents requirements: if the request is unclear it asks one question; template-based parts are listed as assumptions you can edit.', 'JARVIS לא ממציא דרישות: אם הבקשה לא ברורה הוא שואל שאלה אחת; חלקים שמבוססים על תבנית מוצגים כהנחות שאפשר לערוך.')}</p></div></div>`;
   $$('[data-pre]', el).forEach((b) => { b.onclick = () => { const p = PRESETS[Number(b.dataset.pre)]; $('#wF').text.value = he() ? p[3] : p[2]; }; });
-  $('#wF').onsubmit = async (e) => { e.preventDefault(); const btn = e.target.querySelector('button.primary'); btn.disabled = true; const w = await act(() => api(W, { method: 'POST', body: { text: e.target.text.value, run: e.target.run.checked, lang: getLang() } })); btn.disabled = false; if (w) open(w.id); };
+  $('#wF').onsubmit = async (e) => { e.preventDefault(); const btn = e.target.querySelector('button.primary'); btn.disabled = true; const w = await act(() => api(W, { method: 'POST', body: { text: e.target.text.value, run: e.target.run.checked, ai: e.target.ai.checked, lang: getLang() } })); btn.disabled = false; if (w) open(w.id); };
 }
 
 async function integrationsTab(el) {

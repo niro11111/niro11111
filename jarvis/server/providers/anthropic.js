@@ -24,7 +24,7 @@ export class AnthropicProvider {
    * @param {{tools?: Array<{name, description, inputSchema, execute}>}} req  page tools: JARVIS tools whose
    *   execute() already enforces the permission policy. A manual agentic loop runs them.
    */
-  async complete({ system, messages, model, effort = 'medium', maxTokens = 16000, webSearch = false, tools }) {
+  async complete({ system, messages, model, effort = 'medium', maxTokens = 16000, webSearch = false, tools, jsonSchema = null }) {
     const apiTools = [
       ...(webSearch ? [{ type: 'web_search_20260209', name: 'web_search', max_uses: 5 }] : []),
       ...(tools ?? []).map((t) => ({ name: t.name, description: t.description, input_schema: t.inputSchema ?? { type: 'object', properties: {} } })),
@@ -33,7 +33,10 @@ export class AnthropicProvider {
     const convo = [...messages];
     let res; let rounds = 0; const usage = { input_tokens: 0, output_tokens: 0 };
     for (;;) {
-      res = await this.send({ model, max_tokens: maxTokens, system, messages: convo, output_config: { effort }, ...(apiTools.length ? { tools: apiTools } : {}) }, model);
+      // Automatic prompt caching: the stable prefix (system prompt, tools, earlier turns) is reused across calls.
+      // Structured outputs: when a JSON schema is given, the response is constrained to it.
+      const output_config = { effort, ...(jsonSchema && !apiTools.length ? { format: { type: 'json_schema', schema: jsonSchema } } : {}) };
+      res = await this.send({ model, max_tokens: maxTokens, system, messages: convo, output_config, cache_control: { type: 'ephemeral' }, ...(apiTools.length ? { tools: apiTools } : {}) }, model);
       usage.input_tokens += res.usage?.input_tokens ?? 0; usage.output_tokens += res.usage?.output_tokens ?? 0;
       if (res.stop_reason === 'pause_turn' && ++rounds <= 8) { convo.push({ role: 'assistant', content: res.content }); continue; }
       if (res.stop_reason !== 'tool_use' || !tools?.length || ++rounds > 6) break;
@@ -53,9 +56,12 @@ export class AnthropicProvider {
     }
     res.usage = usage;
     if (res.stop_reason === 'refusal') {
-      return { text: 'I can\'t help with that request.', model: res.model, refused: true };
+      return { text: 'I can\'t help with that request.', model: res.model, refused: true, refusalCategory: res.stop_details?.category ?? null, usage: res.usage };
     }
     const text = res.content.filter((b) => b.type === 'text').map((b) => b.text).join('');
+    let json;
+    if (jsonSchema) { try { json = JSON.parse(text); } catch { json = undefined; } }
+    if (json !== undefined) return { text, json, model: res.model, usage: res.usage, truncated: res.stop_reason === 'max_tokens' };
     const citations = res.content.flatMap((b) => (b.type === 'text' && b.citations ? b.citations : []))
       .map((c) => ({ url: c.url, title: c.title })).filter((c) => c.url);
     return { text, model: res.model, usage: res.usage, citations, truncated: res.stop_reason === 'max_tokens' };

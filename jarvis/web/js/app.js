@@ -4,6 +4,8 @@ import { t, setLang, getLang } from './i18n.js';
 import { coreHTML, setCoreState, getCoreState } from './core.js';
 import { VIEWS, cleanup } from './views.js';
 import { renderChats } from './chat.js';
+import { initWake } from './wakeui.js';
+import { initCopilot } from './copilot.js';
 
 const views = Object.fromEntries(VIEWS.filter((x) => x[2]).map(([id, , fn]) => [id, fn]));
 let current = location.hash.slice(1) || 'command';
@@ -18,7 +20,7 @@ async function render() {
   $$('#nav a').forEach((a) => a.classList.toggle('active', a.dataset.v === current));
   $('#viewTitle').textContent = t(current);
   $('#viewSub').textContent = t(`sub_${current}`);
-  document.title = `J.A.R.V.I.S · ${t(current)}`;
+  document.title = `${document.documentElement.dataset.assistant || 'J.A.R.V.I.S'} · ${t(current)}`;
   const v = $('#view');
   try { await views[current](v); } catch (e) { if (e.message !== 'unauthorized') v.innerHTML = `<div class="panel glass err">${e.message}</div>`; }
   renderChats();
@@ -97,6 +99,8 @@ async function boot() {
   if (!auth.get() && !window.JARVIS_MOCK && !window.JARVIS_LOCAL) return showLogin();
   document.getElementById('bootMsg')?.remove();
   connectStream(); refreshBadges(); setInterval(refreshBadges, 30000);
+  initWake();
+  initCopilot();
   await render();
 }
 boot();

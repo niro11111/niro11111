@@ -8,6 +8,7 @@ import { lineChart, donut, gauge } from './charts.js';
 import { learnView } from './learnview.js';
 import { neuralView, graphView, databaseView } from './mlview.js';
 import { worldsView } from './worldsview.js';
+import { wake, wakeWordOf, testWake, toggleWake, persona } from './wakeui.js';
 
 let cleanups = [];
 export function cleanup() { cleanups.forEach((f) => f()); cleanups = []; }
@@ -380,7 +381,8 @@ async function settings(v) {
       <label for="hatok">${t('ha_token')}</label><input id="hatok" name="haToken" type="password" autocomplete="off" placeholder="${ls.haToken ? '•••• (saved)' : ''}">
       <span></span><div class="row"><button class="btn primary sm">${t('apply_reload')}</button>${L.permissions ? `<button type="button" id="permBtn" class="btn sm">⛨ ${t('manage_perms')}</button>` : ''}<button type="button" id="wipeBtn" class="btn danger sm">${t('wipe')}</button></div></form></div>` : '';
   v.innerHTML = `<div class="grid">${runtime}<div class="c6 panel glass corner"><h2>${t('personality')}</h2><form id="pf" class="kv">
-    <label>${t('name')}</label><input name="name" value="${esc(p.name)}">
+    <label>${t('name')}</label><input name="name" value="${esc(p.name)}" minlength="2" maxlength="30" required>
+    <label>${he() ? 'מילת השכמה' : 'Wake word'}</label><input name="wakeWord" value="${esc(p.wakeWord ?? '')}" maxlength="40" placeholder="${esc(p.name)}">
     <label>${t('style')}</label><select name="style">${['professional', 'friendly', 'witty', 'concise'].map((x) => `<option ${x === p.style ? 'selected' : ''}>${x}</option>`).join('')}</select>
     <label>${t('verbosity')}</label><select name="verbosity">${['auto', 'short', 'detailed'].map((x) => `<option ${x === p.verbosity ? 'selected' : ''}>${x}</option>`).join('')}</select>
     <label>${t('language')}</label><select name="language">${['auto', 'he', 'en'].map((x) => `<option ${x === p.language ? 'selected' : ''}>${x}</option>`).join('')}</select>
@@ -390,7 +392,15 @@ async function settings(v) {
     <div class="c6 col"><div class="panel glass corner"><h2>${t('location')}</h2><form id="lf" class="row"><input name="name" value="${esc(w.location ?? '')}" placeholder="City"><input name="lat" type="number" step="0.01" placeholder="lat" style="width:90px"><input name="lon" type="number" step="0.01" placeholder="lon" style="width:90px"><button class="btn sm">${t('save')}</button></form></div>
     <div class="panel glass corner"><h2>System</h2><div class="kv small"><span class="muted">AI</span><span>${esc(st.providers.map((x) => x.provider).join(', '))}</span><span class="muted">Home</span><span>${esc(st.home)}</span><span class="muted">Voice</span><span>${esc(st.route.voice.model)}</span><span class="muted">Deep</span><span>${esc(st.route.deep.model)}</span></div>
       <div class="row" style="margin-top:12px"><button id="logout" class="btn danger sm">${t('logout')}</button><button id="clr" class="btn sm">${t('clear_chat')}</button></div></div></div></div>`;
-  $('#pf').onsubmit = async (e) => { e.preventDefault(); const f = Object.fromEntries(new FormData(e.target)); f.humor = !!e.target.humor.checked; await api('/api/settings/personality', { method: 'PUT', body: f }); toast(t('saved')); };
+  $('#pf').onsubmit = async (e) => { e.preventDefault(); const f = Object.fromEntries(new FormData(e.target)); f.humor = !!e.target.humor.checked; try { await api('/api/settings/personality', { method: 'PUT', body: f }); toast(t('saved')); dispatchEvent(new Event('jarvis:persona')); } catch (err) { toast(err.message); } };
+  const wk = document.createElement('div'); wk.className = 'panel glass corner'; wk.style.marginTop = '16px';
+  wk.innerHTML = `<h2>${he() ? 'מילת השכמה' : 'Wake word'} <button id="wkTog" class="right btn sm">👂 ${wake.state.enabled ? (he() ? 'כבה' : 'Turn off') : (he() ? 'הפעל' : 'Turn on')}</button></h2>
+    <p class="small">${he() ? `אמרו "${esc(wakeWordOf())}" ואחריו בקשה, למשל: "${esc(wakeWordOf())}, מה יש לי היום?". אפשר גם רק "${esc(wakeWordOf())}" ולחכות לצליל.` : `Say "${esc(wakeWordOf())}" followed by a request, e.g. "${esc(wakeWordOf())}, what's on today?". Or just "${esc(wakeWordOf())}" and wait for the chime.`}</p>
+    <p class="xs muted">${he() ? 'אפשר לשנות שם גם בדיבור: "מעכשיו קוראים לך פריידי" או "שנה את מילת ההפעלה למחשב".' : 'You can also rename by voice: "your name is Friday" or "change the wake word to Computer".'}</p>
+    <form id="wkT" class="row"><input name="t" class="grow" dir="auto" placeholder="${he() ? 'בדיקה: הקלידו משפט כפי שהמיקרופון היה שומע' : 'Test: type a sentence as the microphone would hear it'}" aria-label="test"><button class="btn sm">${he() ? 'בדוק' : 'Test'}</button></form><div id="wkR" class="small" style="margin-top:6px"></div>`;
+  $('#pf').closest('.panel').after(wk);
+  $('#wkTog').onclick = async () => { await toggleWake(); settings(v); };
+  $('#wkT').onsubmit = (e) => { e.preventDefault(); const m = testWake(e.target.t.value); $('#wkR').innerHTML = m.matched ? `✓ ${he() ? 'יעיר את' : 'Wakes'} ${esc(persona.name)}${m.command ? ` · ${he() ? 'פקודה' : 'command'}: <b dir="auto">${esc(m.command)}</b>` : ` · ${he() ? 'ימתין לפקודה' : 'waits for a command'}`}` : `✕ ${he() ? 'לא יעיר' : 'Would not wake'}`; };
   $('#lf').onsubmit = async (e) => { e.preventDefault(); const f = Object.fromEntries(new FormData(e.target)); try { await api('/api/context/location', { method: 'PUT', body: { name: f.name, lat: Number(f.lat), lon: Number(f.lon) } }); toast(t('saved')); } catch (err) { toast(err.message); } };
   $('#logout').onclick = () => { auth.set(''); location.reload(); };
   if (L) {

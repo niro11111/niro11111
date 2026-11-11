@@ -1,6 +1,6 @@
 // Configurable JARVIS personality. It shapes tone and length only; it never overrides
 // safety, privacy, authorization or factual accuracy (those rules are appended last).
-const DEFAULTS = { name: 'JARVIS', style: 'professional', verbosity: 'auto', humor: false, address: '', voiceRate: 1, voiceName: '', language: 'auto', format: 'auto' };
+const DEFAULTS = { name: 'JARVIS', style: 'professional', verbosity: 'auto', humor: false, address: '', voiceRate: 1, voiceName: '', language: 'auto', format: 'auto', wakeWord: '' };
 const STYLE = {
   professional: 'Calm, precise and courteous, like a highly capable chief of staff.',
   friendly: 'Warm and approachable, conversational but still precise.',
@@ -13,7 +13,8 @@ export class Personality {
   get() { return { ...DEFAULTS, ...this.store.getMeta('personality', {}) }; }
   set(p) {
     const next = { ...this.get() };
-    if (p.name !== undefined) next.name = String(p.name).slice(0, 30) || 'JARVIS';
+    if (p.name !== undefined) { const n = String(p.name).replace(/[<>{}\[\]`]/g, '').trim().slice(0, 30); if (n.length < 2) throw Object.assign(new Error('the name needs at least 2 characters'), { status: 400 }); next.name = n; }
+    if (p.wakeWord !== undefined) { const w = String(p.wakeWord).replace(/[<>{}\[\]`]/g, '').trim().slice(0, 40); if (w && w.length < 2) throw Object.assign(new Error('the wake word needs at least 2 characters'), { status: 400 }); next.wakeWord = w; }
     if (p.style !== undefined) { if (!STYLE[p.style]) throw Object.assign(new Error('unknown style'), { status: 400 }); next.style = p.style; }
     if (p.verbosity !== undefined) { if (!['short', 'detailed', 'auto'].includes(p.verbosity)) throw Object.assign(new Error('verbosity must be short|detailed|auto'), { status: 400 }); next.verbosity = p.verbosity; }
     if (p.humor !== undefined) next.humor = !!p.humor;

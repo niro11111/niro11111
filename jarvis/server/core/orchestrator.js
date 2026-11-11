@@ -73,6 +73,7 @@ export class Core {
   }
 
   async handle(message, { conversationId = 'default', actor = 'user', channel = 'text', householdId, deviceId = null } = {}) {
+    message = this.stripName(message);
     const convo = this.convo(conversationId);
     const started = Date.now();
     // A pending clarification: this message is probably the answer to our question.
@@ -109,6 +110,16 @@ export class Core {
     } catch (e) {
       return this.fail(task, e);
     }
+  }
+
+  /** Removes the assistant's current name / wake word when it opens or closes a request ("Friday, what's my day?"). */
+  stripName(message) {
+    const p = this.personality?.get() ?? {};
+    const names = [p.name, p.wakeWord].filter((x) => x && x.length >= 2).map((x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    if (!names.length) return message;
+    const alt = names.join('|');
+    const out = String(message).replace(new RegExp(`^\\s*(?:hey|hi|ok|היי|הי)?\\s*(?:${alt})\\s*[,:!.]?\\s+`, 'i'), '').replace(new RegExp(`[,\\s]+(?:${alt})[\\s!?.]*$`, 'i'), '');
+    return out.trim() ? out : message;
   }
 
   /** Learned phrases (versioned, read-only targets) apply only where the deterministic parser had no rule. */
