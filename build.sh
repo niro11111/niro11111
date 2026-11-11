@@ -46,5 +46,6 @@ echo "built site/ (version $ver)"
 mkdir -p dist
 cp index.html dist/claude-code-academy.html
 rm -f dist/claude-code-academy-webapp.zip
-(cd site && zip -qr ../dist/claude-code-academy-webapp.zip . -x '404.html')
+# fixed timestamps, sorted entries and no extra attributes: the same content always gives the same zip
+(cd site && find . -exec touch -h -d '2026-01-01T00:00:00Z' {} + && find . -type f ! -name 404.html | LC_ALL=C sort | zip -qX ../dist/claude-code-academy-webapp.zip -@)
 echo "built dist/"
