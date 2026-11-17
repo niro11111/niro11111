@@ -482,6 +482,10 @@ main{overflow-wrap:break-word}
   body.printing-cheat .csSheet{border:0;max-height:none;overflow:visible;padding:0}
   @page{margin:12mm}
 }
+
+/* packages & GitHub */
+.ikTools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
+@media (max-width:700px){.ikTools{grid-template-columns:minmax(0,1fr)}}
 </style>
 
 <div class="app" dir="rtl" lang="he">
@@ -2341,6 +2345,88 @@ fly deploy</pre></div></li>
   <ul class="pgLib" id="mlLib"></ul>
 </section>
 
+<!-- ================= PACKAGES & GITHUB ================= -->
+<section class="mod" id="ecosystem" data-level="חבילות ו-GitHub" data-title="קטלוג החבילות וההרחבות">
+  <div class="eyebrow"></div>
+  <h1>חבילות והרחבות מ-GitHub שמשדרגות את Claude Code</h1>
+  <p class="lead">קטלוג של כ-40 Plugins, Skills, שרתי MCP, כלים, ממשקים, מתודולוגיות ותוספים לעורכים מ-GitHub. כל פקודת התקנה נבדקה מול ה-README של הריפו בנובמבר 2026. בוחרים מה מתאים לכם ומקבלים סקריפט התקנה אחד וקובץ ‎.mcp.json לשיתוף עם הצוות. לפני שמתקינים משהו שלא מ-Anthropic, עוברים על רשימת הבטיחות בסוף הפרק.</p>
+  <div class="row ecBar">
+    <label>חיפוש<input type="text" id="ecQ" placeholder="playwright, skills, עלות…"></label>
+    <label>ערכה מומלצת<select id="ecKit"><option value="">בחרו ערכה…</option></select></label>
+    <button class="btn sm" type="button" id="ecNone">ניקוי הבחירה</button>
+  </div>
+  <div class="tabs" id="ecCats"></div>
+  <div class="tricks" id="ecList"></div>
+  <h2>ההתקנה שלכם <span class="hint" id="ecSelN"></span></h2>
+  <div class="tabs" data-tabs="eco"><button class="on" type="button">סקריפט התקנה</button><button type="button">‎.mcp.json לצוות</button></div>
+  <div class="pane on" data-pane="eco"><div class="code" data-lang="bash" data-file="install-extensions.sh" id="ecScript"><pre></pre></div></div>
+  <div class="pane" data-pane="eco"><div class="code" data-lang="json" data-file=".mcp.json" id="ecMcp"><pre></pre></div><p class="hint">‏.mcp.json בשורש הריפו משתף את השרתים עם כל הצוות. ‏<code>${VAR}</code> נלקח ממשתני הסביבה, כך שאין סודות בקובץ. כל אחד מאשר את השרתים בפעם הראשונה.</p></div>
+  <div class="row" style="margin-top:8px"><button class="btn" type="button" id="ecDl">הורדת הסקריפט</button><button class="btn" type="button" id="ecDlMcp">הורדת ‎.mcp.json</button></div>
+  <h2>לפני שמתקינים הרחבה שלא מ-Anthropic</h2>
+  <ol>
+    <li><b>קוראים את הקוד של ה-Hooks</b>: Plugin יכול להוסיף Hooks שרצים אוטומטית על המחשב שלכם, עם ההרשאות שלכם.</li>
+    <li><b>בודקים מי מתחזק</b>: כמה כוכבים, מתי ה-commit האחרון, והאם יש issues פתוחים על אבטחה.</li>
+    <li><b>שרת MCP מקבל רק מה שצריך</b>: טוקן לקריאה בלבד, משתמש DB ייעודי, תיקייה מוגבלת ב-filesystem.</li>
+    <li><b>תוכן מבחוץ הוא לא הוראות</b>: דף אינטרנט, Issue או מסמך שהשרת מביא יכולים להכיל prompt injection. לא נותנים לאותו סשן גם לקרוא תוכן זר וגם לבצע פעולות רגישות בלי אישור.</li>
+    <li><b>נועלים גרסה</b> בפרויקטים חשובים במקום <code>@latest</code>, ומעדכנים בכוונה.</li>
+    <li><b>בודקים מה נוסף</b>: אחרי התקנה מריצים <code>/plugin</code>, <code>/mcp</code>, <code>/hooks</code> ו-<code>/agents</code> ורואים בדיוק מה נכנס.</li>
+  </ol>
+  <div class="quiz" data-q="ecosystem"></div>
+</section>
+
+<section class="mod" id="installkit" data-level="חבילות ו-GitHub" data-title="ערכת התקנה מלאה ובדיקת סביבה">
+  <div class="eyebrow"></div>
+  <h1>ערכת התקנה מלאה: Claude Code וכל הכלים שמסביב</h1>
+  <p class="lead">בוחרים מערכת הפעלה ואת הכלים שאתם צריכים, ומקבלים סקריפט התקנה אחד שמכין את המחשב לעבודה מקצועית עם Claude Code. בנוסף יש סקריפט בדיקה שמזהה מה חסר ומסביר איך לתקן, הוראות עדכון והסרה, ומה כל כלי נותן.</p>
+  <div class="grid2"><div class="form" id="ikForm">
+    <label>מערכת הפעלה<select id="ikOs"><option value="mac">macOS</option><option value="linux">Linux (Ubuntu / Debian)</option><option value="wsl">Windows עם WSL</option><option value="win">Windows (PowerShell)</option></select></label>
+    <b>כלים</b>
+    <div class="ikTools" id="ikTools"></div>
+    <label class="tick"><input type="checkbox" id="ikGit" checked> להגדיר שם ואימייל ל-git</label>
+    <label id="ikNameL">שם ל-git<input type="text" id="ikName" value="Your Name"></label>
+  </div><div>
+    <div class="tabs" data-tabs="ik"><button class="on" type="button">סקריפט התקנה</button><button type="button">סקריפט בדיקה</button><button type="button">צעדים ראשונים</button></div>
+    <div class="pane on" data-pane="ik"><div class="code" data-lang="bash" id="ikScript"><pre></pre></div></div>
+    <div class="pane" data-pane="ik"><div class="code" data-lang="bash" id="ikDoctor"><pre></pre></div></div>
+    <div class="pane" data-pane="ik"><div class="code" data-lang="bash" data-file="אחרי ההתקנה" id="ikFirst"><pre></pre></div></div>
+    <div class="row"><button class="btn" type="button" id="ikDl">הורדת סקריפט ההתקנה</button><button class="btn" type="button" id="ikDlDoc">הורדת סקריפט הבדיקה</button></div>
+    <p class="hint">לפני שמריצים סקריפט מהאינטרנט, קוראים אותו. הסקריפטים כאן קצרים וכל שורה מוסברת בהערה.</p>
+  </div></div>
+  <h2>מה כל כלי נותן</h2>
+  <div class="tricks" id="ikWhy"></div>
+  <h2>עדכון, הסרה ותקלות התקנה</h2>
+  <div class="tricks" id="ikOps"></div>
+  <div class="quiz" data-q="installkit"></div>
+</section>
+
+<section class="mod" id="ghrepos" data-level="חבילות ו-GitHub" data-title="ריפו מפורסמים ב-GitHub ללמידה">
+  <div class="eyebrow"></div>
+  <h1>ריפו מפורסמים ב-GitHub: לומדים מהקוד של הטובים</h1>
+  <p class="lead">הריפו הרשמיים של Anthropic ושל MCP, והפרויקטים הפופולריים בקהילה. לכל אחד: מה הוא, מה כדאי ללמוד ממנו, איך מתקינים אם צריך, ופרומפט מוכן לחקור אותו עם Claude Code. שיבוט ריפו גדול ובקשה מ-Claude שיסביר אותו היא אחת הדרכים המהירות ללמוד.</p>
+  <div class="row"><label>חיפוש<input type="text" id="grQ" class="ltr" placeholder="mcp, sdk, skills…"></label><span class="hint" id="grCount"></span></div>
+  <div class="tabs" id="grCats"></div>
+  <div class="tricks" id="grList"></div>
+  <h2>איך לומדים ריפו גדול עם Claude Code</h2>
+  <div class="code" data-lang="text" data-file="prompt"><pre>Give me a guided tour of this repository:
+1. What it does and who it's for, in 3 sentences.
+2. The folder map: what lives where, and the 5 files I should read first, in order.
+3. How data flows through one real use case, with path:line references.
+4. How to build, test and run it locally (verify each command actually works).
+5. Three small, safe changes I could make to learn the code, with the files involved.
+Don't change anything.</pre></div>
+  <div class="quiz" data-q="ghrepos"></div>
+</section>
+
+<section class="mod" id="snippets" data-level="חבילות ו-GitHub" data-title="ספריית קודים מוכנים">
+  <div class="eyebrow"></div>
+  <h1>ספריית קודים מוכנים: הגדרות, Hooks, ‏CI ותבניות</h1>
+  <p class="lead">הקבצים שכל צוות שעובד עם Claude Code צריך, מוכנים להעתקה: הרשאות בטוחות, ‏Hooks שחוסמים טעויות, ‏MCP לצוות, ‏CLAUDE.md, פקודות, סוכנים, ‏Skills, ‏GitHub Actions ושורת סטטוס. לכל קובץ: מה הוא עושה, איפה שמים אותו, והורדה בלחיצה.</p>
+  <div class="row"><label>חיפוש<input type="text" id="snQ" placeholder="hook, .env, CI…"></label><span class="hint" id="snCount"></span></div>
+  <div class="tabs" id="snCats"></div>
+  <div id="snList"></div>
+  <div class="quiz" data-q="snippets"></div>
+</section>
+
 <section class="mod" id="cmdpack" data-level="ארגז הכלים של המומחה" data-title="חבילת פקודות, סוכנים ו-Skills">
   <div class="eyebrow"></div>
   <h1>חבילת המומחה: 25 פקודות, 8 סוכנים ו-6 Skills מוכנים</h1>
@@ -2436,34 +2522,6 @@ fly deploy</pre></div></li>
     </div>
   </div>
   <div class="quiz" data-q="promptgen"></div>
-</section>
-
-<section class="mod" id="ecosystem" data-level="ארגז הכלים של המומחה" data-title="חבילות והרחבות מ-GitHub">
-  <div class="eyebrow"></div>
-  <h1>חבילות והרחבות מ-GitHub שמשדרגות את Claude Code</h1>
-  <p class="lead">קטלוג של כ-40 Plugins, Skills, שרתי MCP, כלים, ממשקים, מתודולוגיות ותוספים לעורכים מ-GitHub. כל פקודת התקנה נבדקה מול ה-README של הריפו בנובמבר 2026. בוחרים מה מתאים לכם ומקבלים סקריפט התקנה אחד וקובץ ‎.mcp.json לשיתוף עם הצוות. לפני שמתקינים משהו שלא מ-Anthropic, עוברים על רשימת הבטיחות בסוף הפרק.</p>
-  <div class="row ecBar">
-    <label>חיפוש<input type="text" id="ecQ" placeholder="playwright, skills, עלות…"></label>
-    <label>ערכה מומלצת<select id="ecKit"><option value="">בחרו ערכה…</option></select></label>
-    <button class="btn sm" type="button" id="ecNone">ניקוי הבחירה</button>
-  </div>
-  <div class="tabs" id="ecCats"></div>
-  <div class="tricks" id="ecList"></div>
-  <h2>ההתקנה שלכם <span class="hint" id="ecSelN"></span></h2>
-  <div class="tabs" data-tabs="eco"><button class="on" type="button">סקריפט התקנה</button><button type="button">‎.mcp.json לצוות</button></div>
-  <div class="pane on" data-pane="eco"><div class="code" data-lang="bash" data-file="install-extensions.sh" id="ecScript"><pre></pre></div></div>
-  <div class="pane" data-pane="eco"><div class="code" data-lang="json" data-file=".mcp.json" id="ecMcp"><pre></pre></div><p class="hint">‏.mcp.json בשורש הריפו משתף את השרתים עם כל הצוות. ‏<code>${VAR}</code> נלקח ממשתני הסביבה, כך שאין סודות בקובץ. כל אחד מאשר את השרתים בפעם הראשונה.</p></div>
-  <div class="row" style="margin-top:8px"><button class="btn" type="button" id="ecDl">הורדת הסקריפט</button><button class="btn" type="button" id="ecDlMcp">הורדת ‎.mcp.json</button></div>
-  <h2>לפני שמתקינים הרחבה שלא מ-Anthropic</h2>
-  <ol>
-    <li><b>קוראים את הקוד של ה-Hooks</b>: Plugin יכול להוסיף Hooks שרצים אוטומטית על המחשב שלכם, עם ההרשאות שלכם.</li>
-    <li><b>בודקים מי מתחזק</b>: כמה כוכבים, מתי ה-commit האחרון, והאם יש issues פתוחים על אבטחה.</li>
-    <li><b>שרת MCP מקבל רק מה שצריך</b>: טוקן לקריאה בלבד, משתמש DB ייעודי, תיקייה מוגבלת ב-filesystem.</li>
-    <li><b>תוכן מבחוץ הוא לא הוראות</b>: דף אינטרנט, Issue או מסמך שהשרת מביא יכולים להכיל prompt injection. לא נותנים לאותו סשן גם לקרוא תוכן זר וגם לבצע פעולות רגישות בלי אישור.</li>
-    <li><b>נועלים גרסה</b> בפרויקטים חשובים במקום <code>@latest</code>, ומעדכנים בכוונה.</li>
-    <li><b>בודקים מה נוסף</b>: אחרי התקנה מריצים <code>/plugin</code>, <code>/mcp</code>, <code>/hooks</code> ו-<code>/agents</code> ורואים בדיוק מה נכנס.</li>
-  </ol>
-  <div class="quiz" data-q="ecosystem"></div>
 </section>
 
 <section class="mod" id="workspace" data-level="ארגז הכלים של המומחה" data-title="סביבת עבודה מושלמת: מראה, קיצורים ונוחות">
@@ -2965,7 +3023,7 @@ const store = {
   get(k, d){ try{ const v = localStorage.getItem("cca-"+k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
   set(k, v){ try{ localStorage.setItem("cca-"+k, JSON.stringify(v)); }catch(e){} if(typeof onStoreChange === "function") onStoreChange(k); }
 };
-const LEVEL_COLOR = {"פתיחה":"var(--lv5)","מתחילים":"var(--lv1)","בינוני":"var(--lv2)","מתקדמים":"var(--lv3)","מומחים":"var(--lv4)","מאסטר":"var(--lv7)","המדריך המלא":"var(--lv1)","סודות מתקדמים":"var(--lv9)","אינטגרציות ופרויקטים":"var(--lv10)","Make.com":"var(--lv4)","ארגז הכלים של המומחה":"var(--lv11)","מצגות":"var(--lv8)","סדנת תרגול":"var(--lv5)","מבחן גמר":"var(--lv6)"};
+const LEVEL_COLOR = {"פתיחה":"var(--lv5)","מתחילים":"var(--lv1)","בינוני":"var(--lv2)","מתקדמים":"var(--lv3)","מומחים":"var(--lv4)","מאסטר":"var(--lv7)","המדריך המלא":"var(--lv1)","סודות מתקדמים":"var(--lv9)","אינטגרציות ופרויקטים":"var(--lv10)","Make.com":"var(--lv4)","חבילות ו-GitHub":"var(--lv2)","ארגז הכלים של המומחה":"var(--lv11)","מצגות":"var(--lv8)","סדנת תרגול":"var(--lv5)","מבחן גמר":"var(--lv6)"};
 const mods = $$(".mod");
 const ids = mods.map(m => m.id);
 let state = store.get("state", {done:{}, xp:0, awarded:{}, days:[]});
@@ -3341,6 +3399,21 @@ const Q = {
     ["איך משלימים נתונים אחרי שתיקנתם באג?", ["מריצים ידנית מחדש את כל המקורות","‏Replay של ההרצות שנכשלו בגרסה החדשה","מוחקים את התרחיש","אי אפשר"], 1, "מ-Scenario history, או מה-API עד 100 בבת אחת."],
     ["מה רואים ב-Live Stream של Make DevTool?", ["רק שמות מודולים","את הבקשה והתשובה המלאות של כל מודול","את הקרדיטים בלבד","כלום"], 1, "‏URL, ‏headers ו-body. מושלם לשגיאות API."],
     ["מה אומר 429 עם IM310 מה-API?", ["מפתח שגוי","הארגון הגיע למכסה ותרחישים לא יופעלו","שגיאת תחביר","השרת למטה"], 1, "צריך להוסיף קרדיטים או לחכות לחודש הבא."]
+  ],
+  installkit: [
+    ["מה הדרך המומלצת להתקין Claude Code ב-macOS או ב-Linux?", ["npm install -g","‏curl -fsSL https://claude.ai/install.sh | bash","להוריד ZIP","pip install"], 1, "ההתקנה המקורית מתעדכנת לבד ולא צריכה Node.js."],
+    ["מה עושה claude doctor?", ["מוחק את ההתקנה","מציג אבחון של ההתקנה וההגדרות","מעדכן את Node","פותח סשן חדש"], 1, "כלי האבחון הראשון כשמשהו לא עובד."],
+    ["למה לא להריץ סקריפט התקנה בלי לקרוא אותו?", ["זה איטי","כי הוא רץ עם ההרשאות שלכם ויכול לעשות הכול","אין סיבה","בגלל הצבעים"], 1, "‏curl | bash מריץ קוד מהרשת. קוראים קודם."]
+  ],
+  ghrepos: [
+    ["איפה רואים מה חדש בכל גרסה של Claude Code?", ["בטוויטר","ב-CHANGELOG בריפו anthropics/claude-code","ב-CLAUDE.md","אין מקום כזה"], 1, "שווה לעבור עליו מדי פעם."],
+    ["מה שם חבילת השרת של MCP ל-TypeScript בגרסה 2?", ["@modelcontextprotocol/server","mcp-ts","@anthropic-ai/mcp","typescript-mcp"], 0, "‏@modelcontextprotocol/sdk היא חבילת גרסה 1."],
+    ["מה הדרך המהירה להכיר ריפו גדול?", ["לקרוא את כל הקבצים","לשבט ולבקש מ-Claude Code סיור מודרך בלי לשנות כלום","למחוק קבצים","להעתיק ל-Word"], 1, "מפה, קבצים לקריאה, וזרימה אמיתית עם path:line."]
+  ],
+  snippets: [
+    ["איזה קוד יציאה של Hook חוסם את הפעולה?", ["0","1","2","127"], 2, "‏stderr מגיע ל-Claude כהסבר."],
+    ["איך משתפים שרתי MCP בלי לחשוף טוקנים?", [".mcp.json עם ${VAR}","מדביקים את הטוקן בקובץ","שולחים במייל","אי אפשר"], 0, "כל מפתח מגדיר את המשתנה בסביבה שלו."],
+    ["מה עוצר עדכונים אוטומטיים במכונה שצריכה גרסה קבועה?", ["למחוק את claude","‏DISABLE_AUTOUPDATER=1 ב-env של settings.json","לכבות את האינטרנט","‏/clear"], 1, "וב-autoUpdatesChannel בוחרים ערוץ."]
   ],
   promptpro: [
     ["מתי משתמשים בפרה-מורטם?", ["אחרי שהכול נשבר","לפני שינוי גדול, כדי לצפות כשלים מראש","אף פעם","רק בבדיקות"], 1, "מדמיינים כישלון ומונעים אותו מראש."],
@@ -5020,7 +5093,7 @@ document.addEventListener("change", e => {
 }, true);
 
 // ================= dashboard =================
-const LEVEL_ORDER = ["פתיחה","מתחילים","בינוני","מתקדמים","מומחים","מאסטר","סודות מתקדמים","אינטגרציות ופרויקטים","Make.com","ארגז הכלים של המומחה","מצגות","סדנת תרגול","מבחן גמר"];
+const LEVEL_ORDER = ["פתיחה","מתחילים","בינוני","מתקדמים","מומחים","מאסטר","סודות מתקדמים","אינטגרציות ופרויקטים","Make.com","חבילות ו-GitHub","ארגז הכלים של המומחה","מצגות","סדנת תרגול","מבחן גמר"];
 function nextRecommended(){
   const t = TRACKS[store.get("track", null)];
   const order = t ? t.m.concat(ids) : ids;
@@ -7565,6 +7638,173 @@ BADGES.push(["makepro","🧩","מומחי Make","השלמתם את כל פרקי
 })();
 
 Object.keys(TRACKS).forEach(k => { if(!TRACKS[k].m.includes("cheatsheet")) TRACKS[k].m.push("cheatsheet"); });
+// data for the packages & GitHub section (verified Nov 2026: code.claude.com/docs/en/setup, the repos' READMEs)
+window.__REPOS = [
+  ["anthropics/claude-code","Anthropic · Claude Code","156k","הריפו הרשמי של Claude Code: ‏CHANGELOG לכל גרסה, דיווח באגים, ‏Plugins לדוגמה והגדרת devcontainer.","לקרוא את ה-CHANGELOG כדי להכיר יכולות חדשות, ולהשתמש ב-.devcontainer כבסיס לסביבה מבודדת.",""],
+  ["anthropics/claude-code-action","Anthropic · Claude Code","10k","‏GitHub Action שמריץ את Claude Code ב-Issues וב-PRs (@claude) ובאוטומציות.","את docs/usage.md: הטריגרים, ה-inputs (‏prompt, ‏claude_args) וה-outputs.","# in Claude Code:\n/install-github-app"],
+  ["anthropics/claude-plugins-official","Anthropic · Claude Code","46k","הספרייה הרשמית של Plugins ל-Claude Code.","איך בנוי Plugin: פקודות, ‏Skills, ‏Subagents ו-Hooks בתיקייה אחת.","# in Claude Code:\n/plugin"],
+  ["anthropics/skills","Anthropic · Claude Code","187k","‏Skills רשמיים: מסמכים (docx, ‏pdf, ‏pptx, ‏xlsx) ודוגמאות.","מבנה של SKILL.md טוב: תיאור קצר, הוראות, וסקריפטים שה-Skill מריץ.","# in Claude Code:\n/plugin marketplace add anthropics/skills"],
+  ["anthropics/claude-agent-sdk-python","Anthropic · SDK","8k","ה-Agent SDK ל-Python: אותה לולאת סוכן של Claude Code כספרייה.","את הדוגמאות: כלים, הרשאות, Hooks ו-Subagents מקוד.","pip install claude-agent-sdk"],
+  ["anthropics/claude-agent-sdk-typescript","Anthropic · SDK","2k","ה-Agent SDK ל-TypeScript.","זרם ההודעות האסינכרוני והטיפוסים של אירועי הסוכן.","npm install @anthropic-ai/claude-agent-sdk"],
+  ["anthropics/anthropic-sdk-python","Anthropic · SDK","4k","ה-SDK הרשמי של Claude API ל-Python.","‏streaming, כלים, פלט מובנה וטיפול בשגיאות. יש בו גם .devcontainer.","pip install anthropic"],
+  ["anthropics/anthropic-sdk-typescript","Anthropic · SDK","2k","ה-SDK הרשמי של Claude API ל-TypeScript.","‏MessageStream, ‏finalMessage וטיפוסי הבקשות.","npm install @anthropic-ai/sdk"],
+  ["anthropics/claude-cookbooks","Anthropic · למידה","54k","מחברות ומתכונים: tool use, ‏RAG, סוכנים, פלט מובנה ועוד.","לבחור מתכון שקרוב למה שאתם בונים, ולבקש מ-Claude Code להתאים אותו לפרויקט.",""],
+  ["anthropics/claude-quickstarts","Anthropic · למידה","21k","פרויקטים מוכנים להתחלה: סוכן תמיכה, אנליסט פיננסי, computer use ועוד.","מבנה של אפליקציה שלמה סביב Claude, מה-backend ועד ה-UI.",""],
+  ["anthropics/prompt-eng-interactive-tutorial","Anthropic · למידה","40k","מדריך אינטראקטיבי להנדסת פרומפטים ב-9 פרקים ונספח.","העקרונות עדיין נכונים, אבל הדוגמאות משתמשות במודלים ישנים. לא להעתיק שמות מודלים.",""],
+  ["anthropics/courses","Anthropic · למידה","23k","הקורסים הרשמיים של Anthropic: יסודות ה-API, פרומפטים, הערכות ו-tool use. שימו לב: הריפו בארכיון (קריאה בלבד) מספטמבר 2026.","מצוין ללמידה. בקוד חדש בודקים מול התיעוד העדכני.",""],
+  ["modelcontextprotocol/modelcontextprotocol","MCP","10k","המפרט והתיעוד של Model Context Protocol.","איך עובדים tools, ‏resources ו-prompts, ומה ההבדל בין stdio ל-Streamable HTTP.",""],
+  ["modelcontextprotocol/servers","MCP","92k","שרתי הייחוס: Fetch, ‏Filesystem, ‏Git, ‏Memory, ‏Time ועוד.","שרת קטן וקריא (למשל Time) כבסיס לשרת MCP משלכם.","claude mcp add fetch -- uvx mcp-server-fetch"],
+  ["modelcontextprotocol/typescript-sdk","MCP","14k","ה-SDK הרשמי ל-TypeScript. הענף הראשי הוא גרסה 2.","איך מגדירים tool עם סכמה, ואיך מריצים שרת ב-Streamable HTTP.","npm install @modelcontextprotocol/server   # v2; the v1 package is @modelcontextprotocol/sdk"],
+  ["modelcontextprotocol/python-sdk","MCP","25k","ה-SDK הרשמי ל-Python (דורש Python 3.11 ומעלה).","‏FastMCP: שרת שלם בכמה שורות עם decorators.","uv add \"mcp[cli]\""],
+  ["modelcontextprotocol/inspector","MCP","11k","כלי לבדיקת שרת MCP: רואים את הכלים ומריצים אותם ידנית.","לדבג שרת לפני שמחברים אותו ל-Claude Code.","npx @modelcontextprotocol/inspector"],
+  ["microsoft/playwright-mcp","קהילה ושותפים","39k","‏Claude שולט בדפדפן אמיתי דרך עץ הנגישות.","איך כלים מוגדרים כך שמודל משתמש בהם טוב.","claude mcp add playwright npx @playwright/mcp@latest"],
+  ["github/github-mcp-server","קהילה ושותפים","34k","שרת ה-MCP הרשמי של GitHub.","איך מחלקים עשרות כלים ל-toolsets, ולמה להגביל הרשאות של טוקן.",""],
+  ["github/spec-kit","קהילה ושותפים","147k","פיתוח מונחה מפרט עם כמה סוכנים, כולל Claude Code.","תבניות של מפרט, תוכנית ומשימות שאפשר לאמץ גם בלי הכלי.","uv tool install specify-cli"],
+  ["hesreallyhim/awesome-claude-code","קהילה ושותפים","57k","רשימה מתוחזקת של משאבים לקהילת Claude Code.","מקור לרעיונות. כל כלי בודקים לפני שמתקינים.",""],
+  ["obra/superpowers","קהילה ושותפים","312k","ספריית Skills לעבודה מובנית: תכנון, ‏TDD, דיבאג וריוויו.","איך Skills משנים את סדר העבודה של הסוכן.","# in Claude Code:\n/plugin install superpowers@claude-plugins-official"],
+  ["ryoppippi/ccusage","קהילה ושותפים","19k","דוחות שימוש ועלות מהלוגים המקומיים של Claude Code.","איך קוראים את קבצי ה-JSONL של הסשנים.","npx ccusage@latest"]
+];
+
+window.__SNIPPETS = [
+  {c:"הגדרות", t:"הרשאות בסיס בטוחות", f:".claude/settings.json", l:"json", d:"‏Claude מריץ בדיקות ולינט בלי לשאול, ואסור לו לקרוא סודות או לעשות force push. שומרים ב-git, וכל הצוות מקבל אותן.",
+   code: JSON.stringify({permissions:{allow:["Bash(npm test)","Bash(npm test *)","Bash(npm run lint)","Bash(npm run lint *)","Bash(git status)","Bash(git diff *)","Bash(git log *)"], deny:["Read(./.env)","Read(./.env.*)","Read(./secrets/**)","Bash(git push --force *)","Bash(rm -rf *)"]}}, null, 2)},
+  {c:"הגדרות", t:"נוחות: שפה, סגנון והתראה", f:"~/.claude/settings.json", l:"json", d:"הגדרות אישיות לכל הפרויקטים: תשובות בעברית, סגנון שמסביר החלטות, וצליל כש-Claude מחכה לכם.",
+   code: JSON.stringify({language:"hebrew", outputStyle:"Explanatory", preferredNotifChannel:"terminal_bell"}, null, 2)},
+  {c:"הגדרות", t:"עצירת עדכונים אוטומטיים (שרתים ו-CI)", f:".claude/settings.json", l:"json", d:"במכונה שצריכה גרסה קבועה. ‏DISABLE_AUTOUPDATER עוצר את העדכון ברקע, ו-autoUpdatesChannel בוחר ערוץ (stable או latest).",
+   code: JSON.stringify({env:{DISABLE_AUTOUPDATER:"1"}, autoUpdatesChannel:"stable"}, null, 2)},
+  {c:"Hooks", t:"פורמט אוטומטי אחרי כל עריכה", f:".claude/settings.json", l:"json", d:"אחרי כל Edit או Write, ‏Prettier מסדר את הקובץ שנערך. ‏Claude לא צריך לזכור, והקוד תמיד בפורמט.",
+   code: JSON.stringify({hooks:{PostToolUse:[{matcher:"Edit|Write", hooks:[{type:"command", command:"jq -r '.tool_input.file_path' | xargs npx prettier --write"}]}]}}, null, 2)},
+  {c:"Hooks", t:"חסימת פקודות מסוכנות", f:".claude/hooks/guard.sh", l:"bash", d:"‏PreToolUse על Bash: קוד יציאה 2 חוסם את הפקודה, ו-stderr מגיע ל-Claude כהסבר. מוסיפים ב-settings.json עם matcher \"Bash\".",
+   code:"#!/usr/bin/env bash\n# Blocks dangerous shell commands before they run (PreToolUse, matcher \"Bash\")\ncmd=$(jq -r '.tool_input.command // \"\"')\ncase \"$cmd\" in\n  *\"rm -rf /\"*|*\"rm -rf ~\"*|*\"rm -rf .\"*|*\"git push --force\"*|*\"git push -f\"*|*\"DROP DATABASE\"*|*\"mkfs\"*)\n    echo \"Blocked by guard.sh: '$cmd' is too dangerous to run automatically. Ask the user to run it themselves.\" >&2\n    exit 2 ;;\nesac\nexit 0\n"},
+  {c:"Hooks", t:"הגנה על .env מעריכה", f:".claude/hooks/protect-secrets.sh", l:"bash", d:"‏PreToolUse עם matcher \"Edit|Write\": חוסם כל שינוי בקבצי סודות.",
+   code:"#!/usr/bin/env bash\n# Refuses edits to secret files (PreToolUse, matcher \"Edit|Write\")\nf=$(jq -r '.tool_input.file_path // \"\"')\ncase \"$(basename \"$f\")\" in\n  .env|.env.*|*.pem|*.key|id_rsa*|credentials*)\n    echo \"Blocked: $f holds secrets. Edit it by hand.\" >&2\n    exit 2 ;;\nesac\nexit 0\n"},
+  {c:"Hooks", t:"לא לסיים עם בדיקות אדומות", f:".claude/hooks/require-green.sh", l:"bash", d:"‏Stop hook: אם הבדיקות נכשלות, ‏Claude ממשיך לעבוד. ‏stop_hook_active מונע לולאה אינסופית.",
+   code:"#!/usr/bin/env bash\ninput=$(cat)\n[ \"$(echo \"$input\" | jq -r '.stop_hook_active')\" = \"true\" ] && exit 0\nif ! out=$(npm test 2>&1); then\n  echo \"Tests are failing. Fix them before you finish:\" >&2\n  echo \"$out\" | tail -n 30 >&2\n  exit 2\nfi\nexit 0\n"},
+  {c:"Hooks", t:"יומן של כל פקודה", f:".claude/settings.json", l:"json", d:"‏PostToolUse על Bash מוסיף כל פקודה שרצה לקובץ, עם שעה. שימושי לביקורת ולהבנה של מה Claude עשה.",
+   code: JSON.stringify({hooks:{PostToolUse:[{matcher:"Bash", hooks:[{type:"command", command:"jq -r '\"\\(now | todate) \\(.tool_input.command)\"' >> \"$CLAUDE_PROJECT_DIR\"/.claude/bash-log.txt"}]}]}}, null, 2)},
+  {c:"Hooks", t:"צליל כש-Claude מחכה (macOS)", f:"~/.claude/settings.json", l:"json", d:"‏Notification hook שמשמיע צליל. ב-Linux מחליפים ב-paplay, וב-Windows בפקודת PowerShell.",
+   code: JSON.stringify({hooks:{Notification:[{hooks:[{type:"command", command:"afplay /System/Library/Sounds/Glass.aiff"}]}]}}, null, 2)},
+  {c:"MCP", t:".mcp.json לצוות", f:".mcp.json", l:"json", d:"שרתי MCP משותפים בשורש הריפו. ‏${GITHUB_PAT} נלקח ממשתני הסביבה של כל מפתח, כך שאין סודות ב-git.",
+   code: JSON.stringify({mcpServers:{playwright:{command:"npx", args:["@playwright/mcp@latest"]}, github:{type:"http", url:"https://api.githubcopilot.com/mcp/", headers:{Authorization:"Bearer ${GITHUB_PAT}"}}, sentry:{type:"http", url:"https://mcp.sentry.dev/mcp"}}}, null, 2)},
+  {c:"CLAUDE.md", t:"‏CLAUDE.md לפרויקט Node", f:"CLAUDE.md", l:"markdown", d:"קצר ומדויק: פקודות שעובדות, מפת תיקיות וכללים. כל שורה כאן נטענת בכל סשן, אז רק מה שבאמת חשוב.",
+   code:"# Project name\n\nOne sentence: what this app does and for whom.\n\n## Commands\n- Install: `npm ci`\n- Dev server: `npm run dev`\n- Tests: `npm test` (single file: `npm test -- path/to/file.test.ts`)\n- Lint and types: `npm run lint && npx tsc --noEmit`\n\n## Map\n- `src/server/` API routes, validation with zod\n- `src/web/` UI components\n- `tests/` unit and integration tests\n\n## Rules\n- Write a failing test before fixing a bug\n- Never edit tests to make them pass\n- No new dependencies without asking\n- Never read or print .env\n\n## Compact instructions\nWhen compacting, keep: decisions, changed files, failing tests and the current step.\n"},
+  {c:"CLAUDE.md", t:"‏CLAUDE.md לפרויקט Python", f:"CLAUDE.md", l:"markdown", d:"אותו עיקרון לפרויקט Python עם uv, ‏pytest ו-ruff.",
+   code:"# Project name\n\nOne sentence: what this service does.\n\n## Commands\n- Install: `uv sync`\n- Run: `uv run python -m app`\n- Tests: `uv run pytest` (one test: `uv run pytest tests/test_x.py::test_y`)\n- Lint and format: `uv run ruff check . && uv run ruff format .`\n\n## Map\n- `app/` application code\n- `tests/` pytest tests\n\n## Rules\n- Type hints on all public functions\n- A failing test first, then the fix\n- Never commit secrets; config comes from environment variables\n"},
+  {c:"פקודות וסוכנים", t:"פקודה: ריוויו לשינויים", f:".claude/commands/review.md", l:"markdown", d:"‏/review מריץ ריוויו ממוקד על השינויים הנוכחיים, עם חומרה ו-path:line.",
+   code:"---\ndescription: Review the current changes for bugs, security and tests\nallowed-tools: Bash(git diff *), Bash(git status), Read, Grep, Glob\n---\n\nReview the changes in `git diff` (and staged changes). For each finding give severity (high, medium, low), path:line, the problem, and the fix.\nCheck: correctness, error handling, security (injection, secrets, access control), missing tests.\nSkip style nits a linter would catch. If everything looks good, say so in one line.\n"},
+  {c:"פקודות וסוכנים", t:"‏Subagent: סוקר אבטחה", f:".claude/agents/security-reviewer.md", l:"markdown", d:"סוכן שקורא בלבד ומדווח. ‏Claude מפעיל אותו לבד כשמשהו נוגע באימות, בתשלומים או בנתוני משתמשים.",
+   code:"---\nname: security-reviewer\ndescription: Reviews changes for security issues. Use proactively after changes to auth, payments, file uploads or user data.\ntools: Read, Grep, Glob, Bash(git diff *)\nmodel: opus\n---\n\nYou are a senior application security engineer.\n\n1. Read the diff and the code it touches.\n2. Look for injection, broken access control (IDOR), secrets, SSRF, XSS, unsafe deserialization and missing rate limits.\n3. Report only real, exploitable issues: severity, path:line, a realistic attack, and the fix.\n\nNever modify files.\n"},
+  {c:"פקודות וסוכנים", t:"‏Skill: כתיבת בדיקות", f:".claude/skills/write-tests/SKILL.md", l:"markdown", d:"‏Skill נטען רק כשצריך. ‏Claude רואה את התיאור, ואת שאר הקובץ טוען כשמבקשים בדיקות.",
+   code:"---\nname: write-tests\ndescription: Write focused tests for code that has none. Use when asked for tests or after adding logic without tests.\n---\n\n# Write tests\n\n1. Read the target code and the existing tests to copy their style and framework.\n2. Cover the happy path, edge cases (empty, huge, unicode) and failure modes.\n3. Prove each test can fail: break the logic once, run, and restore it.\n4. Run the suite and report what is now covered.\n"},
+  {c:"CI ו-GitHub", t:"‏Claude עונה ל-@claude ב-GitHub", f:".github/workflows/claude.yml", l:"yaml", d:"ה-workflow המינימלי מהתיעוד של claude-code-action (גרסה 1). הדרך הקלה להקים אותו: /install-github-app בתוך Claude Code, שמתקין את האפליקציה ושומר את הסוד. לאוטומציות מוסיפים prompt, ו-claude_args לדגלים כמו --max-turns.",
+   code:"name: Claude Assistant\non:\n  issue_comment:\n    types: [created]\n  pull_request_review_comment:\n    types: [created]\n  issues:\n    types: [opened, assigned, labeled]\n  pull_request_review:\n    types: [submitted]\n\njobs:\n  claude-response:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: anthropics/claude-code-action@v1\n        with:\n          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}\n"},
+  {c:"CI ו-GitHub", t:"ריוויו אוטומטי בכל PR (headless)", f:".github/workflows/ai-review.yml", l:"yaml", d:"‏claude -p רץ ב-CI עם כלים לקריאה בלבד ותקרות. הפלט נשמר כ-artifact. כדאי להתחיל כאן לפני שנותנים ל-Claude להגיב ישירות ב-PR.",
+   code:"name: AI review\non: pull_request\npermissions:\n  contents: read\njobs:\n  review:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n        with: { fetch-depth: 0 }\n      - run: curl -fsSL https://claude.ai/install.sh | bash\n      - name: Review the diff\n        env:\n          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}\n        run: |\n          git diff origin/${{ github.base_ref }}...HEAD > diff.txt\n          ~/.local/bin/claude -p \"Review diff.txt for bugs and security issues. Give severity and path:line for each finding.\" \\\n            --allowedTools \"Read,Grep,Glob\" --max-turns 10 --output-format json > review.json\n      - uses: actions/upload-artifact@v4\n        with: { name: ai-review, path: review.json }\n"},
+  {c:"תצוגה", t:"שורת סטטוס: מודל, תיקייה והקשר", f:"~/.claude/statusline.sh", l:"bash", d:"שורה אחת עם המודל, התיקייה ואחוז ההקשר. מחברים עם {\"statusLine\":{\"type\":\"command\",\"command\":\"~/.claude/statusline.sh\"}}. לבונה מלא יש פרק \"סביבת עבודה מושלמת\".",
+   code:"#!/usr/bin/env bash\ninput=$(cat)\nmodel=$(echo \"$input\" | jq -r '.model.display_name')\ndir=$(echo \"$input\" | jq -r '.workspace.current_dir')\npct=$(echo \"$input\" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1)\nprintf '%s │ %s │ context %s%%' \"$model\" \"${dir##*/}\" \"$pct\"\n"},
+  {c:"תצוגה", t:"קיצורי מקלדת לפקודות", f:"~/.claude/keybindings.json", l:"json", d:"‏Alt+K מסכם את השיחה, ו-Ctrl+E פותח את הפרומפט בעורך. נקלט בלי הפעלה מחדש.",
+   code: JSON.stringify({$schema:"https://www.schemastore.org/claude-code-keybindings.json", bindings:[{context:"Chat", bindings:{"meta+k":"command:compact", "ctrl+e":"chat:externalEditor"}}]}, null, 2)},
+  {c:"Docker", t:"‏devcontainer לעבודה מבודדת", f:".devcontainer/devcontainer.json", l:"json", d:"‏Claude Code בקונטיינר: אפשר לתת לו יותר חופש בלי לסכן את המחשב. לריפו claude-code יש .devcontainer רשמי שכדאי לקרוא כבסיס מלא (כולל חומת אש).",
+   code: JSON.stringify({name:"claude-code-sandbox", image:"mcr.microsoft.com/devcontainers/base:ubuntu", features:{"ghcr.io/devcontainers/features/node:1":{version:"22"}, "ghcr.io/devcontainers/features/github-cli:1":{}}, postCreateCommand:"curl -fsSL https://claude.ai/install.sh | bash", remoteUser:"vscode"}, null, 2)}
+];
+
+// ================= packages & GitHub section: install kit, famous repos, code library =================
+(function(){
+  const code = (lang, txt, file) => '<div class="code" data-lang="' + lang + '"' + (file ? ' data-file="' + esc(file) + '"' : '') + '><pre>' + esc(txt) + '</pre></div>';
+
+  // ---------- install kit ----------
+  // [id, name, required, why, mac, linux(apt), windows(winget), check command]
+  const TOOLS = [
+    ["claude","Claude Code",1,"הכלי עצמו.", "curl -fsSL https://claude.ai/install.sh | bash", "curl -fsSL https://claude.ai/install.sh | bash", "irm https://claude.ai/install.ps1 | iex   # or: winget install Anthropic.ClaudeCode", "claude --version"],
+    ["git","Git",1,"‏Claude Code עובד הכי טוב בתוך ריפו git: נקודות שמירה, ענפים, ‏worktrees ו-commits. ב-Windows, ‏Git for Windows נותן גם Git Bash, ש-Claude משתמש בו כ-shell (בלעדיו הוא עובד עם PowerShell).", "brew install git", "sudo apt-get install -y git", "winget install --id Git.Git -e", "git --version"],
+    ["node","Node.js",0,"נדרש לשרתי MCP שרצים עם npx (Playwright, ‏Memory) ולפרויקטי JavaScript.", "brew install node", "sudo apt-get install -y nodejs npm", "winget install --id OpenJS.NodeJS.LTS -e", "node --version"],
+    ["uv","uv (Python)",0,"מריץ שרתי MCP של Python עם uvx (Fetch, ‏Git) ומנהל פרויקטי Python במהירות.", "brew install uv", "curl -LsSf https://astral.sh/uv/install.sh | sh", "winget install --id astral-sh.uv -e", "uv --version"],
+    ["gh","GitHub CLI",0,"‏Claude פותח PR, קורא Issues ובודק CI מהטרמינל.", "brew install gh", "sudo apt-get install -y gh", "winget install --id GitHub.cli -e", "gh --version"],
+    ["jq","jq",0,"רוב ה-Hooks ושורות הסטטוס קוראים JSON עם jq.", "brew install jq", "sudo apt-get install -y jq", "winget install --id jqlang.jq -e", "jq --version"],
+    ["docker","Docker",0,"מסדי נתונים מקומיים, שרתי MCP בקונטיינר ובידוד ניסויים.", "brew install --cask docker", "sudo apt-get install -y docker.io", "winget install --id Docker.DockerDesktop -e", "docker --version"]
+  ];
+  $("#ikTools").innerHTML = TOOLS.map(t => '<label class="tick"><input type="checkbox" value="' + t[0] + '"' + (t[2] ? " checked disabled" : (["node","gh","jq"].includes(t[0]) ? " checked" : "")) + '> ' + esc(t[1]) + (t[2] ? ' <span class="hint">(חובה)</span>' : '') + '</label>').join("");
+  $("#ikWhy").innerHTML = TOOLS.map(t => '<div class="trick"><h3>' + esc(t[1]) + '</h3><p>' + esc(t[3]) + '</p></div>').join("");
+  const OPS = [
+    ["דרישות מערכת", "‏macOS 13 ומעלה, ‏Windows 10 (1809) ומעלה, ‏Ubuntu 20.04, ‏Debian 10 או Alpine 3.19 ומעלה. ‏4GB זיכרון, ‏x64 או ARM64, וחיבור לאינטרנט. ההתקנה המקורית לא צריכה Node.js, וב-Windows היא לא צריכה הרשאות מנהל.", "claude --version"],
+    ["עדכון", "ההתקנה המקורית מתעדכנת לבד ברקע. ‏Homebrew ו-WinGet לא מתעדכנות לבד, ומעדכנים אותן ידנית.", "claude update                         # native install, right now\nbrew upgrade claude-code              # Homebrew\nwinget upgrade Anthropic.ClaudeCode   # WinGet"],
+    ["ערוץ עדכונים או גרסה קבועה", "ב-settings.json: ‏autoUpdatesChannel ‏(stable או latest, ברירת המחדל), או עצירת העדכון האוטומטי במכונה שצריכה גרסה קבועה.", "{ \"autoUpdatesChannel\": \"stable\", \"env\": { \"DISABLE_AUTOUPDATER\": \"1\" } }"],
+    ["בדיקת תקינות", "‏claude doctor מציג אבחון של ההתקנה וההגדרות, בלי לפתוח סשן.", "claude doctor"],
+    ["שתי התקנות מתנגשות", "יש גם התקנה ישנה מ-npm (ההתקנה דרך npm הוצאה משימוש)? מסירים אותה ומשאירים את המקורית.", "npm uninstall -g @anthropic-ai/claude-code\nclaude doctor"],
+    ["‏claude לא נמצא אחרי ההתקנה", "התיקייה ~/.local/bin לא נמצאת ב-PATH. פותחים טרמינל חדש, ואם עדיין לא עובד:", "echo 'export PATH=\"$HOME/.local/bin:$PATH\"' >> ~/.zshrc && source ~/.zshrc"],
+    ["הסרה", "לפי סוג ההתקנה. ההגדרות והיסטוריית השיחות נשארות ב-~/.claude עד שמוחקים אותן. התוסף ל-VS Code, ל-JetBrains והאפליקציה לשולחן העבודה יוצרים אותה מחדש אם הם עדיין מותקנים.", "# native (macOS, Linux, WSL)\nrm -f ~/.local/bin/claude && rm -rf ~/.local/share/claude\n# Homebrew / WinGet\nbrew uninstall --cask claude-code\nwinget uninstall Anthropic.ClaudeCode\n# settings and history too (irreversible)\nrm -rf ~/.claude && rm -f ~/.claude.json"]
+  ];
+  const drawOps = () => { $("#ikOps").innerHTML = OPS.map(o => '<div class="trick"><h3>' + esc(o[0]) + '</h3><p>' + esc(o[1]) + '</p>' + code("bash", o[2]) + '</div>').join(""); $$("#ikOps .code").forEach(decorate); };
+  drawOps();
+  function kit(){
+    const os = $("#ikOs").value, sel = $$("#ikTools input:checked").map(i => i.value), git = $("#ikGit").checked, name = $("#ikName").value.trim() || "Your Name";
+    $("#ikNameL").hidden = !git;
+    const col = os === "mac" ? 4 : os === "win" ? 6 : 5;
+    const chosen = TOOLS.filter(t => sel.includes(t[0]));
+    let sh;
+    if(os === "win"){
+      sh = "# Run in PowerShell. Each line installs one tool with WinGet (built into Windows 10/11).\n" + chosen.map(t => "# " + t[1] + ": " + t[3] + "\n" + t[col]).join("\n\n") + (git ? "\n\n# Git identity for your commits\ngit config --global user.name \"" + name.replace(/"/g, "") + "\"\ngit config --global user.email \"you@example.com\"" : "") + "\n\n# Open a NEW terminal so PATH updates, then:\nclaude --version\nclaude doctor";
+    } else {
+      sh = "#!/usr/bin/env bash\n# Sets up a machine for Claude Code (" + {mac: "macOS", linux: "Ubuntu/Debian", wsl: "Windows WSL (Ubuntu)"}[os] + "). Read before running.\nset -euo pipefail\n" +
+        (os === "mac" ? "\n# Homebrew (package manager) if missing\ncommand -v brew >/dev/null || /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"\n" : "\nsudo apt-get update\n") +
+        chosen.map(t => "\n# " + t[1] + ": " + t[3] + "\n" + (t[0] === "claude" ? "command -v claude >/dev/null || " : "") + t[col]).join("\n") +
+        (os !== "mac" && sel.includes("docker") ? "\nsudo usermod -aG docker \"$USER\"   # run docker without sudo (log out and in once)" : "") +
+        (git ? "\n\n# Git identity for your commits\ngit config --global user.name \"" + name.replace(/"/g, "") + "\"\ngit config --global user.email \"you@example.com\"" : "") +
+        "\n\n# Make sure ~/.local/bin (where claude lives) is on PATH\ncase \":$PATH:\" in *\":$HOME/.local/bin:\"*) ;; *) echo 'export PATH=\"$HOME/.local/bin:$PATH\"' >> \"$HOME/.$(basename \"${SHELL:-bash}\")rc\" ;; esac\n\necho \"Done. Open a new terminal, then run: claude doctor\"\n";
+    }
+    const box = $("#ikScript"); box.dataset.lang = os === "win" ? "powershell" : "bash"; box.dataset.file = os === "win" ? "setup-claude.ps1" : "setup-claude.sh"; setCode("#ikScript", sh);
+    const doc = "#!/usr/bin/env bash\n# Checks a Claude Code setup and says how to fix what's missing. Safe: it only reads.\nok(){ printf '\\033[32m✓\\033[0m %s\\n' \"$1\"; }\nbad(){ printf '\\033[31m✗\\033[0m %s\\n   → %s\\n' \"$1\" \"$2\"; FAIL=1; }\nFAIL=0\n" +
+      TOOLS.filter(t => t[2] || sel.includes(t[0])).map(t => "if command -v " + t[7].split(" ")[0] + " >/dev/null 2>&1; then ok \"" + t[1] + ": $(" + t[7] + " 2>/dev/null | head -1)\"; else bad \"" + t[1] + " is missing\" \"" + (os === "win" ? t[6] : os === "mac" ? t[4] : t[5]).replace(/"/g, '\\"').replace(/\$/g, "\\$") + "\"; fi").join("\n") +
+      "\ncase \":$PATH:\" in *\":$HOME/.local/bin:\"*) ok \"~/.local/bin is on PATH\" ;; *) bad \"~/.local/bin is not on PATH\" \"add: export PATH=\\\"\\$HOME/.local/bin:\\$PATH\\\" to your shell rc\" ;; esac\n" +
+      "if git config --global user.email >/dev/null 2>&1; then ok \"git identity: $(git config --global user.email)\"; else bad \"git has no user.email\" \"git config --global user.email you@example.com\"; fi\n" +
+      (sel.includes("gh") ? "if gh auth status >/dev/null 2>&1; then ok \"gh is signed in\"; else bad \"gh is not signed in\" \"gh auth login\"; fi\n" : "") +
+      "if [ \"$FAIL\" = 0 ]; then echo; echo \"All good. Next: claude doctor\"; else echo; echo \"Fix the items above, then run this check again.\"; fi\nexit $FAIL\n";
+    setCode("#ikDoctor", doc); $("#ikDoctor").dataset.file = "check-setup.sh";
+    setCode("#ikFirst", "# in your project folder\ncd my-project\nclaude                 # first run asks you to log in\n/terminal-setup        # Shift+Enter for new lines (VS Code, Cursor, older Alacritty)\n/init                  # creates CLAUDE.md for the project\n/permissions           # allow your test and lint commands\n/config                # theme, editor mode, notifications");
+    return {sh, doc, os};
+  }
+  $("#ikForm").addEventListener("change", kit); $("#ikForm").addEventListener("input", kit); kit();
+  $("#ikDl").onclick = () => { const r = kit(); saveFile(r.os === "win" ? "setup-claude.ps1" : "setup-claude.sh", r.sh); markDone("installkit"); award("ik", 15, "ערכת התקנה"); };
+  $("#ikDlDoc").onclick = () => { const r = kit(); saveFile("check-setup.sh", r.doc); award("ik-doc", 10, "סקריפט בדיקה"); };
+  window.__ik = {kit, OPS, drawOps};
+
+  // ---------- famous repos ----------
+  // [repo, category, stars, what it is, what to learn, install (optional)]
+  const REPOS = window.__REPOS || [];
+  const rcats = () => ["הכול", ...new Set(REPOS.map(r => r[1]))];
+  let rc = "הכול";
+  function repos(){
+    const q = $("#grQ").value.trim().toLowerCase();
+    const list = REPOS.filter(r => (rc === "הכול" || r[1] === rc) && (!q || r.join(" ").toLowerCase().includes(q)));
+    $("#grList").innerHTML = list.map(r => '<div class="trick"><span class="pill">' + esc(r[1]) + '</span> <span class="hint">★ ' + esc(r[2]) + '</span><h3 class="ltr">' + esc(r[0]) + '</h3><p>' + esc(r[3]) + '</p><p><b>מה ללמוד ממנו:</b> ' + esc(r[4]) + '</p>' + code("bash", (r[5] ? r[5] + "\n\n" : "") + "# explore it with Claude Code\ngit clone --depth 1 https://github.com/" + r[0] + ".git && cd " + r[0].split("/")[1] + " && claude") + '<p class="ltr hint"><a href="https://github.com/' + r[0] + '" target="_blank" rel="noopener">github.com/' + esc(r[0]) + '</a></p></div>').join("") || '<p class="box">לא נמצא ריפו כזה.</p>';
+    $$("#grList .code").forEach(decorate);
+    $("#grCount").textContent = list.length + " ריפו";
+  }
+  // the tab bar is rendered once, so keyboard focus stays on the chosen tab
+  $("#grCats").innerHTML = rcats().map(c => '<button type="button"' + (c === rc ? ' class="on"' : '') + '>' + esc(c) + '</button>').join("");
+  $("#grCats").addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; rc = b.textContent; $$("#grCats button").forEach(x => x.classList.toggle("on", x === b)); repos(); award("gr", 5); });
+  $("#grQ").addEventListener("input", repos); repos();
+
+  // ---------- code library ----------
+  const SN = window.__SNIPPETS || [];
+  const scats = ["הכול", ...new Set(SN.map(s => s.c))]; let sc = "הכול";
+  $("#snCats").innerHTML = scats.map((c, i) => '<button type="button"' + (i ? "" : ' class="on"') + '>' + esc(c) + '</button>').join("");
+  function snips(){
+    const q = $("#snQ").value.trim().toLowerCase();
+    const list = SN.map((s, i) => [s, i]).filter(([s]) => (sc === "הכול" || s.c === sc) && (!q || (s.t + " " + s.d + " " + s.f + " " + s.code).toLowerCase().includes(q)));
+    $("#snList").innerHTML = list.map(([s, i]) => '<details class="agStage"><summary><span class="pill">' + esc(s.c) + '</span> <b>' + esc(s.t) + '</b> <span class="hint ltr">' + esc(s.f) + '</span></summary><div class="agBody"><p>' + esc(s.d) + '</p>' + code(s.l, s.code, s.f) + '<div class="row"><button class="btn sm" type="button" data-snd="' + i + '">הורדה</button></div></div></details>').join("") || '<p class="box">לא נמצא קוד כזה.</p>';
+    $$("#snList .code").forEach(decorate);
+    $("#snCount").textContent = list.length + " קבצים";
+  }
+  $("#snCats").addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; sc = b.textContent; $$("#snCats button").forEach(x => x.classList.toggle("on", x === b)); snips(); });
+  $("#snQ").addEventListener("input", snips);
+  $("#snList").addEventListener("click", e => { const i = e.target.dataset.snd; if(i == null) return; const s = SN[+i]; saveFile(s.f.split("/").pop().replace(/^\./, "dot-").replace(/[^A-Za-z0-9._-]/g, "_"), s.code); award("sn-dl", 10, "קוד מהספרייה"); });
+  snips();
+  window.__sn = SN;
+})();
+
+Object.keys(TRACKS).forEach(k => ["installkit","ghrepos","snippets"].forEach(id => { if(!TRACKS[k].m.includes(id)) TRACKS[k].m.push(id); }));
+BADGES.push(["packager","📦","אנשי החבילות","השלמתם את כל פרקי החבילות ו-GitHub", () => ["ecosystem","installkit","ghrepos","snippets"].every(id => state.done[id])]);
 checkBadges(true);
 
 renderStats();
