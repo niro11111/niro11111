@@ -71,7 +71,7 @@ const ok = (c, m) => console.log((c ? 'PASS ' : 'FAIL ') + m);
   await p.click('#slNone'); ok(!/put \.claude/.test(await p.$eval('#slScript pre', e => e.textContent)), 'clear empties the script');
   await p.click('#slAll'); await p.fill('#slQ', 'עברית'); ok(await p.$$eval('#slPack details', x => x.length) === 3, 'search finds the 3 Hebrew commands');
   await p.click('#slPack input[data-pk="he-explain"]');
-  ok(/15 מתוך 16/.test(await p.textContent('#slCount')) && !(await p.$eval('#slPack details', d => d.open)), 'checkbox in summary toggles selection, not the details');
+  ok(/15 מתוך 16/.test(await p.textContent('#slCount')) && !(await p.$eval('#slPack details', d => d.open)), 'checkbox beside the summary toggles selection, not the details');
   await p.fill('#slQ', '');
   const [d1] = await Promise.all([p.waitForEvent('download', {timeout: 3000}).catch(() => null), p.click('#slDlAll')]);
   ok(d1 && d1.suggestedFilename() === 'install-community-commands.sh', 'pack script downloads');

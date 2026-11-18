@@ -8081,7 +8081,7 @@ BADGES.push(["packager","📦","אנשי החבילות","השלמתם את כל
   function pack(){
     const q = $("#slQ").value.trim().toLowerCase();
     const list = PK.filter(p => !q || (p.n + " " + p.c + " " + p.d + " " + p.b).toLowerCase().includes(q));
-    $("#slPack").innerHTML = list.map(p => '<details class="agStage"><summary><label class="tick" style="display:inline-flex"><input type="checkbox" data-pk="' + p.n + '"' + (sel.has(p.n) ? " checked" : "") + ' aria-label="לכלול את ‎/' + p.n + '"></label> <span class="pill">' + esc(p.c) + '</span> <b class="ltr">/' + esc(p.n) + '</b> <span class="hint">' + esc(p.d) + '</span></summary><div class="agBody">' + code("markdown", pkFile(p), ".claude/commands/" + p.n + ".md") + '<div class="row"><button class="btn sm" type="button" data-pkt="' + p.n + '">לנסות בסימולטור</button></div></div></details>').join("");
+    $("#slPack").innerHTML = list.map(p => '<div class="cpRow"><label class="tick cpTick"><input type="checkbox" data-pk="' + p.n + '"' + (sel.has(p.n) ? " checked" : "") + ' aria-label="לכלול בהתקנה את ‎/' + p.n + '"></label><details class="agStage" style="flex:1;min-width:0"><summary><span class="pill">' + esc(p.c) + '</span> <b class="ltr">/' + esc(p.n) + '</b> <span class="hint">' + esc(p.d) + '</span></summary><div class="agBody">' + code("markdown", pkFile(p), ".claude/commands/" + p.n + ".md") + '<div class="row"><button class="btn sm" type="button" data-pkt="' + p.n + '">לנסות בסימולטור</button></div></div></details></div>').join("");
     $$("#slPack .code").forEach(decorate);
     $("#slCount").textContent = sel.size + " מתוך " + PK.length + " מסומנות";
     script();
@@ -8094,10 +8094,8 @@ BADGES.push(["packager","📦","אנשי החבילות","השלמתם את כל
     setCode("#slScript", sh);
     return sh;
   }
-  // the checkbox sits inside <summary>: stop the click from toggling the details
+  // the checkbox sits next to <summary>, not inside it (a control inside a control breaks screen readers)
   $("#slPack").addEventListener("click", e => {
-    if(e.target.matches("input[data-pk]")){ e.stopPropagation(); return; }
-    if(e.target.closest("label.tick")){ e.preventDefault(); const i = e.target.closest("label.tick").querySelector("input"); i.checked = !i.checked; i.dispatchEvent(new Event("change", {bubbles: true})); return; }
     const t = e.target.closest("[data-pkt]"); if(!t) return;
     loadTpl(PK.find(p => p.n === t.dataset.pkt)); $("#slTpl").value = t.dataset.pkt; $("#slForm").scrollIntoView({block: "start"}); award("sl-try", 5);
   });
