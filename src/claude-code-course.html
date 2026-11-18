@@ -2427,6 +2427,128 @@ Don't change anything.</pre></div>
   <div class="quiz" data-q="snippets"></div>
 </section>
 
+<section class="mod" id="slashlab" data-level="חבילות ו-GitHub" data-title="פקודות סלאש: סודות, בונה וחבילת קהילה">
+  <div class="eyebrow"></div>
+  <h1>פקודות סלאש: כל מה שאפשר לעשות עם "/"</h1>
+  <p class="lead">כל מה שמתחיל ב-"/" ב-Claude Code הוא פקודה: מובנית, שלכם, מ-Plugin או משרת MCP. בפרק הזה תראו את כל סוגי הפקודות, 16 סודות מהתיעוד הרשמי שמעט אנשים מכירים, בונה פקודות עם סימולטור שמראה בדיוק מה Claude יקבל, וחבילה של 16 פקודות שמפתחים משתפים (כולל פקודות לעברית ולישראל).</p>
+
+  <h2>שישה סוגים של "/" ומאיפה כל אחד מגיע</h2>
+  <div class="tricks" id="slKinds"></div>
+  <div class="note"><b>עוד ארבעה תווים מיוחדים בתחילת השורה:</b> <code>!</code> מריץ פקודת shell ישירות ומוסיף את הפלט לשיחה. <code>@</code> משלים נתיב קובץ. <code>?</code> בשורה ריקה פותח את עזרת הקיצורים. <code>:</code> משלים אימוג'י לפי שם.</div>
+
+  <h2>16 סודות של פקודות מותאמות</h2>
+  <p>כל סוד כאן נבדק מול התיעוד הרשמי של Skills (מאז שפקודות מותאמות אוחדו עם Skills, שני הפורמטים עובדים באותה צורה).</p>
+  <div class="tricks" id="slSecrets"></div>
+
+  <h2>בונה פקודות עם סימולטור</h2>
+  <p>ממלאים את הטופס ומקבלים את הקובץ המוכן. בצד ימין יש סימולטור: כותבים מה תקלידו אחרי שם הפקודה ורואים את הטקסט ש-Claude יקבל אחרי ההחלפות, לפי אותם כללים שמופיעים בתיעוד.</p>
+  <div class="grid2"><div class="form" id="slForm">
+    <label>תבנית התחלה<select id="slTpl"></select></label>
+    <label>שם הפקודה (אנגלית, אותיות קטנות ומקפים)<input type="text" id="slName" class="ltr" value="fix-issue"></label>
+    <label>סוג קובץ<select id="slKind"><option value="cmd">פקודה: ‎.claude/commands/NAME.md</option><option value="skill">Skill: ‎.claude/skills/NAME/SKILL.md</option></select></label>
+    <label>היקף<select id="slScope"><option value="project">פרויקט (‎.claude/, נכנס לגיט)</option><option value="user">אישי (‎~/.claude/, בכל הפרויקטים)</option></select></label>
+    <label>תיאור (description)<input type="text" id="slDesc" class="ltr" value="Fix a GitHub issue by number"></label>
+    <label>רמז לארגומנטים (argument-hint)<input type="text" id="slHint" class="ltr" value="[issue-number] [branch]"></label>
+    <label>ארגומנטים בשם (arguments, מופרדים ברווח)<input type="text" id="slArgs" class="ltr" value="issue branch"></label>
+    <label>כלים מאושרים מראש (allowed-tools)<input type="text" id="slTools" class="ltr" value="Bash(gh issue view *) Bash(git checkout *)"></label>
+    <div class="row" style="gap:8px">
+      <label>מודל<select id="slModel"><option value="">כמו הסשן</option><option>haiku</option><option>sonnet</option><option>opus</option></select></label>
+      <label>מאמץ<select id="slEffort"><option value="">כמו הסשן</option><option>low</option><option>medium</option><option>high</option><option>xhigh</option><option>max</option></select></label>
+    </div>
+    <label class="tick"><input type="checkbox" id="slManual" checked> רק אני מפעיל (disable-model-invocation)</label>
+    <label class="tick"><input type="checkbox" id="slFork"> להריץ בסוכן נפרד (context: fork)</label>
+    <label>גוף הפקודה<textarea id="slBody" rows="9" class="ltr">Fix GitHub issue #$issue.
+
+## Context
+- Current branch: !`git branch --show-current`
+- Working tree: !`git status --short`
+
+1. Read the issue with `gh issue view $issue`.
+2. Create branch $branch if it was given.
+3. Find the cause, fix it, add a test, run the tests.</textarea></label>
+  </div><div>
+    <div class="code" data-lang="markdown" id="slOut"><pre></pre></div>
+    <div id="slLint"></div>
+    <h3>סימולטור: מה Claude יקבל</h3>
+    <label>מה תקלידו<input type="text" id="slTry" class="ltr" value="/fix-issue 482 &quot;fix/login timeout&quot;" aria-label="מה תקלידו בטרמינל"></label>
+    <div class="code" data-lang="text" data-file="הטקסט ש-Claude מקבל" id="slSim"><pre style="white-space:pre-wrap"></pre></div>
+    <p class="hint" id="slSimNote"></p>
+    <div class="row"><button class="btn" type="button" id="slDl">הורדת הקובץ</button></div>
+  </div></div>
+
+  <h2>חבילת הקהילה: 16 פקודות מוכנות</h2>
+  <p>פקודות ששימושיות כמעט בכל פרויקט, בנוסף ל-25 שבחבילת המומחה. כל אחת משתמשת בסוד אחר: הזרקת פלט git, ארגומנטים בשם, ‏context: fork, מודל זול למשימה פשוטה ועוד. סמנו ולחצו "סקריפט התקנה".</p>
+  <div class="row" style="margin:8px 0;gap:6px">
+    <input class="search" id="slQ" type="search" placeholder="חיפוש: git, עברית, בדיקות…" aria-label="חיפוש בחבילת הקהילה" style="max-width:260px;margin:0">
+    <button class="btn sm" type="button" id="slAll">סימון הכול</button><button class="btn sm" type="button" id="slNone">ניקוי</button>
+    <span class="hint" id="slCount"></span>
+  </div>
+  <div id="slPack"></div>
+  <h3>סקריפט התקנה</h3>
+  <p class="hint">מריצים בשורש הפרויקט. הסקריפט יוצר את ‎.claude/commands/ ולא דורס קובץ קיים: הוא מדלג עליו ומדווח.</p>
+  <div class="code" data-lang="bash" data-file="install-community-commands.sh" id="slScript"><pre></pre></div>
+  <div class="row"><button class="btn" type="button" id="slDlAll">הורדת סקריפט ההתקנה</button></div>
+  <div class="quiz" data-q="slashlab"></div>
+</section>
+
+<section class="mod" id="israel" data-level="חבילות ו-GitHub" data-title="מיוחד לישראל: עברית, RTL וכלים מקומיים">
+  <div class="eyebrow"></div>
+  <h1>מיוחד לישראל: עברית, RTL וכלים מקומיים</h1>
+  <p class="lead">כל מה שמפתחים בישראל צריכים: איך לעבוד עם Claude Code בעברית, איך לבנות ממשק מימין לשמאל בלי באגים, פורמטים ישראליים (תאריך עברי, ‏₪ ומע"מ, תעודת זהות, טלפון), ימי עסקים וחגים, חבילות שבדקנו, ‏CLAUDE.md מוכן ופקודות סלאש בעברית.</p>
+
+  <h2>עובדים עם Claude Code בעברית</h2>
+  <div class="tricks" id="ilHebrew"></div>
+
+  <h2>בודק RTL: מדביקים CSS או מחלקות Tailwind</h2>
+  <p>הבודק מוצא מאפיינים "פיזיים" (left, ‏right) שנשברים כשהדף מימין לשמאל, ומחליף אותם במאפיינים לוגיים (start, ‏end) שעובדים בשני הכיוונים. אותו קוד עובד בעברית ובאנגלית, בלי קובץ RTL נפרד.</p>
+  <div class="grid2"><div class="form">
+    <label>CSS או מחלקות<textarea id="rtlIn" rows="10" class="ltr">.card {
+  margin-left: 16px;
+  padding-right: 8px;
+  text-align: left;
+  border-left: 3px solid #36c;
+  border-top-left-radius: 8px;
+  float: right;
+  margin: 0 12px 0 4px;
+}
+.badge { position: absolute; left: 0; top: 0; }
+
+&lt;div class="ml-4 pr-2 text-left rounded-tl-lg border-l-2 left-0"&gt;</textarea></label>
+    <div class="row"><button class="btn sm" type="button" id="rtlCopy">העתקת הגרסה המתוקנת</button></div>
+  </div><div>
+    <div id="rtlIssues"></div>
+    <div class="code" data-lang="css" data-file="אחרי התיקון" id="rtlOut"><pre></pre></div>
+  </div></div>
+
+  <h2>פורמטים ישראליים: מחשבון חי</h2>
+  <p>כל השדות כאן משתמשים בפונקציות של הקובץ <code class="ltr">il-format.js</code> שבהמשך. מה שאתם רואים הוא בדיוק מה שהקוד שלכם יחזיר.</p>
+  <div class="grid2"><div class="form" id="ilForm">
+    <label>תאריך<input type="date" id="ilDate" value="2026-09-21"></label>
+    <label>מחיר לפני מע"מ (₪)<input type="number" id="ilPrice" value="1000" step="0.01" min="0"></label>
+    <label>תעודת זהות<input type="text" id="ilId" class="ltr" value="123456782" inputmode="numeric"></label>
+    <label>טלפון<input type="text" id="ilPhone" class="ltr" value="054-123 4567"></label>
+  </div><div>
+    <div class="tricks" id="ilOut"></div>
+  </div></div>
+  <h3>הקובץ il-format.js (בלי תלויות)</h3>
+  <div class="code" data-lang="js" data-file="src/lib/il-format.js" id="ilSrc"><pre></pre></div>
+  <div class="row"><button class="btn" type="button" id="ilDl">הורדת il-format.js</button></div>
+
+  <h2>ימי עסקים וחגים</h2>
+  <p>בישראל שבוע העבודה הוא ראשון עד חמישי, ובחגים העסקים סגורים. "תוך 3 ימי עסקים" צריך לדלג על שישי, שבת וחג. הספרייה <span class="ltr">@hebcal/core</span> יודעת את לוח החגים של ישראל לכל שנה. הקוד הבא הורץ ונבדק: יום כיפור 2026 (21 בספטמבר) הוא לא יום עסקים, ויום עסקים אחד אחרי ראשון 20 בספטמבר הוא שלישי 22 בספטמבר.</p>
+  <div class="code" data-lang="js" data-file="src/lib/business-days.js" id="ilBiz"><pre></pre></div>
+
+  <h2>חבילות ישראליות ועבריות שבדקנו</h2>
+  <div class="tricks" id="ilPkgs"></div>
+
+  <h2>‏CLAUDE.md והגדרות לפרויקט ישראלי</h2>
+  <div class="tabs" data-tabs="ilcfg"><button class="on" type="button">CLAUDE.md</button><button type="button">settings.json</button><button type="button">פקודות בעברית</button></div>
+  <div class="pane on" data-pane="ilcfg"><div class="code" data-lang="markdown" data-file="CLAUDE.md" id="ilClaude"><pre></pre></div></div>
+  <div class="pane" data-pane="ilcfg"><div class="code" data-lang="json" data-file="~/.claude/settings.json" id="ilSettings"><pre></pre></div></div>
+  <div class="pane" data-pane="ilcfg"><p class="hint">שלוש פקודות מחבילת הקהילה שבפרק הקודם נכתבו בשביל פרויקטים בעברית: ‎/he-explain, ‏/rtl-audit ו-‎/il-format. השם באנגלית, והתשובה בעברית: Claude Code לא מקבל שם פקודה עם תווים שמשנים כיוון טקסט.</p><div class="code" data-lang="markdown" data-file=".claude/commands/he-explain.md" id="ilCmd"><pre></pre></div></div>
+  <div class="quiz" data-q="israel"></div>
+</section>
+
 <section class="mod" id="cmdpack" data-level="ארגז הכלים של המומחה" data-title="חבילת פקודות, סוכנים ו-Skills">
   <div class="eyebrow"></div>
   <h1>חבילת המומחה: 25 פקודות, 8 סוכנים ו-6 Skills מוכנים</h1>
@@ -3409,6 +3531,16 @@ const Q = {
     ["איפה רואים מה חדש בכל גרסה של Claude Code?", ["בטוויטר","ב-CHANGELOG בריפו anthropics/claude-code","ב-CLAUDE.md","אין מקום כזה"], 1, "שווה לעבור עליו מדי פעם."],
     ["מה שם חבילת השרת של MCP ל-TypeScript בגרסה 2?", ["@modelcontextprotocol/server","mcp-ts","@anthropic-ai/mcp","typescript-mcp"], 0, "‏@modelcontextprotocol/sdk היא חבילת גרסה 1."],
     ["מה הדרך המהירה להכיר ריפו גדול?", ["לקרוא את כל הקבצים","לשבט ולבקש מ-Claude Code סיור מודרך בלי לשנות כלום","למחוק קבצים","להעתיק ל-Word"], 1, "מפה, קבצים לקריאה, וזרימה אמיתית עם path:line."]
+  ],
+  slashlab: [
+    ["בפקודה מותאמת, מה זה $0?", ["שם הפקודה","הארגומנט הראשון","כל הארגומנטים","כלום"], 1, "הספירה מתחילה מאפס: $0 ראשון, $1 שני, ו-$ARGUMENTS הכול."],
+    ["מה עושה !`git diff --stat` בגוף הפקודה?", ["Claude יריץ את זה אחר כך","הפקודה רצה לפני השליחה והפלט נכנס במקומה","שגיאה","מוחק את ה-diff"], 1, "‏Claude מקבל את הפלט עצמו, לא הוראה להריץ."],
+    ["למה לשים disable-model-invocation: true ב-/deploy?", ["כדי שירוץ מהר","כדי ש-Claude לא יפעיל אותה לבד","כדי להסתיר אותה ממני","אין סיבה"], 1, "פקודה שמשנה סביבה אמיתית מופעלת רק על ידיכם."]
+  ],
+  israel: [
+    ["מה מחליף את margin-left בממשק שעובד בעברית ובאנגלית?", ["margin-right","margin-inline-start","margin-left: auto","direction: rtl"], 1, "מאפיין לוגי: בעברית הוא בצד ימין ובאנגלית בצד שמאל."],
+    ["איך גורמים ל-Claude Code לענות תמיד בעברית?", ["\"language\": \"hebrew\" ב-settings.json","להחליף מקלדת","/hebrew","אי אפשר"], 0, "וב-CLAUDE.md מבקשים שהקוד וה-commits יישארו באנגלית."],
+    ["אילו ימים הם ימי עסקים בישראל?", ["שני עד שישי","ראשון עד חמישי, חוץ מחגים","כל השבוע","ראשון עד שישי"], 1, "‏@hebcal/core יודעת את לוח החגים של ישראל."]
   ],
   snippets: [
     ["איזה קוד יציאה של Hook חוסם את הפעולה?", ["0","1","2","127"], 2, "‏stderr מגיע ל-Claude כהסבר."],
@@ -4873,7 +5005,7 @@ const RECIPES = [
     $("#irBody").innerHTML = '<div class="box"><b>'+esc(r.n)+':</b> '+esc(r.what)+'</div><h3>1. התקנה</h3><div class="code" data-lang="bash"><pre>'+esc(r.setup)+'</pre></div><h3>2. הרשאות</h3><div class="code" data-lang="json"><pre>'+esc(r.perms)+'</pre></div><h3>3. פרומפט עבודה</h3><div class="code" data-lang="prompt"><pre style="white-space:pre-wrap">'+esc(r.prompt)+'</pre></div><div class="note warn"><b>גבול בטיחות</b>'+esc(r.safe)+'</div>';
     $$("#irBody .code").forEach(decorate);
   };
-  $("#irTabs").addEventListener("click", e => { const b = e.target.closest("button"); if(b){ c = +b.dataset.i; draw(); award("rec-"+c, 3); } });
+  $("#irTabs").addEventListener("click", e => { const b = e.target.closest("button"); if(b){ c = +b.dataset.i; draw(); if(e.isTrusted) award("rec-"+c, 3); } });   // the startup click that renders the first tab earns nothing
   draw();
 })();
 
@@ -7442,8 +7574,8 @@ BADGES.push(["automator","⚙","אוטומטורים","חיברתם את Claude 
     $$("#fxInputs input").forEach(i => v[i.dataset.k] = i.value !== "" ? i.value : i.placeholder);   // no trim: spaces matter (e.g. the ", " separator)
     setCode("#fxOut", t.out(v)); $("#fxWhy").textContent = t.why;
   }
-  const fxForm = () => { const t = TASKS[+$("#fxTask").value]; $("#fxInputs").innerHTML = t.f.map(f => '<label>' + esc(f[1]) + '<input type="text" class="ltr" data-k="' + f[0] + '" value="' + esc(f[2]) + '" placeholder="' + esc(f[2]) + '"></label>').join(""); fx(); award("mk-fx", 5); };
-  $("#fxTask").addEventListener("change", fxForm); $("#fxInputs").addEventListener("input", fx); fxForm();
+  const fxForm = () => { const t = TASKS[+$("#fxTask").value]; $("#fxInputs").innerHTML = t.f.map(f => '<label>' + esc(f[1]) + '<input type="text" class="ltr" data-k="' + f[0] + '" value="' + esc(f[2]) + '" placeholder="' + esc(f[2]) + '"></label>').join(""); fx(); };
+  $("#fxTask").addEventListener("change", () => { fxForm(); award("mk-fx", 5); }); $("#fxInputs").addEventListener("input", fx); fxForm();
   const VARS = [
     ["משתני תרחיש (Set / Get variable)","קיימים רק בזמן הרצה אחת. להעברת ערך בין מסלולים ומודולים, למונים ולדגלים. אורך החיים: cycle אחד או הרצה אחת."],
     ["משתנים מותאמים (צוות או ארגון)","נשמרים בין הרצות ומשותפים לכמה תרחישים. למשל <code>TestMode = true</code> שמשנה את המסלול בכל התרחישים בבת אחת. בתוכניות Pro ומעלה. <b>לא לשמור בהם סודות:</b> הם לא מוצפנים."],
@@ -7721,7 +7853,13 @@ window.__SNIPPETS = [
     ["uv","uv (Python)",0,"מריץ שרתי MCP של Python עם uvx (Fetch, ‏Git) ומנהל פרויקטי Python במהירות.", "brew install uv", "curl -LsSf https://astral.sh/uv/install.sh | sh", "winget install --id astral-sh.uv -e", "uv --version"],
     ["gh","GitHub CLI",0,"‏Claude פותח PR, קורא Issues ובודק CI מהטרמינל.", "brew install gh", "sudo apt-get install -y gh", "winget install --id GitHub.cli -e", "gh --version"],
     ["jq","jq",0,"רוב ה-Hooks ושורות הסטטוס קוראים JSON עם jq.", "brew install jq", "sudo apt-get install -y jq", "winget install --id jqlang.jq -e", "jq --version"],
-    ["docker","Docker",0,"מסדי נתונים מקומיים, שרתי MCP בקונטיינר ובידוד ניסויים.", "brew install --cask docker", "sudo apt-get install -y docker.io", "winget install --id Docker.DockerDesktop -e", "docker --version"]
+    ["docker","Docker",0,"מסדי נתונים מקומיים, שרתי MCP בקונטיינר ובידוד ניסויים.", "brew install --cask docker", "sudo apt-get install -y docker.io", "winget install --id Docker.DockerDesktop -e", "docker --version"],
+    ["rg","ripgrep",0,"חיפוש מהיר מאוד בקוד מהטרמינל. ‏Claude Code כולל ripgrep משלו, ו-rg עוזר לכם לבדוק מה הוא מצא.", "brew install ripgrep", "sudo apt-get install -y ripgrep", "winget install --id BurntSushi.ripgrep.MSVC -e", "rg --version"],
+    ["fzf","fzf",0,"בחירה מהירה מרשימות: קבצים, ענפים והיסטוריה (Ctrl+R עם חיפוש מטושטש).", "brew install fzf", "sudo apt-get install -y fzf", "winget install --id junegunn.fzf -e", "fzf --version"],
+    ["bat","bat",0,"‏cat עם צבעים ומספרי שורות: נוח לקרוא את הקבצים ש-Claude שינה. ב-Ubuntu ו-Debian הפקודה נקראת batcat, והסקריפט יוצר קיצור בשם bat.", "brew install bat", "sudo apt-get install -y bat && mkdir -p ~/.local/bin && ln -sf /usr/bin/batcat ~/.local/bin/bat", "winget install --id sharkdp.bat -e", "bat --version"],
+    ["fd","fd",0,"‏find פשוט ומהיר שמכבד את .gitignore. ב-Ubuntu ו-Debian הוא נקרא fdfind, והסקריפט יוצר קיצור בשם fd.", "brew install fd", "sudo apt-get install -y fd-find && mkdir -p ~/.local/bin && ln -sf \"$(command -v fdfind)\" ~/.local/bin/fd", "winget install --id sharkdp.fd -e", "fd --version"],
+    ["shellcheck","ShellCheck",0,"בודק סקריפטים של bash, כולל Hooks ושורות סטטוס. אפשר לבקש מ-Claude להריץ אותו אחרי כל סקריפט שהוא כותב.", "brew install shellcheck", "sudo apt-get install -y shellcheck", "winget install --id koalaman.shellcheck -e", "shellcheck --version"],
+    ["python","Python 3",0,"פרויקטי Python, סקריפטים קטנים ש-Claude כותב, וכלים כמו pyluach.", "brew install python", "sudo apt-get install -y python3 python3-venv python3-pip", "winget install --id Python.Python.3.12 -e", "python3 --version"]
   ];
   $("#ikTools").innerHTML = TOOLS.map(t => '<label class="tick"><input type="checkbox" value="' + t[0] + '"' + (t[2] ? " checked disabled" : (["node","gh","jq"].includes(t[0]) ? " checked" : "")) + '> ' + esc(t[1]) + (t[2] ? ' <span class="hint">(חובה)</span>' : '') + '</label>').join("");
   $("#ikWhy").innerHTML = TOOLS.map(t => '<div class="trick"><h3>' + esc(t[1]) + '</h3><p>' + esc(t[3]) + '</p></div>').join("");
@@ -7804,7 +7942,385 @@ window.__SNIPPETS = [
 })();
 
 Object.keys(TRACKS).forEach(k => ["installkit","ghrepos","snippets"].forEach(id => { if(!TRACKS[k].m.includes(id)) TRACKS[k].m.push(id); }));
-BADGES.push(["packager","📦","אנשי החבילות","השלמתם את כל פרקי החבילות ו-GitHub", () => ["ecosystem","installkit","ghrepos","snippets"].every(id => state.done[id])]);
+BADGES.push(["packager","📦","אנשי החבילות","השלמתם את כל פרקי החבילות ו-GitHub", () => ["ecosystem","installkit","ghrepos","snippets","slashlab","israel"].every(id => state.done[id])]);
+// ================= slash commands lab + Israel chapter =================
+(function(){
+  const code = (lang, txt, file) => '<div class="code" data-lang="' + lang + '"' + (file ? ' data-file="' + esc(file) + '"' : '') + '><pre>' + esc(txt) + '</pre></div>';
+  const cards = (sel, list) => { $(sel).innerHTML = list.map(x => '<div class="trick"><h3>' + esc(x[0]) + '</h3><p>' + esc(x[1]) + '</p>' + (x[2] ? code(x[3] || "bash", x[2]) : '') + '</div>').join(""); $$(sel + " .code").forEach(decorate); };
+
+  // ---------- kinds of "/" ----------
+  cards("#slKinds", [
+    ["מובנות", "‏/help, ‏/clear, ‏/compact, ‏/model, ‏/rewind ועוד: חלק מ-Claude Code. כל השמות שלהן שמורים, ופקודה שלכם באותו שם לא תיטען.", "/help            # everything you can type, including your own\n/compact keep the API decisions"],
+    ["פקודה שלכם (קובץ אחד)", "קובץ Markdown ב-‎.claude/commands/ (בפרויקט) או ב-‎~/.claude/commands/ (בכל הפרויקטים). שם הקובץ הוא שם הפקודה, ותיקיית משנה הופכת לקידומת עם נקודתיים.", ".claude/commands/deploy.md            → /deploy\n.claude/commands/frontend/component.md → /frontend:component"],
+    ["Skill (תיקייה)", "‏.claude/skills/NAME/SKILL.md. עובד בדיוק כמו פקודה, ואפשר לצרף לו סקריפטים וקבצים. אם יש Skill ופקודה באותו שם, ה-Skill מנצח.", ".claude/skills/release/SKILL.md   → /release\n.claude/skills/release/scripts/bump.sh"],
+    ["מ-Plugin", "פקודות ו-Skills שמגיעים עם Plugin מקבלים את שם ה-Plugin כקידומת. השם הקצר עובד גם הוא, כל עוד אין פקודה אחרת באותו שם.", "/plugin install commit-commands@claude-plugins-official\n/commit-commands:commit"],
+    ["‏Prompt של שרת MCP", "שרתי MCP יכולים להציע Prompts מוכנים. הם מופיעים בתפריט / עם הסימון (MCP), ואפשר גם להקליד את הצורה המלאה.", "/github:pr_review 456          # as the / menu shows it\n/mcp__github__pr_review 456    # the full form also works"],
+    ["‏Skill מחשבון claude.ai", "‏Skills שהגדרתם בחשבון ב-claude.ai מסונכרנים עם הקידומת anthropic-skills:, ועובדים גם בלי הקידומת כשאין התנגשות. בטרמינל הם לא מריצים פקודות ! ולא מצרפים קבצי @.", "/anthropic-skills:deploy\n/deploy                  # when no other command is called deploy"]
+  ]);
+
+  // ---------- secrets ----------
+  cards("#slSecrets", [
+    ["1. הספירה מתחילה מאפס", "‏$0 הוא הארגומנט הראשון ו-$1 השני (וגם ‎$ARGUMENTS[0]). מי שכותב $1 בשביל הראשון מקבל את השני. ‏$ARGUMENTS הוא כל מה שהוקלד, כמו שהוקלד.", "Migrate the $0 component from $1 to $2.\n# /migrate SearchBar JavaScript TypeScript", "markdown"],
+    ["2. מירכאות מאחדות מילים", "הארגומנטים מתפרקים כמו ב-shell. כדי להעביר כמה מילים כארגומנט אחד, עוטפים במירכאות.", "/summarize \"the login flow\" short\n# $0 = the login flow   $1 = short"],
+    ["3. ארגומנטים בשם", "‏arguments: [issue, branch] ב-frontmatter, ואז $issue ו-$branch בגוף. ארגומנט בשם שלא הוקלד הופך לטקסט ריק, ולא נשאר כ-$branch.", "---\narguments: [issue, branch]\nargument-hint: \"[issue] [branch]\"\n---\nFix issue #$issue on branch $branch.", "markdown"],
+    ["4. בלי placeholder? לא הולך לאיבוד", "אם הקלדתם ארגומנטים והגוף לא משתמש באף אחד מהם, Claude Code מוסיף בסוף שורה ARGUMENTS: עם מה שהקלדתם. ככה פקודה פשוטה עובדת גם בלי $ARGUMENTS."],
+    ["5. הזרקת פלט לפני ש-Claude קורא", "‏!`פקודה` בתחילת שורה או אחרי רווח רץ לפני שהפקודה נשלחת, והפלט נכנס במקומו. Claude מקבל את ה-diff עצמו, לא הוראה להריץ אותו. לכמה שורות משתמשים בבלוק ‎```!.", "## Context\n- Branch: !`git branch --show-current`\n- Changes: !`git diff --stat`\n\n```!\nnode --version\ngit status --short\n```", "markdown"],
+    ["6. ‏! צמוד לתו אחר לא רץ", "‏KEY=!`cmd` נשאר טקסט, כי ה-! לא בתחילת שורה ולא אחרי רווח. ופלט של פקודה לא נסרק שוב, כך שפקודה לא יכולה “להזריק” פקודה נוספת."],
+    ["7. דולר אמיתי", "כדי לכתוב $1.00 בטקסט בלי שיוחלף בארגומנט, כותבים ‎\\$1.00. לוכסן הפוך כפול לא מבריח: ‎\\\\$1 עדיין מוחלף.", "The plan costs \\$1.00 per seat.", "markdown"],
+    ["8. אישור כלים לסבב אחד בלבד", "‏allowed-tools נותן לכלים לרוץ בלי לשאול, רק בסבב שהפעיל את הפקודה. כשאתם שולחים הודעה הבאה, האישור נעלם.", "allowed-tools: Bash(git add *) Bash(git commit *)", "markdown"],
+    ["9. פקודות מסוכנות: רק אתם מפעילים", "‏disable-model-invocation: true. בלי זה Claude יכול להחליט לבד להפעיל /deploy כי “זה נראה מתאים”. חובה לכל דבר שמשנה סביבה אמיתית.", "---\ndescription: Deploy to production\ndisable-model-invocation: true\n---", "markdown"],
+    ["10. ידע רקע שלא מופיע בתפריט", "‏user-invocable: false: הפקודה נעלמת מתפריט ה-/, ו-Claude טוען אותה לבד כשהיא רלוונטית. טוב לכללי סגנון ולמידע על מערכת ישנה."],
+    ["11. להריץ בסוכן נפרד", "‏context: fork מריץ את הפקודה ב-Subagent עם הקשר נקי, ו-agent: בוחר סוכן (למשל Plan או Explore). השיחה שלכם לא מתמלאת בקבצים שהוא קרא. ברירת המחדל היא ריצה ברקע.", "---\ncontext: fork\nagent: Plan\neffort: high\n---\nReview this plan: $ARGUMENTS", "markdown"],
+    ["12. מודל ומאמץ לכל פקודה", "‏model: haiku לפקודה פשוטה (הודעת commit) ו-effort: high למשימה קשה. ההחלפה היא רק לסבב הזה, ואז הסשן חוזר להגדרות שלו."],
+    ["13. סקריפט צמוד בלי שאלת הרשאה", "‏${CLAUDE_SKILL_DIR} מוחלף בתיקיית ה-Skill, גם בגוף וגם ב-allowed-tools. כך הסקריפט שבתוך ה-Skill רץ בלי לשאול, מכל תיקייה.", "allowed-tools: Bash(${CLAUDE_SKILL_DIR}/scripts/render.sh *)\n\nRun `${CLAUDE_SKILL_DIR}/scripts/render.sh <csv>`.", "markdown"],
+    ["14. שתי פקודות בהודעה אחת", "בטרמינל אפשר לשרשר: ‎/write-tests /fix-issue 123 טוען את שתיהן, וכל אחת מקבלת 123. במצב claude -p נטענת רק הראשונה.", "/write-tests /fix-issue 123"],
+    ["15. ‏ultrathink בתוך הפקודה", "המילה ultrathink בכל מקום בגוף הפקודה מבקשת חשיבה עמוקה יותר בכל הפעלה, בלי לשנות את הגדרות הסשן."],
+    ["16. נעילה לארגון", "‏\"disableSkillShellExecution\": true בהגדרות (בעיקר managed) מחליף כל !`פקודה` בהודעה שההרצה חסומה. כך פקודה מריפו זר לא מריצה כלום לפני שבדקתם אותה.", "{ \"disableSkillShellExecution\": true }", "json"]
+  ]);
+
+  // ---------- argument expansion (follows the documented rules) ----------
+  function splitArgs(s){
+    const out = []; let cur = "", q = null, has = false;
+    for(const ch of s){
+      if(q){ if(ch === q) q = null; else cur += ch; continue; }
+      if(ch === '"' || ch === "'"){ q = ch; has = true; continue; }
+      if(/\s/.test(ch)){ if(cur || has){ out.push(cur); cur = ""; has = false; } continue; }
+      cur += ch;
+    }
+    if(cur || has) out.push(cur);
+    return out;
+  }
+  function expand(body, raw, names, skillDir){
+    raw = (raw || "").trim();
+    const args = splitArgs(raw), nm = (names || []).filter(n => /^[A-Za-z_]\w*$/.test(n));
+    // shell placeholders are found in the file as written, so typed arguments can never start a command
+    const shells = [];
+    let t = body.replace(/^```!\n([\s\S]*?)\n```/gm, (m, c) => { shells.push("[output of:\n" + c + "\n]"); return "\u0000" + (shells.length - 1) + "\u0000"; });
+    t = t.replace(/(^|\s)!`([^`\n]+)`/gm, (m, pre, c) => { shells.push("[output of `" + c + "`]"); return pre + "\u0000" + (shells.length - 1) + "\u0000"; });
+    let got = false;
+    const re = new RegExp("(\\\\*)\\$(?:ARGUMENTS\\[(\\d+)\\]|(ARGUMENTS)(?![\\w\\[])|(\\d+)" + (nm.length ? "|(" + nm.join("|") + ")(?!\\w)" : "") + ")", "g");
+    t = t.replace(re, (m, bs, idx, all, num, name) => {
+      if(bs.length === 1) return m.slice(1);   // \$1 is a literal $1
+      const keep = bs, tok = m.slice(bs.length);
+      if(all){ if(raw) got = true; return keep + raw; }
+      const i = idx != null ? +idx : num != null ? +num : -1;
+      if(i >= 0){ if(i < args.length){ got = true; return keep + args[i]; } return m; }
+      got = true; const v = args[nm.indexOf(name)]; return keep + (v == null ? "" : v);
+    });
+    t = t.replace(/\$\{CLAUDE_SKILL_DIR\}/g, skillDir || ".claude/skills/NAME").replace(/\$\{CLAUDE_SESSION_ID\}/g, "[session id]").replace(/\$\{CLAUDE_PROJECT_DIR\}/g, "[project root]").replace(/\$\{CLAUDE_EFFORT\}/g, "[effort level]");
+    t = t.replace(/\u0000(\d+)\u0000/g, (m, n) => shells[+n]);
+    if(raw && !got) t += "\n\nARGUMENTS: " + raw;
+    return {text: t, args, got, shells: shells.length};
+  }
+
+  // YAML scalar that always parses as the string it shows
+  const yv = v => /^[\[\]{}&*!|>'"%@`#,?:-]|:\s|\s#|^\s|\s$|^(true|false|yes|no|on|off|null|~|\d[\d.]*)$/i.test(v) ? JSON.stringify(v) : v;
+  function front(fm){
+    const lines = Object.keys(fm).filter(k => fm[k] !== "" && fm[k] != null && fm[k] !== false).map(k => {
+      const v = fm[k];
+      if(v === true) return k + ": true";
+      if(Array.isArray(v)) return k + ": [" + v.join(", ") + "]";
+      return k + ": " + yv(String(v));
+    });
+    return lines.length ? "---\n" + lines.join("\n") + "\n---\n\n" : "";
+  }
+
+  // ---------- community pack ----------
+  const PK = [
+    {n:"commit", c:"Git", d:"הודעת commit לפי מה שב-stage, ו-commit. הפלט של git diff נכנס לפני ש-Claude קורא, ו-haiku מספיק למשימה.", t:"",
+     fm:{description:"Write a Conventional Commits message for the staged changes and commit", "allowed-tools":"Bash(git commit *) Bash(git status *)", model:"haiku", "disable-model-invocation":true},
+     b:"## Staged changes\n!`git diff --cached --stat`\n!`git diff --cached`\n\nWrite one Conventional Commits message for exactly these staged changes: `type(scope): summary` (max 72 characters), a blank line, then 1-3 lines on why.\nIf nothing is staged, say so and stop. Don't stage anything yourself.\nThen run git commit with that message."},
+    {n:"catchup", c:"Git", d:"חוזרים לפרויקט אחרי כמה ימים: מה השתנה, מה באמצע ומה הצעד הבא. בלי לשנות כלום.", t:"",
+     fm:{description:"Catch me up: recent commits, unfinished work and the likely next step", "allowed-tools":"Read Grep Glob"},
+     b:"## Recent history\n!`git log --oneline -20`\n\n## Not committed yet\n!`git status --short`\n!`git diff --stat`\n\nGive me a short catch-up: what the recent commits did (grouped by theme), what is half-done in the working tree, and the most likely next step. Read files only if the summary needs it. Don't change anything."},
+    {n:"pr-desc", c:"Git", d:"תיאור PR מסודר מול ענף בסיס. ארגומנט בשם: ‎$base.", t:"main",
+     fm:{description:"Write a pull request description for this branch", "argument-hint":"[base-branch]", arguments:["base"]},
+     b:"Write a pull request description for this branch against $base (use main if no base was given).\n\n!`git log --oneline -30`\n\nRead the full change with `git diff <base>...HEAD`. Sections: Summary, Why, How to test, Risks. Plain language, no marketing words. Output only the description."},
+    {n:"fix-issue", c:"קוד", d:"מספר Issue נכנס ל-$issue. ‏Claude קורא אותו עם gh, מתקן ומוסיף בדיקה.", t:"482",
+     fm:{description:"Fix a GitHub issue by number", "argument-hint":"[issue-number]", arguments:["issue"], "allowed-tools":"Bash(gh issue view *)"},
+     b:"Fix GitHub issue #$issue.\n\n1. Read it with `gh issue view $issue` (comments too).\n2. Reproduce the problem or explain why you can't.\n3. Fix the cause, not the symptom, and add a test that fails without the fix.\n4. Run the tests and the linter.\n5. Summarize the cause and the fix in 3 lines."},
+    {n:"explain-file", c:"קוד", d:"הסבר לקובץ ברמה שבוחרים: ‎/explain-file src/auth.ts beginner. שני ארגומנטים בשם.", t:"src/auth/session.ts beginner",
+     fm:{description:"Explain a file for a beginner or an expert", "argument-hint":"[path] [beginner|expert]", arguments:["file","level"], "allowed-tools":"Read Grep Glob"},
+     b:"Explain $file for a $level reader (expert if no level was given).\n\nStart with what it is for in one sentence. Then the main flow with path:line references. End with the 3 things most likely to bite someone who changes it. Read related files as needed. Don't edit anything."},
+    {n:"rename-symbol", c:"קוד", d:"שינוי שם בכל הפרויקט, עם $0 ו-$1 (ספירה מאפס!).", t:"getUser fetchUser",
+     fm:{description:"Rename a symbol everywhere it means the same thing", "argument-hint":"[old-name] [new-name]"},
+     b:"Rename `$0` to `$1` everywhere it means the same thing: code, tests, docs and config.\nSkip strings and comments where the word means something else, and list them for me.\nThen run the type checker and the tests."},
+    {n:"second-opinion", c:"תכנון", d:"דעה שנייה מסוכן Plan נפרד (context: fork). הוא קורא את הקוד בעצמו, והשיחה שלכם נשארת נקייה.", t:"\"move sessions from cookies to JWT\"",
+     fm:{description:"Get an independent review of a plan from a separate agent", "argument-hint":"[plan or question]", context:"fork", agent:"Plan", effort:"high"},
+     b:"You are reviewing a plan you did not write: $ARGUMENTS\n\nRead the relevant code first. Then list: what will break, what is missing, a simpler alternative if there is one, and your verdict in one line (go / change / stop)."},
+    {n:"spec-check", c:"תכנון", d:"בודק את הקוד מול קובץ אפיון: כל דרישה, איפה היא ממומשת, ומה חסר.", t:"docs/spec.md",
+     fm:{description:"Check the implementation against a spec file", "argument-hint":"[spec-file]", "allowed-tools":"Read Grep Glob"},
+     b:"Read the spec in $0.\nFor every requirement in it, find where it is implemented (path:line) or mark it missing or partial.\nOutput a table: requirement | status | where.\nThen the 3 gaps that matter most and how you would close each one. Don't edit anything."},
+    {n:"wrap-up", c:"תכנון", d:"סוף יום: מה עשינו, מה נשאר, ואילו שורות כדאי להוסיף ל-CLAUDE.md.", t:"",
+     fm:{description:"End-of-session summary and CLAUDE.md suggestions", "disable-model-invocation":true},
+     b:"We're ending this session.\n1. Summarize what we did and what is left, in bullets.\n2. List the commands I need to continue tomorrow.\n3. Suggest up to 3 lines for CLAUDE.md that would have saved time today. Show them; don't write the file."},
+    {n:"quick-tests", c:"בדיקות", d:"בדיקות ממוקדות לקובץ, עם sonnet ומאמץ בינוני. אם הקוד שגוי, הוא עוצר ולא \"מתקן\" את הבדיקה.", t:"src/lib/price.ts",
+     fm:{description:"Write focused unit tests for one file", "argument-hint":"[file]", model:"sonnet", effort:"medium"},
+     b:"Write focused unit tests for $0 with the test framework this project already uses.\nCover the main path, the edge cases and one failure case.\nRun them. Fix only the tests, never the code under test. If the code itself looks wrong, stop and tell me what you found."},
+    {n:"todo-scan", c:"תחזוקה", d:"כל ה-TODO וה-FIXME בקוד, מקובצים לפי נושא ודחיפות.", t:"",
+     fm:{description:"Group the TODO and FIXME comments by area and urgency", "allowed-tools":"Read Grep Glob"},
+     b:"## TODO / FIXME in the code\n!`git grep -n -E \"TODO|FIXME|HACK|XXX\" -- . | head -80`\n\nGroup these by area and urgency. For each group: one line on what it is and whether it is still relevant (check the code). End with the 5 worth doing first."},
+    {n:"env-check", c:"תחזוקה", d:"בלוק ‎```! מריץ כמה פקודות, ו-Claude משווה את הגרסאות למה שהפרויקט דורש.", t:"",
+     fm:{description:"Check this machine has what the project needs"},
+     b:"## This machine\n```!\nnode --version 2>/dev/null || echo \"node: missing\"\npython3 --version 2>/dev/null || echo \"python3: missing\"\ngit --version\n```\n\nCompare these versions with what the project asks for (package.json engines, .nvmrc, .tool-versions, pyproject.toml). List anything missing or mismatched with the exact command that fixes it."},
+    {n:"deps-why", c:"תחזוקה", d:"למה החבילה הזו בפרויקט, מי משתמש בה, ואפשר להסיר או לעדכן אותה.", t:"lodash",
+     fm:{description:"Explain why a dependency is in the project", "argument-hint":"[package]", "allowed-tools":"Read Grep Glob Bash(npm explain *) Bash(npm ls *)"},
+     b:"Why is $0 in this project?\nRun `npm explain $0` (or the same for this project's package manager) and find where the code imports it.\nTell me: who needs it, whether it is still used, and whether it is safe to remove or upgrade."},
+    {n:"he-explain", c:"עברית וישראל", d:"מסביר את השינוי האחרון בעברית למי שלא קורא קוד: מנהל מוצר או לקוח.", t:"",
+     fm:{description:"Explain the current change in Hebrew for a non-developer", "allowed-tools":"Read Grep Glob"},
+     b:"## The change\n!`git diff HEAD --stat`\n!`git diff HEAD`\n\nExplain this change in Hebrew for someone who doesn't read code (a product manager or a client): what changed for the user, why, and what they should check. Short paragraphs, no code. Keep technical names in English where needed."},
+    {n:"rtl-audit", c:"עברית וישראל", d:"סריקת RTL: מאפייני CSS פיזיים, מחלקות Tailwind, חצים שצריך להפוך, וטקסט מעורב.", t:"src/components",
+     fm:{description:"Find and fix right-to-left (Hebrew) layout problems", "argument-hint":"[path]"},
+     b:"Audit $ARGUMENTS for right-to-left (Hebrew) problems:\n- physical CSS (margin-left, padding-right, left:, text-align: left, float, border-left) that should be logical (margin-inline-start, inset-inline-start, text-align: start…)\n- Tailwind ml-/mr-/pl-/pr-/left-/right-/text-left classes that should be ms-/me-/ps-/pe-/start-/end-/text-start\n- icons and arrows that must flip in RTL (rtl:-scale-x-100)\n- missing dir=\"rtl\" and lang=\"he\" on the root\n- mixed Hebrew with numbers or English that needs <bdi> or dir=\"auto\"\nFix them, then list what you changed, file by file."},
+    {n:"il-format", c:"עברית וישראל", d:"מוסיף לפרויקט פורמטים ישראליים: תאריך, תאריך עברי, ₪, מע\"מ, טלפון ות\"ז, עם בדיקות.", t:"use the existing utils folder",
+     fm:{description:"Add Israeli date, money, VAT, phone and ID helpers with tests"},
+     b:"Add Israeli formatting to this project in one helper module (reuse an existing utils folder if there is one):\n- dates as dd.mm.yyyy with Intl \"he-IL\", and a Hebrew-calendar date with \"he-IL-u-ca-hebrew\"\n- money in ₪ with Intl currency \"ILS\"\n- VAT as one config constant (18%), with net/VAT/gross rounded to agorot\n- phone numbers normalized to E.164 (+972…) and validated\n- Israeli ID numbers validated with the check digit\nAdd unit tests for each. Extra instructions: $ARGUMENTS"}
+  ];
+  const pkFile = p => front(p.fm) + p.b + "\n";
+  const sel = new Set(PK.map(p => p.n));
+  function pack(){
+    const q = $("#slQ").value.trim().toLowerCase();
+    const list = PK.filter(p => !q || (p.n + " " + p.c + " " + p.d + " " + p.b).toLowerCase().includes(q));
+    $("#slPack").innerHTML = list.map(p => '<details class="agStage"><summary><label class="tick" style="display:inline-flex"><input type="checkbox" data-pk="' + p.n + '"' + (sel.has(p.n) ? " checked" : "") + ' aria-label="לכלול את ‎/' + p.n + '"></label> <span class="pill">' + esc(p.c) + '</span> <b class="ltr">/' + esc(p.n) + '</b> <span class="hint">' + esc(p.d) + '</span></summary><div class="agBody">' + code("markdown", pkFile(p), ".claude/commands/" + p.n + ".md") + '<div class="row"><button class="btn sm" type="button" data-pkt="' + p.n + '">לנסות בסימולטור</button></div></div></details>').join("");
+    $$("#slPack .code").forEach(decorate);
+    $("#slCount").textContent = sel.size + " מתוך " + PK.length + " מסומנות";
+    script();
+  }
+  function script(){
+    const chosen = PK.filter(p => sel.has(p.n));
+    const sh = "#!/usr/bin/env bash\n# Installs " + chosen.length + " community slash commands into .claude/commands/ (skips files that already exist)\nset -euo pipefail\nmkdir -p .claude/commands\nput(){ if [ -e \"$1\" ]; then echo \"skip  $1 (exists)\"; cat >/dev/null; else cat > \"$1\"; echo \"added $1\"; fi; }\n" +
+      chosen.map(p => "\nput .claude/commands/" + p.n + ".md <<'CLAUDE_CMD_EOF'\n" + pkFile(p) + "CLAUDE_CMD_EOF").join("\n") +
+      "\n\necho \"Done. In Claude Code, type / to see them.\"\n";
+    setCode("#slScript", sh);
+    return sh;
+  }
+  // the checkbox sits inside <summary>: stop the click from toggling the details
+  $("#slPack").addEventListener("click", e => {
+    if(e.target.matches("input[data-pk]")){ e.stopPropagation(); return; }
+    if(e.target.closest("label.tick")){ e.preventDefault(); const i = e.target.closest("label.tick").querySelector("input"); i.checked = !i.checked; i.dispatchEvent(new Event("change", {bubbles: true})); return; }
+    const t = e.target.closest("[data-pkt]"); if(!t) return;
+    loadTpl(PK.find(p => p.n === t.dataset.pkt)); $("#slTpl").value = t.dataset.pkt; $("#slForm").scrollIntoView({block: "start"}); award("sl-try", 5);
+  });
+  $("#slPack").addEventListener("change", e => { const i = e.target.closest("input[data-pk]"); if(!i) return; i.checked ? sel.add(i.dataset.pk) : sel.delete(i.dataset.pk); $("#slCount").textContent = sel.size + " מתוך " + PK.length + " מסומנות"; script(); });
+  $("#slQ").addEventListener("input", pack);
+  $("#slAll").onclick = () => { PK.forEach(p => sel.add(p.n)); pack(); };
+  $("#slNone").onclick = () => { sel.clear(); pack(); };
+  $("#slDlAll").onclick = () => { saveFile("install-community-commands.sh", script()); markDone("slashlab"); award("sl-pack", 15, "חבילת פקודות"); };
+
+  // ---------- builder ----------
+  const RESERVED = ["help","clear","compact","config","context","model","memory","permissions","status","resume","rewind","export","agents","mcp","hooks","plugin","init","login","logout","doctor","review","plan","diff","copy","effort","fast","skills","usage","cost","stats","tasks","rename","branch","fork","btw","goal","schedule","teleport","ide","sandbox","statusline","terminal-setup","add-dir","release-notes","security-review","code-review","bug","feedback","output-style","import","insights","background","theme","vim","exit","quit"];
+  const BUILD_DEFAULT = {n:"fix-issue", fm:{description:"Fix a GitHub issue by number", "argument-hint":"[issue-number] [branch]", arguments:["issue","branch"], "allowed-tools":"Bash(gh issue view *) Bash(git checkout *)", "disable-model-invocation":true}, b:$("#slBody").value, t:"482 \"fix/login timeout\""};
+  $("#slTpl").innerHTML = '<option value="">הדוגמה: fix-issue עם שני ארגומנטים</option>' + PK.map(p => '<option value="' + p.n + '">/' + p.n + '</option>').join("");
+  function loadTpl(p){
+    p = p || BUILD_DEFAULT; const f = p.fm;
+    $("#slName").value = p.n; $("#slDesc").value = f.description || ""; $("#slHint").value = f["argument-hint"] || "";
+    $("#slArgs").value = (f.arguments || []).join(" "); $("#slTools").value = f["allowed-tools"] || "";
+    $("#slModel").value = f.model || ""; $("#slEffort").value = f.effort || "";
+    $("#slManual").checked = !!f["disable-model-invocation"]; $("#slFork").checked = f.context === "fork";
+    $("#slBody").value = p.b; $("#slTry").value = "/" + p.n + (p.t ? " " + p.t : "");
+    build();
+  }
+  $("#slTpl").addEventListener("change", e => loadTpl(PK.find(p => p.n === e.target.value)));
+  function lint(name, fm, body, names){
+    const L = [];
+    if(!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(name)) L.push(["bad", /[֐-׿]/.test(name) ? "שם בעברית: שמות פקודות כותבים באנגלית. טקסט שמועתק מעברית מכניס לפעמים תווי כיוון נסתרים, ו-Claude Code דוחה שמות כאלה." : "שם הפקודה: רק אותיות קטנות באנגלית, ספרות ומקפים (בלי רווחים, < או >)."]);
+    if(RESERVED.includes(name)) L.push(["bad", "/" + name + " היא פקודה מובנית. השם שמור והקובץ שלכם לא ייטען: בחרו שם אחר."]);
+    if(!fm.description) L.push(["warn", "אין description: ‏Claude לא יידע מתי הפקודה רלוונטית, ובתפריט תופיע השורה הראשונה של הגוף."]);
+    if((fm.description || "").length > 1536) L.push(["warn", "התיאור ארוך מ-1,536 תווים ויקוצץ ברשימת הפקודות."]);
+    const nums = [...body.matchAll(/(?<!\\)\$(\d+)/g)].map(m => +m[1]);
+    if(nums.length && !nums.includes(0) && !/\$ARGUMENTS\[0\]/.test(body)) L.push(["warn", "יש ‎$" + Math.min(...nums) + " בלי $0. הספירה מתחילה מאפס: $0 הוא הארגומנט הראשון."]);
+    names.forEach(n => { if(!/^[A-Za-z_]\w*$/.test(n)) L.push(["bad", "שם ארגומנט \"" + n + "\": רק אותיות, ספרות וקו תחתון."]); else if(!new RegExp("\\$" + n + "(?!\\w)").test(body)) L.push(["warn", "הארגומנט $" + n + " הוגדר אבל לא מופיע בגוף."]); });
+    if((nums.length || names.length) && !fm["argument-hint"]) L.push(["tip", "הוסיפו argument-hint כדי שבהשלמה האוטומטית יופיע מה להקליד."]);
+    if(/(^|\s)!`[^`]*\$/m.test(body)) L.push(["warn", "יש $ בתוך פקודת !. עדיף לכתוב ל-Claude \"run `...`\" עם הארגומנט, ולהשאיר ב-! רק פקודות קבועות."]);
+    if(/deploy|release|publish|prod|migrate|drop|delete|rollback/.test(name) && !fm["disable-model-invocation"]) L.push(["bad", "פקודה שמשנה סביבה אמיתית: סמנו \"רק אני מפעיל\", כדי ש-Claude לא יפעיל אותה לבד."]);
+    if(/(^|\s)Bash(\s|$)/.test(fm["allowed-tools"] || "")) L.push(["warn", "‏Bash בלי סוגריים מאשר כל פקודת shell. צמצמו, למשל Bash(git commit *)."]);
+    if(fm.context === "fork") L.push(["tip", "בסוכן נפרד אין את היסטוריית השיחה: הגוף צריך להיות משימה שלמה שעומדת בפני עצמה."]);
+    if(fm.model === "haiku" && /^(high|xhigh|max)$/.test(fm.effort || "")) L.push(["tip", "‏haiku עם מאמץ גבוה: למשימה קשה עדיף מודל חזק יותר."]);
+    if(!L.length) L.push(["ok", "הפקודה נראית תקינה."]);
+    return L;
+  }
+  function build(){
+    const name = $("#slName").value.trim(), kind = $("#slKind").value, scope = $("#slScope").value;
+    const names = $("#slArgs").value.trim() ? $("#slArgs").value.trim().split(/[\s,]+/) : [];
+    const fm = {};
+    if(kind === "skill") fm.name = name;
+    fm.description = $("#slDesc").value.trim(); fm["argument-hint"] = $("#slHint").value.trim();
+    if(names.length) fm.arguments = names;
+    fm["allowed-tools"] = $("#slTools").value.trim(); fm.model = $("#slModel").value; fm.effort = $("#slEffort").value;
+    fm["disable-model-invocation"] = $("#slManual").checked;
+    if($("#slFork").checked) fm.context = "fork";
+    const body = $("#slBody").value;
+    const base = scope === "user" ? "~/.claude/" : ".claude/";
+    const path = kind === "skill" ? base + "skills/" + (name || "NAME") + "/SKILL.md" : base + "commands/" + (name || "NAME") + ".md";
+    const file = front(fm) + body.replace(/\s*$/, "\n");
+    $("#slOut").dataset.file = path; setCode("#slOut", file);
+    const L = lint(name, fm, body, names);
+    $("#slLint").innerHTML = L.map(x => '<p class="hint" data-sev="' + x[0] + '">' + ({bad: "⛔ ", warn: "⚠️ ", tip: "💡 ", ok: "✓ "}[x[0]]) + esc(x[1]) + '</p>').join("");
+    // simulator
+    let typed = $("#slTry").value.trim(), note = "";
+    const m = typed.match(/^\/(\S+)\s*([\s\S]*)$/);
+    if(m){ if(m[1] !== name) note = "שימו לב: הקלדתם ‎/" + m[1] + " והפקודה נקראת ‎/" + name + ". הסימולטור מריץ אותה בכל זאת."; typed = m[2]; }
+    const r = expand(body, typed, names, (scope === "user" ? "~/.claude/skills/" : ".claude/skills/") + name);
+    setCode("#slSim", r.text);
+    $("#slSimNote").textContent = (note ? note + " " : "") + "ארגומנטים: " + (r.args.length ? r.args.map((a, i) => "$" + i + "=" + a).join("  ") : "אין") + (r.shells ? " · " + r.shells + " פקודות ! ירוצו לפני השליחה" : "") + (!r.got && typed.trim() ? " · אף placeholder לא קיבל ארגומנט, אז נוספה שורת ARGUMENTS:" : "");
+    return {path, file, lint: L, sim: r};
+  }
+  $("#slForm").addEventListener("input", build); $("#slForm").addEventListener("change", e => { if(e.target.id !== "slTpl") build(); });
+  $("#slTry").addEventListener("input", build);
+  $("#slDl").onclick = () => { const r = build(); saveFile(r.path.split("/").pop(), r.file); award("sl-build", 10, "בונה פקודות"); };
+  pack(); build();
+  window.__sl = {expand, splitArgs, front, PK, pkFile, build, script, lint};
+
+  // ================= Israel =================
+  cards("#ilHebrew", [
+    ["‏Claude עונה בעברית כברירת מחדל", "ההגדרה language ב-settings.json גורמת ל-Claude לענות תמיד בשפה הזו, וגם לתת לסשנים כותרות בה. כותבים את שם השפה, ו-Claude Code מעביר אותו כמו שהוא.", "{ \"language\": \"hebrew\" }", "json"],
+    ["עברית הפוכה בטרמינל?", "רוב הטרמינלים לא מציגים נכון טקסט מימין לשמאל, אז שורה בעברית נראית הפוכה או מבולגנת. ‏Claude מקבל את הטקסט הנכון, הבעיה היא רק בתצוגה. כדי לכתוב פרומפט ארוך, Ctrl+G פותח אותו בעורך שלכם. התוסף ל-VS Code, האפליקציה לשולחן העבודה והגרסה בדפדפן מציגים עברית טוב יותר.", "export EDITOR=\"code --wait\"   # Ctrl+G opens the prompt in VS Code"],
+    ["מדברים בעברית, הקוד באנגלית", "כתבו ב-CLAUDE.md שהשיחה בעברית, ושמות משתנים, הערות בקוד והודעות commit באנגלית. כך הקוד נשאר קריא לכל מפתח וכל כלי.", "- Talk to me in Hebrew.\n- Code, identifiers, code comments and commit messages in English.", "markdown"],
+    ["מונחים טכניים באנגלית בתוך המשפט", "\"תתקן את ה-race condition ב-useEffect של הטופס\" מדויק יותר מתרגום של כל מונח. ‏Claude מבין עברית מצוין, והמונח המקורי מונע אי-הבנות."],
+    ["הוראות ארוכות: באנגלית", "בדרך כלל עברית תופסת יותר טוקנים מאותו טקסט באנגלית. ‏CLAUDE.md, ‏Skills ופקודות נטענים שוב ושוב, ולכן כדאי לכתוב אותם באנגלית ולבקש תשובות בעברית. ככה נשאר יותר מקום בחלון ההקשר."],
+    ["שמות פקודות, ענפים וקבצים באנגלית", "‏git, ‏CI וכלי shell מסתבכים עם שמות בעברית. בנוסף, טקסט שמועתק מעברית מכניס לפעמים תווי כיוון נסתרים (כמו RLM), ו-Claude Code דוחה שם פקודה שיש בו תו כזה. בקשו מ-Claude ליצור slug באנגלית."],
+    ["טקסט מעורב בממשק", "שם משתמש באנגלית בתוך משפט בעברית, או מספר טלפון עם מקפים, יכולים להתהפך. ‏<bdi> לשם שמגיע מהמשתמש, ‏dir=\"auto\" לשדות קלט, ו-unicode-bidi: plaintext לתוכן חופשי.", "<p>שלום <bdi>{user.name}</bdi>, יש לך 3 הודעות</p>\n<input dir=\"auto\" name=\"search\">", "html"],
+    ["בקשו מ-Claude לבדוק RTL בדפדפן", "עם Playwright MCP ‏Claude פותח את הדף, מצלם אותו בעברית ובאנגלית ומשווה. בקשה אחת תופסת חצים לא הפוכים, טקסט שנחתך ותפריטים שנפתחים לכיוון הלא נכון.", "claude mcp add playwright npx @playwright/mcp@latest\n# then: \"open localhost:3000 with dir=rtl and dir=ltr, screenshot both and list layout differences\""]
+  ]);
+
+  // ---------- RTL checker ----------
+  function rtlAudit(src, from){
+    const S = from === "rtl" ? "end" : "start", E = from === "rtl" ? "start" : "end";
+    const side = w => /^(left|l)$/.test(w) ? S : E, sh = w => side(w)[0];
+    const corner = (v, h) => (v === "top" ? "start" : "end") + "-" + side(h);
+    const tw = (v, h) => (v === "t" ? "s" : "e") + sh(h);
+    const R = [
+      [/\bborder-(top|bottom)-(left|right)-radius\b/g, (m, v, h) => "border-" + corner(v, h) + "-radius"],
+      [/\b(margin|padding|border|scroll-margin|scroll-padding)-(left|right)\b/g, (m, p, h) => p + "-inline-" + side(h)],
+      [/(^|[\s{;])(left|right)(\s*:)/g, (m, a, h, c) => a + "inset-inline-" + side(h) + c],
+      [/\b(text-align|float|clear)(\s*:\s*)(left|right)\b/g, (m, p, c, h) => p + c + (p === "text-align" ? "" : "inline-") + side(h)],
+      [/(^|[\s"'`:])(-?)(m|p|scroll-m|scroll-p)([lr])-(?=[\w\[.])/g, (m, a, n, p, h) => a + n + p + sh(h) + "-"],
+      [/(^|[\s"'`:])(-?)(left|right)-(?=[\w\[.])/g, (m, a, n, h) => a + n + side(h) + "-"],
+      [/(^|[\s"'`:])text-(left|right)(?![\w-])/g, (m, a, h) => a + "text-" + side(h)],
+      [/(^|[\s"'`:])rounded-([tb])([lr])(?=[-\s"'`]|$)/g, (m, a, v, h) => a + "rounded-" + tw(v, h)],
+      [/(^|[\s"'`:])(rounded|border)-([lr])(?=[-\s"'`]|$)/g, (m, a, p, h) => a + p + "-" + sh(h)]
+    ];
+    const issues = [], notes = [];
+    const out = src.split("\n").map((line, i) => {
+      let l = line;
+      R.forEach(([re, fn]) => { l = l.replace(re, (...a) => { const to = fn(...a); issues.push([i + 1, a[0].trim(), to.trim()]); return to; }); });
+      const sh4 = l.match(/\b(margin|padding)\s*:\s*([^\s;}]+)\s+([^\s;}]+)\s+([^\s;}]+)\s+([^\s;}]+)\s*(?=[;}]|$)/);
+      if(sh4 && sh4[3] !== sh4[5]){ const [all, p, t, r, b, lf] = sh4; const st = from === "rtl" ? r : lf, en = from === "rtl" ? lf : r; const to = p + "-block: " + t + " " + b + "; " + p + "-inline: " + st + " " + en; l = l.replace(all, to); issues.push([i + 1, all.trim(), to]); }
+      if(/\bdirection\s*:\s*(rtl|ltr)/.test(l)) notes.push([i + 1, "direction ב-CSS: עדיף dir=\"rtl\" על <html>, כי הוא משפיע גם על סדר הטקסט ועל קוראי מסך."]);
+      if(/translateX\(|background-position\s*:[^;]*(left|right)/.test(l)) notes.push([i + 1, "תזוזה או מיקום אופקי: בדקו שהכיוון מתהפך ב-RTL (למשל rtl:-translate-x-full)."]);
+      if(/(arrow|chevron|caret)-(left|right)|→|←/i.test(l)) notes.push([i + 1, "חץ או אייקון כיווני: צריך להפוך ב-RTL (rtl:-scale-x-100, או transform: scaleX(-1) תחת [dir=rtl])."]);
+      return l;
+    }).join("\n");
+    if(/<html\b(?![^>]*\bdir=)/i.test(src)) notes.push([0, "ל-<html> אין dir. הוסיפו dir=\"rtl\" lang=\"he\"."]);
+    return {out, issues, notes};
+  }
+  function rtl(){
+    const from = (document.querySelector('input[name="rtlFrom"]:checked') || {}).value || "ltr";
+    const r = rtlAudit($("#rtlIn").value, from);
+    $("#rtlIssues").innerHTML = '<p><b>' + (r.issues.length ? r.issues.length + " תיקונים" : "לא נמצאו מאפיינים פיזיים") + '</b>' + (r.notes.length ? " · " + r.notes.length + " הערות לבדיקה ידנית" : "") + '</p><ul class="hint">' +
+      r.issues.slice(0, 40).map(x => '<li>שורה ' + x[0] + ': <code class="ltr">' + esc(x[1]) + '</code> ← <code class="ltr">' + esc(x[2]) + '</code></li>').join("") +
+      r.notes.map(x => '<li>' + (x[0] ? "שורה " + x[0] + ": " : "") + esc(x[1]) + '</li>').join("") + '</ul>';
+    setCode("#rtlOut", r.out);
+    return r;
+  }
+  $("#rtlIn").closest(".form").insertAdjacentHTML("afterbegin", '<div class="row" role="radiogroup" aria-label="לאיזה כיוון נכתב הקוד"><span class="hint">הקוד נכתב בשביל:</span> <label class="tick"><input type="radio" name="rtlFrom" value="ltr" checked> אנגלית (LTR)</label> <label class="tick"><input type="radio" name="rtlFrom" value="rtl"> עברית (RTL)</label></div>');
+  $("#rtlIn").addEventListener("input", () => { if(rtl().issues.length) award("rtl", 10, "בודק RTL"); });
+  $$('input[name="rtlFrom"]').forEach(x => x.addEventListener("change", rtl));
+  $("#rtlCopy").onclick = e => copyText($("#rtlOut pre"), e.target);
+  rtl();
+
+  // ---------- Israeli formats: these exact functions become il-format.js ----------
+  const VAT_RATE = 0.18;   // Israel VAT since 1 January 2025. Keep it in one place.
+  function formatDateIL(date){
+    return new Intl.DateTimeFormat("he-IL", {day: "2-digit", month: "2-digit", year: "numeric"}).format(date);
+  }
+  function formatDateLongIL(date){
+    return new Intl.DateTimeFormat("he-IL", {dateStyle: "full"}).format(date);
+  }
+  function hebrewDate(date){
+    // explicit fields: some browser builds don't support dateStyle with the Hebrew calendar
+    return new Intl.DateTimeFormat("he-IL-u-ca-hebrew", {day: "numeric", month: "long", year: "numeric"}).format(date);   // 10 בתשרי 5787
+  }
+  function formatILS(amount){
+    return new Intl.NumberFormat("he-IL", {style: "currency", currency: "ILS"}).format(amount);
+  }
+  function withVat(net, rate = VAT_RATE){
+    const cents = Math.round(net * 100), vat = Math.round(cents * rate);
+    return {net: cents / 100, vat: vat / 100, gross: (cents + vat) / 100};
+  }
+  function netFromGross(gross, rate = VAT_RATE){
+    const net = Math.round(gross * 100 / (1 + rate));
+    return {net: net / 100, vat: Math.round(gross * 100 - net) / 100, gross};
+  }
+  function isValidIsraeliId(id){
+    const s = String(id).trim();
+    if(!/^\d{5,9}$/.test(s) || /^0+$/.test(s)) return false;
+    const d = s.padStart(9, "0");
+    let sum = 0;
+    for(let i = 0; i < 9; i++){ const x = Number(d[i]) * (i % 2 + 1); sum += x > 9 ? x - 9 : x; }
+    return sum % 10 === 0;
+  }
+  function normalizeILPhone(input){
+    let d = String(input).replace(/[^\d+]/g, "");
+    if(d.startsWith("+972")) d = "0" + d.slice(4);
+    else if(d.startsWith("00972")) d = "0" + d.slice(5);
+    else if(d.startsWith("972")) d = "0" + d.slice(3);
+    if(d.startsWith("00")) d = d.slice(1);   // +972 (0)54…
+    let type = null;
+    if(/^05\d{8}$/.test(d)) type = "mobile";
+    else if(/^07\d{8}$/.test(d)) type = "voip";
+    else if(/^0[23489]\d{7}$/.test(d)) type = "landline";
+    if(!type) return null;
+    return {type, e164: "+972" + d.slice(1), local: d.length === 10 ? d.slice(0, 3) + "-" + d.slice(3) : d.slice(0, 2) + "-" + d.slice(2)};
+  }
+  const IL_FNS = [formatDateIL, formatDateLongIL, hebrewDate, formatILS, withVat, netFromGross, isValidIsraeliId, normalizeILPhone];
+  const IL_SRC = "// Israeli formatting helpers. No dependencies: Intl is built into browsers and Node.\n// Generated by Claude Code Academy; every function here is the one that runs on the course page.\n\nexport const VAT_RATE = 0.18;   // Israel VAT since 1 January 2025. Keep it in one place.\n\n" +
+    IL_FNS.map(f => "export " + f.toString().replace(/\n {2}/g, "\n")).join("\n\n") + "\n";
+  setCode("#ilSrc", IL_SRC);
+  function il(){
+    const ds = $("#ilDate").value, d = ds ? new Date(ds + "T12:00:00") : new Date();
+    const price = parseFloat($("#ilPrice").value) || 0, v = withVat(price);
+    const idOk = isValidIsraeliId($("#ilId").value), ph = normalizeILPhone($("#ilPhone").value);
+    const day = d.getDay(), weekend = day === 5 || day === 6;
+    const rows = [
+      ["תאריך", formatDateIL(d) + " · " + formatDateLongIL(d)],
+      ["תאריך עברי", hebrewDate(d)],
+      ["יום עסקים?", weekend ? "לא: " + (day === 5 ? "שישי" : "שבת") : "ראשון עד חמישי: כן, אם זה לא חג (לחגים ראו את הקוד למטה)"],
+      ["מחיר", formatILS(v.net) + " + מע\"מ " + formatILS(v.vat) + " = " + formatILS(v.gross)],
+      ["תעודת זהות", idOk ? "✓ תקינה (ספרת הביקורת מתאימה)" : "✗ לא תקינה"],
+      ["טלפון", ph ? "✓ " + {mobile: "נייד", landline: "קווי", voip: "07 (VoIP)"}[ph.type] + " · " + ph.local + " · " + ph.e164 : "✗ לא מספר ישראלי תקין"]
+    ];
+    $("#ilOut").innerHTML = rows.map(r => '<div class="trick"><h3>' + esc(r[0]) + '</h3><p data-il="' + esc(r[0]) + '">' + esc(r[1]) + '</p></div>').join("");
+    return rows;
+  }
+  $("#ilForm").addEventListener("input", il); il();
+  $("#ilDl").onclick = () => { saveFile("il-format.js", IL_SRC); markDone("israel"); award("il-dl", 15, "פורמטים ישראליים"); };
+  window.__il = {VAT_RATE, formatDateIL, hebrewDate, formatILS, withVat, netFromGross, isValidIsraeliId, normalizeILPhone, IL_SRC, rtlAudit, rtl, il};
+
+  setCode("#ilBiz", "// npm i @hebcal/core\nimport {HebrewCalendar, HDate, flags} from \"@hebcal/core\";\n\n// Israeli business day: Sunday to Thursday, and not a holiday (yom tov) in Israel\nexport function isBusinessDay(date) {\n  const day = date.getDay();                 // 0 = Sunday … 6 = Saturday\n  if (day === 5 || day === 6) return false;   // Friday, Saturday\n  const events = HebrewCalendar.getHolidaysOnDate(new HDate(date), true) || [];  // true = Israel schedule\n  return !events.some(e => e.getFlags() & flags.CHAG);\n}\n\nexport function addBusinessDays(date, n) {\n  const d = new Date(date);\n  while (n > 0) { d.setDate(d.getDate() + 1); if (isBusinessDay(d)) n--; }\n  return d;\n}\n\n// isBusinessDay(new Date(2026, 8, 21))      → false (Yom Kippur)\n// addBusinessDays(new Date(2026, 8, 20), 1) → Tue Sep 22 2026\n");
+
+  $("#ilPkgs").innerHTML = [
+    ["@hebcal/core", "JavaScript", "לוח השנה העברי: חגים לפי לוח ישראל או חו\"ל, תאריך עברי בגימטריה, זמני שבת ופרשת שבוע.", "npm i @hebcal/core\n\nimport {HDate} from \"@hebcal/core\";\nnew HDate(new Date()).renderGematriya();   // e.g. ח׳ כִּסְלֵו תשפ״ז"],
+    ["hebrew-transliteration", "JavaScript", "תעתיק של עברית ללטינית לפי כללים אקדמיים. עובד הכי טוב עם טקסט מנוקד.", "npm i hebrew-transliteration\n\nimport {transliterate} from \"hebrew-transliteration\";\ntransliterate(\"שָׁלוֹם\");   // šālôm"],
+    ["rtlcss", "CSS", "הופך גיליון סגנונות שלם משמאל-לימין לימין-לשמאל בזמן build (גם כ-PostCSS plugin). טוב לתבנית קיימת שאי אפשר לשכתב.", "npm i -D rtlcss\n\nnpx rtlcss style.css style.rtl.css"],
+    ["stylis-plugin-rtl", "React", "‏RTL לספריות CSS-in-JS כמו MUI ו-Emotion: הופך את הסגנונות בזמן ריצה.", "npm i stylis-plugin-rtl\n\nconst cache = createCache({ key: \"muirtl\", stylisPlugins: [prefixer, rtlPlugin] });"],
+    ["Tailwind (מובנה)", "CSS", "לא צריך תוסף: מגרסה 3.3 יש מחלקות לוגיות (ms-, ‏me-, ‏ps-, ‏pe-, ‏start-, ‏end-, ‏text-start) ווריאנטים rtl: ו-ltr:.", "<div class=\"ms-4 text-start rtl:space-x-reverse\">\n  <svg class=\"rtl:-scale-x-100\">…</svg>   <!-- arrow flips in Hebrew -->\n</div>"],
+    ["pyluach", "Python", "תאריכים עבריים וחגים ב-Python, כולל לוח ישראל.", "pip install pyluach\n\nfrom pyluach import dates\nh = dates.HebrewDate.from_pydate(datetime.date(2026, 9, 21))\nh.hebrew_date_string(), h.festival(israel=True, hebrew=True)   # ('י׳ תשרי תשפ״ז', 'יום כיפור')"],
+    ["hdate", "Python", "תאריך עברי, חגים וזמני היום (זמנים) לפי מיקום.", "pip install hdate"],
+    ["גופנים עבריים", "עיצוב", "‏Heebo, ‏Assistant, ‏Rubik, ‏Noto Sans Hebrew ו-Frank Ruhl Libre זמינים ב-Google Fonts עם תמיכה מלאה בעברית.", "<link href=\"https://fonts.googleapis.com/css2?family=Heebo:wght@400;700&display=swap\" rel=\"stylesheet\">\n\nbody { font-family: \"Heebo\", system-ui, sans-serif; }"],
+    ["data.gov.il", "נתונים", "פורטל הנתונים הממשלתי. ה-API שלו בתקן CKAN: מחפשים מאגר, ואז שולפים רשומות לפי resource_id.", "curl \"https://data.gov.il/api/3/action/package_search?q=<topic>&rows=5\"\ncurl \"https://data.gov.il/api/3/action/datastore_search?resource_id=<id>&limit=10\""],
+    ["תעודת זהות ובדיקת ספרת ביקורת", "בלי חבילה", "לא צריך תלות: isValidIsraeliId בקובץ il-format.js למעלה היא 10 שורות, ובדיקות הקורס מריצות אותה."]
+  ].map(p => '<div class="trick"><span class="pill">' + esc(p[1]) + '</span><h3 class="ltr">' + esc(p[0]) + '</h3><p>' + esc(p[2]) + '</p>' + (p[3] ? code(/^pip|from /.test(p[3]) ? "python" : /^<|^npm i stylis/.test(p[3]) ? "html" : "bash", p[3]) : "") + '</div>').join("");
+  $$("#ilPkgs .code").forEach(decorate);
+
+  setCode("#ilClaude", "# Project conventions (Israel)\n\n## Language\n- Talk to me in Hebrew. Code, identifiers, code comments and commit messages in English.\n- Branch names, file names and command names: English slugs only.\n\n## Right-to-left UI\n- Root: <html dir=\"rtl\" lang=\"he\">. Never hard-code `direction` in CSS.\n- Logical CSS only: margin-inline-start, padding-inline-end, inset-inline-start, text-align: start.\n- Tailwind: ms-/me-/ps-/pe-/start-/end-/text-start. Directional icons get rtl:-scale-x-100.\n- User-provided names inside Hebrew text go in <bdi>. Free-text inputs get dir=\"auto\".\n\n## Israeli formats (src/lib/il-format.js)\n- Dates: formatDateIL (dd.mm.yyyy, he-IL). Hebrew date: hebrewDate.\n- Money: formatILS. VAT: VAT_RATE is the only place the rate lives (18%).\n- Phones are stored as E.164 (+972…) via normalizeILPhone. IDs are checked with isValidIsraeliId.\n- Business days are Sunday to Thursday, minus Israeli holidays (src/lib/business-days.js).\n\n## Before you say done\n- Check the screen in both dir=rtl and dir=ltr.\n");
+  setCode("#ilSettings", JSON.stringify({language: "hebrew", permissions: {allow: ["Bash(npm run test *)", "Bash(npm run lint)"]}}, null, 2));
+  setCode("#ilCmd", pkFile(PK.find(p => p.n === "he-explain")));
+})();
+
+Object.keys(TRACKS).forEach(k => ["slashlab","israel"].forEach(id => { if(!TRACKS[k].m.includes(id)) TRACKS[k].m.push(id); }));
+BADGES.push(["slasher","⌨️","אמני הסלאש","השלמתם את פרק פקודות הסלאש", () => !!state.done.slashlab]);
+BADGES.push(["israeli","🇮🇱","מפתחים ישראלים","השלמתם את הפרק המיוחד לישראל", () => !!state.done.israel]);
 checkBadges(true);
 
 renderStats();

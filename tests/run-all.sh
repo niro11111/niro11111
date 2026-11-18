@@ -7,7 +7,7 @@ cd "$(dirname "$0")/.."
 fail=0
 run(){ local name=$1; shift; local out; out=$("$@" 2>&1); local code=$?
   if [ $code -ne 0 ] || grep -qE '^FAIL|errors \[[^]]' <<<"$out"; then echo "✗ $name"; grep -E '^FAIL|errors \[' <<<"$out" | head -5; fail=1; else echo "✓ $name"; fi; }
-run "complete the whole course (73 chapters, exam, simulator commands)" node tests/e2e-complete-course.js
+run "complete the whole course (75 chapters, exam, simulator commands)" node tests/e2e-complete-course.js
 run "two-device sync"                     node tests/e2e-sync-full.js
 run "installable web app (PWA)"           node tests/e2e-pwa.js
 run "expert pack install + validation"    node tests/validate-pack.js
@@ -27,6 +27,7 @@ run "Make chapter + real hook run"     node tests/e2e-make.js
 run "Make.com section (6 chapters)"     node tests/e2e-make-section.js
 run "search everything, cheat sheet, cards" node tests/e2e-v10.js
 run "packages & GitHub section"         node tests/e2e-packages.js
+run "slash commands & Israel chapters"   node tests/e2e-slash-israel.js
 run "XSS attack on every input"        node tests/xss-fuzz.js
 run "accessibility audit (axe-core)"   node tests/a11y-axe.js
 run "monkey: 3000 random actions"      bash -c "node tests/monkey.js 1 1500 && node tests/monkey.js 2 1500"
