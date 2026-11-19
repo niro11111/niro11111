@@ -491,6 +491,41 @@ main{overflow-wrap:break-word}
 /* packages & GitHub */
 .ikTools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
 @media (max-width:700px){.ikTools{grid-template-columns:minmax(0,1fr)}}
+
+/* reading comfort */
+html.rd-wide body{line-height:1.95}
+html.rd-wide p,html.rd-wide li{margin-block:.7em;word-spacing:.08em}
+html.rd-narrow p,html.rd-narrow li,html.rd-narrow .lead{max-width:58ch}
+html.rd-plain{--body:Arial,"Segoe UI",system-ui,sans-serif;--display:Arial,"Segoe UI",system-ui,sans-serif}
+html.rd-plain body{font-family:Arial,"Segoe UI",system-ui,sans-serif}
+html.rd-wrap .code pre{white-space:pre-wrap;overflow-wrap:anywhere}
+html.rd-links main a{text-decoration:underline;text-underline-offset:3px}
+html.rd-calm *,html.rd-calm *::before,html.rd-calm *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+html.rd-calm .confetti{display:none}
+@media (min-width:901px){html.rd-focus .app{grid-template-columns:minmax(0,1fr)}html.rd-focus .rail{display:none}html.rd-focus main{margin-inline:auto}}
+.rdShow{display:none;position:fixed;top:12px;right:12px;z-index:25}
+@media (min-width:901px){html.rd-focus .rdShow{display:inline-flex}}
+.rdSet{border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin:12px 0 0;display:grid;gap:6px}
+#look .form > label.tick{display:grid;grid-template-columns:auto minmax(0,1fr);justify-items:start;align-items:center;gap:10px}
+.rdSet legend{font-weight:800;padding:0 6px}
+.rdSet label.tick{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:start;justify-items:start;gap:2px 10px;text-align:start;line-height:1.35;font-weight:400}
+.rdSet label.tick input{margin-top:3px}
+.rdSet label.tick .hint{font-size:.82rem;display:block;margin-top:2px}
+.rdSet label.tick br{display:none}
+.rdBar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:6px 0 2px}
+nav.onpage details{border:1px solid var(--line);border-radius:10px;padding:6px 12px;margin:10px 0 18px;background:var(--surface);max-width:68ch}
+nav.onpage summary{cursor:pointer;font-weight:700}
+nav.onpage ol{margin:6px 0 4px;padding-inline-start:22px}
+nav.onpage li{margin:2px 0}
+nav.onpage button{all:unset;cursor:pointer;color:var(--accent);text-decoration:underline;text-underline-offset:3px}
+nav.onpage button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+.mod h2[tabindex="-1"]:focus{outline:none}
+.mod h2{scroll-margin-top:16px}
+.rdProg{position:fixed;top:0;left:0;right:0;height:3px;z-index:26;pointer-events:none}
+.rdProg i{display:block;height:100%;width:0;background:var(--accent)}
+.rdTop{position:fixed;left:calc(18px + env(safe-area-inset-left,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:39;box-shadow:var(--shadow)}
+body.has-tutor .rdTop{bottom:calc(72px + env(safe-area-inset-bottom,0px))}
+@media print{.rdBar,nav.onpage,.rdProg,.rdTop,.rdShow{display:none!important}}
 </style>
 </head>
 <body>
@@ -6453,6 +6488,35 @@ Object.assign(ECO_DEEP, {
   emacs:"מתחבר בפרוטוקול של ה-IDE, ונותן ל-Claude גישה למידע מהעורך (קבצים פתוחים, אבחונים) ולתצוגת diff. צריך vterm, ‏eat או ghostel לטרמינל.",
   router:"השער רץ מקומית ו-Claude Code מופנה אליו דרך ANTHROPIC_BASE_URL. לפני שימוש: בדקו את מדיניות הארגון, ודעו שהקוד שלכם נשלח לספק החיצוני. Claude Code מותאם למודלים של Anthropic, וחלק מהיכולות עשויות לא לעבוד."
 });
+// ================= advanced community packages (checked against each README, Nov 2026) =================
+ECO.push(
+  {id:"taskmaster", c:"מתקדם במיוחד", n:"Task Master", r:"eyaltoledano/claude-task-master", o:0, st:"28k", d:"מנהל משימות לסוכן: מפרק מסמך דרישות (PRD) לרשימת משימות עם תלויות, ו-Claude עובד משימה אחרי משימה ומעדכן סטטוס.", w:"פרויקט חדש או פיצ'ר גדול שצריך לפרק לעשרות צעדים בלי ללכת לאיבוד.", cmd:["claude mcp add taskmaster-ai -- npx -y task-master-ai","npx task-master init"]},
+  {id:"superclaude", c:"מתקדם במיוחד", n:"SuperClaude Framework", r:"SuperClaude-Org/SuperClaude_Framework", o:0, st:"24k", d:"מסגרת עבודה שמוסיפה פקודות /sc: (‏brainstorm, ‏research, ‏implement, ‏test ועוד), סוכנים מומחים ומצבי עבודה מובנים.", w:"רוצים ערכת פקודות שלמה ומוכנה במקום לבנות לבד.", cmd:["/plugin marketplace add SuperClaude-Org/superclaude-plugin-marketplace","/plugin install superclaude"]},
+  {id:"ruflo", c:"מתקדם במיוחד", n:"Ruflo (לשעבר claude-flow)", r:"ruvnet/ruflo", o:0, st:"82k", d:"תזמור של נחילי סוכנים (swarms): הרבה סוכנים שעובדים במקביל עם זיכרון משותף ותיאום. הריפו claude-flow עבר לשם ruflo.", w:"ניסויים במשימות ענק עם סוכנים רבים. כבד ומורכב: מתחילים בריפו ניסיוני.", cmd:["/plugin marketplace add ruvnet/ruflo","/plugin install ruflo-core@ruflo"]},
+  {id:"serena", c:"מתקדם במיוחד", n:"Serena", r:"oraios/serena", o:0, st:"31k", d:"שרת MCP שנותן ל-Claude הבנה סמנטית של הקוד דרך Language Servers: למצוא הגדרה, את כל ההפניות, ולערוך ברמת פונקציה או מחלקה.", w:"ריפו גדול שבו חיפוש טקסט מחזיר יותר מדי. חוסך טוקנים וטעויות בשינוי שמות.", cmd:["uv tool install -p 3.13 serena-agent","claude mcp add serena -- serena start-mcp-server --context claude-code --project \"$(pwd)\""]},
+  {id:"containeruse", c:"מתקדם במיוחד", n:"Container Use (Dagger)", r:"dagger/container-use", o:0, st:"4.1k", d:"כל סוכן עובד בקונטיינר משלו ובענף git משלו. כמה סוכנים רצים במקביל בלי לדרוס זה את זה, ובוחרים מה למזג.", w:"מריצים כמה ניסיונות במקביל, או נותנים לסוכן חופש בלי לסכן את המחשב. צריך Docker.", cmd:["brew install dagger/tap/container-use","claude mcp add container-use -- container-use stdio"]},
+  {id:"pal", c:"מתקדם במיוחד", n:"PAL MCP (לשעבר Zen MCP)", r:"BeehiveInnovations/pal-mcp-server", o:0, st:"12k", d:"‏Claude מתייעץ עם מודלים אחרים (Gemini, ‏GPT ועוד) מתוך אותה שיחה: דעה שנייה, ריוויו קוד ודיבאג משותף, כשההקשר עובר ביניהם.", w:"החלטות ארכיטקטורה ובאגים קשים, כשרוצים \"זוג עיניים\" נוסף. דורש מפתחות API של הספקים האחרים.", cmd:["claude mcp add pal -e GEMINI_API_KEY=your-key -- uvx --from git+https://github.com/BeehiveInnovations/pal-mcp-server.git pal-mcp-server"]},
+  {id:"secreview", c:"מתקדם במיוחד", n:"Claude Code Security Review", r:"anthropics/claude-code-security-review", o:1, st:"7k", d:"‏GitHub Action רשמי שסורק כל PR לחולשות אבטחה ומגיב על השורות הבעייתיות. מבין הקשר, ולא רק מחפש תבניות.", w:"כל ריפו עם PRs. משלים את /security-review המקומי.", cmd:["# .github/workflows/security.yml (inside jobs.<job>.steps)","- uses: anthropics/claude-code-security-review@main","  with:","    comment-pr: true","    claude-api-key: ${{ secrets.CLAUDE_API_KEY }}"]},
+  {id:"ccsessions", c:"מתקדם במיוחד", n:"cc-sessions", r:"GWUDCAP/cc-sessions", o:0, st:"1.5k", d:"משמעת עבודה שנאכפת ב-Hooks: Claude דן איתכם ומקבל אישור לפני שהוא עורך קבצים (DAIC: דיון, הסכמה, יישום, בדיקה), ומשימות עם הקשר שנשמר בין סשנים.", w:"Claude קופץ לערוך מהר מדי, ואתם רוצים שלב תכנון מחייב.", cmd:["npx cc-sessions"]},
+  {id:"claudecontext", c:"מתקדם במיוחד", n:"Claude Context", r:"zilliztech/claude-context", o:0, st:"13k", d:"חיפוש סמנטי בכל הקוד: מאנדקס את הריפו למסד וקטורי, ו-Claude מוצא קוד לפי משמעות ולא רק לפי מילים.", w:"מונוריפו ענק. דורש מפתח embeddings (למשל OpenAI) ומסד Milvus או Zilliz Cloud.", cmd:["claude mcp add claude-context \\","  -e OPENAI_API_KEY=sk-your-openai-api-key \\","  -e MILVUS_ADDRESS=your-zilliz-cloud-public-endpoint \\","  -e MILVUS_TOKEN=your-zilliz-cloud-api-key \\","  -- npx @zilliz/claude-context-mcp@latest"]},
+  {id:"claudemem", c:"מתקדם במיוחד", n:"Claude-Mem", r:"thedotmack/claude-mem", o:0, st:"118k", d:"זיכרון אוטומטי בין סשנים: סוכן שני רושם הערות בזמן העבודה, והסשן הבא מתחיל עם אינדקס קצר של מה שחשוב ושולף פרטים רק כשצריך.", w:"פרויקט ארוך שבו כל סשן חדש מתחיל מאפס וחוזר על אותן טעויות.", cmd:["/plugin marketplace add thedotmack/claude-mem","/plugin install claude-mem"]},
+  {id:"tddguard", c:"מתקדם במיוחד", n:"TDD Guard", r:"nizos/tdd-guard", o:0, st:"2.4k", d:"‏Hook שחוסם את Claude מלכתוב קוד מימוש לפני שיש בדיקה שנכשלת. ‏TDD שנאכף אוטומטית. היוצר ממשיך את הרעיון בפרויקט חדש בשם Probity.", w:"רוצים ש-Claude יעבוד בבדיקות קודם, בלי להזכיר לו כל פעם.", cmd:["/plugin marketplace add nizos/tdd-guard","/plugin install tdd-guard@tdd-guard"]}
+);
+Object.assign(ECO_DEEP, {
+  taskmaster:"השרת מוסיף ל-Claude כלים לניהול משימות: parse של PRD, פירוק משימה מורכבת לתתי-משימות, סימון תלויות ובחירת המשימה הבאה. המשימות נשמרות בקבצים בתיקיית ‎.taskmaster בפרויקט, כך שאפשר לעצור ולהמשיך בסשן אחר. כדאי לכתוב PRD ברור לפני שמתחילים: האיכות של רשימת המשימות תלויה בו.",
+  superclaude:"ה-Plugin מוסיף פקודות עם הקידומת /sc: וסוכנים לפי תחום. כל פקודה מגדירה תהליך (למשל research עם חיפוש מעמיק, או implement עם בדיקות). זו מערכת גדולה: עברו על רשימת הפקודות אחרי ההתקנה והשאירו רק את מה שאתם משתמשים בו, כדי לא להעמיס על חלון ההקשר.",
+  ruflo:"‏Ruflo מתאם הרבה סוכנים לפי טופולוגיה (היררכיה, רשת), עם זיכרון משותף ביניהם. זה כוח גדול, אבל גם צריכת טוקנים גדולה ומורכבות. התחילו ב-ruflo-core בלבד, בריפו ניסיוני, והגדירו תקרת תקציב. הריפו ruvnet/claude-flow מפנה היום ל-ruvnet/ruflo.",
+  serena:"‏Serena מריץ Language Server (כמו זה שבעורך שלכם) ונותן ל-Claude כלים כמו find_symbol ו-find_referencing_symbols. במקום לקרוא קבצים שלמים, Claude קופץ ישר לסמל הנכון. ‏--project \"$(pwd)\" מצמיד את השרת לפרויקט הנוכחי. נדרש Python 3.13 דרך uv.",
+  containeruse:"כל סוכן מקבל סביבה מבודדת: קונטיינר להרצה וענף git לשינויים. אפשר לראות את הלוגים של כל סביבה, לבדוק את השינויים ולמזג רק את מה שעבד. שילוב טוב עם כמה סשנים במקביל, ופתרון בטוח יותר מ-bypassPermissions על המחשב שלכם.",
+  pal:"‏PAL הוא שרת MCP שמחזיק מפתחות לכמה ספקי מודלים. ‏Claude נשאר המוביל, ושולח שאלות ממוקדות למודל אחר: \"תבדוק את התוכנית\", \"מצא באג בקובץ הזה\". הקוד שנשלח עובר לספקים האלה, אז אל תחברו אותו לקוד שאסור לשתף. את המפתחות שמים ב-env של השרת, לא בקוד.",
+  secreview:"ה-Action מריץ את Claude Code על ה-diff של ה-PR עם הנחיות אבטחה, מסנן false positives ומגיב על השורות. צריך סוד CLAUDE_API_KEY בריפו, והרשאת pull-requests: write כדי להגיב. מומלץ לשלב עם בדיקות סטטיות רגילות ולא במקומן.",
+  ccsessions:"ההתקנה מוסיפה Hooks ותיקיית sessions לפרויקט. ה-Hook חוסם כלי עריכה עד שאתם כותבים ביטוי אישור, וכך Claude חייב להציג תוכנית קודם. משימות נשמרות עם ענף והקשר, וכשחוזרים למשימה ההקשר נטען מחדש. ב-GitHub Actions האכיפה נעקפת אוטומטית.",
+  claudecontext:"הכלי מחלק את הקוד לקטעים, יוצר embeddings ושומר אותם ב-Milvus. כש-Claude מחפש, הוא מקבל את הקטעים הדומים ביותר במשמעות. האינדוקס הראשון לוקח זמן ועולה כסף לפי גודל הריפו, ואחר כך הוא מתעדכן רק לפי השינויים. הקוד נשלח לספק ה-embeddings.",
+  claudemem:"‏Claude-Mem משתמש ב-Hooks כדי לתעד מה קרה בכל סשן, דוחס את זה לסיכומים, ובתחילת סשן חדש מזריק אינדקס קצר. הפרטים נשלפים רק לפי הצורך, כך שזה לא ממלא את ההקשר. בדקו מה נשמר ואיפה, כי הזיכרון יכול להכיל מידע רגיש מהפרויקט.",
+  tddguard:"ה-Hook בודק כל עריכה: אם Claude מנסה להוסיף קוד מימוש בלי בדיקה שנכשלת, העריכה נחסמת עם הסבר. הוא קורא את תוצאות הבדיקות דרך reporter לסביבה שלכם (Vitest, ‏Jest, ‏pytest ועוד), אז צריך להגדיר אותו לפי ה-README. ה-README אומר שפרויקטים חדשים יתחילו ב-Probity, ממשיך הדרך."
+});
+ECO_KITS.push(["מתקדם במיוחד", ["serena","taskmaster","containeruse","claudemem","secreview"]]);
+ECO.forEach(e => { if(e.id === "templates") e.st = "34k"; if(e.id === "cmdsuite") e.st = "1.4k"; if(e.id === "bmad") e.st = "55k"; });
 ECO_KITS.push(["מראה ונוחות", ["powerline","monitor","ccmanager"]], ["מתודולוגיית spec", ["speckit","superpowers","hooksm"]], ["עורכים", ["nvim","emacs"]]);
 
 
@@ -7846,6 +7910,26 @@ window.__SNIPPETS = [
    code: JSON.stringify({name:"claude-code-sandbox", image:"mcr.microsoft.com/devcontainers/base:ubuntu", features:{"ghcr.io/devcontainers/features/node:1":{version:"22"}, "ghcr.io/devcontainers/features/github-cli:1":{}}, postCreateCommand:"curl -fsSL https://claude.ai/install.sh | bash", remoteUser:"vscode"}, null, 2)}
 ];
 
+// ================= advanced code library files (checked against code.claude.com docs, Nov 2026) =================
+window.__SNIPPETS.push(
+  {c:"מתקדם במיוחד", t:"כמה סוכנים במקביל, כל אחד ב-worktree", f:"scripts/parallel.sh", l:"bash", d:"שלוש משימות רצות בבת אחת. כל אחת בתיקייה ובענף משלה (git worktree), עם תקרת סבבים ותקציב, ולוג נפרד. בסוף עוברים על כל ענף ai/* וממזגים רק את מה שטוב. ‏acceptEdits מאשר עריכות בלבד: פקודות shell צריך לאשר עם ‎--allowedTools.",
+   code:"#!/usr/bin/env bash\n# Runs several Claude Code tasks at once, each in its own git worktree and branch.\n# Edit TASKS, run from the repo root, then review each ai/* branch before merging.\nset -euo pipefail\ndeclare -A TASKS=(\n  [fix-login]=\"Fix the login timeout bug described in issue 482. Add a test that fails without the fix.\"\n  [docs-api]=\"Document every exported function in src/api/ with JSDoc. Don't change behavior.\"\n  [perf-list]=\"Make the product list render faster. Measure before and after, and report both numbers.\"\n)\nroot=$(git rev-parse --show-toplevel)\nlogs=\"$root/.parallel-logs\"; mkdir -p \"$logs\"\nfor name in \"${!TASKS[@]}\"; do\n  dir=\"$root/../$(basename \"$root\")-$name\"\n  [ -d \"$dir\" ] || git worktree add -q \"$dir\" -b \"ai/$name\"\n  (\n    cd \"$dir\"\n    if claude -p \"${TASKS[$name]}\" --permission-mode acceptEdits --max-turns 40 --max-budget-usd 3 > \"$logs/$name.log\" 2>&1\n    then echo \"done   $name\"; else echo \"failed $name (see $logs/$name.log)\"; fi\n  ) &\ndone\nwait\necho \"Branches: git branch --list 'ai/*'   Clean up: git worktree remove <dir>\"\n"},
+  {c:"מתקדם במיוחד", t:"סריקה מקבילית עם פלט JSON מובנה", f:"scripts/fanout.sh", l:"bash", d:"‏Claude עובר על הרבה קבצים במקביל (4 בכל רגע), כל קובץ בסשן נפרד וקצר. ‏‎--json-schema מחייב תשובה בפורמט קבוע (בשדה structured_output), ו-jq מאחד הכול לדוח אחד ממוין לפי סיכון. לקריאה בלבד: אף קובץ לא משתנה.",
+   code:"#!/usr/bin/env bash\n# Reviews many files in parallel and collects structured answers into fanout-report.json.\n# Usage: ./scripts/fanout.sh 'src/**/*.ts'      (needs jq)\nset -euo pipefail\nshopt -s globstar nullglob\npattern=\"${1:-src/**/*.ts}\"\nexport SCHEMA='{\"type\":\"object\",\"properties\":{\"file\":{\"type\":\"string\"},\"risk\":{\"type\":\"string\",\"enum\":[\"low\",\"medium\",\"high\"]},\"issues\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}}},\"required\":[\"file\",\"risk\",\"issues\"]}'\nreview(){\n  claude -p \"Review $1 for bugs and security issues. Read only this file and what it imports.\" \\\n    --output-format json --json-schema \"$SCHEMA\" --max-turns 8 --allowedTools Read Grep Glob \\\n  | jq --arg f \"$1\" '.structured_output // {file: $f, risk: \"unknown\", issues: [\"no structured output\"]}' \\\n  > \".fanout/$(printf '%s' \"$1\" | tr '/' '_').json\"\n}\nexport -f review\nrm -rf .fanout && mkdir -p .fanout\nfiles=($pattern)\n[ ${#files[@]} -gt 0 ] || { echo \"No files match $pattern\"; exit 1; }\nprintf '%s\\0' \"${files[@]}\" | xargs -0 -n1 -P4 bash -c 'review \"$0\"'\njq -s 'sort_by({\"high\":0,\"medium\":1,\"low\":2}[.risk] // 3)' .fanout/*.json > fanout-report.json\necho \"${#files[@]} files → fanout-report.json\"\njq -r '.[] | select(.risk == \"high\") | \"HIGH  \\(.file): \\(.issues | join(\"; \"))\"' fanout-report.json\n"},
+  {c:"מתקדם במיוחד", t:"סוכן משלכם עם Agent SDK", f:"agent.mts", l:"ts", d:"אותו מנוע של Claude Code, מתוך קוד TypeScript: כלים לקריאה בלבד, תקרת סבבים ותקציב. ההודעה האחרונה מסוג result מחזיקה את התשובה, או את הסיבה שהריצה נעצרה. מריצים עם npx tsx agent.mts (הסיומת mts מאפשרת await ברמה העליונה בכל פרויקט).",
+   code:"// npm i @anthropic-ai/claude-agent-sdk\nimport { query } from \"@anthropic-ai/claude-agent-sdk\";\n\nconst run = query({\n  prompt: \"Find the TODO and FIXME comments in src/ and summarize them by area, most urgent first.\",\n  options: {\n    allowedTools: [\"Read\", \"Grep\", \"Glob\"],   // read-only: nothing gets edited\n    maxTurns: 10,\n    maxBudgetUsd: 1,\n  },\n});\n\nfor await (const message of run) {\n  if (message.type === \"result\") {\n    if (message.subtype === \"success\") console.log(message.result);\n    else console.error(\"Stopped early:\", message.subtype);\n  }\n}\n"},
+  {c:"מתקדם במיוחד", t:"‏Hook: הקשר אוטומטי בתחילת כל סשן", f:".claude/hooks/session-context.sh", l:"bash", d:"‏SessionStart מוסיף ל-Claude את מה שהסקריפט מדפיס: ענף, שינויים פתוחים ו-commits אחרונים. ‏Claude מתחיל כל סשן כשהוא כבר יודע איפה אתם. מחברים ב-settings.json: {\"hooks\":{\"SessionStart\":[{\"hooks\":[{\"type\":\"command\",\"command\":\"\\\"$CLAUDE_PROJECT_DIR\\\"/.claude/hooks/session-context.sh\"}]}]}}.",
+   code:"#!/usr/bin/env bash\n# SessionStart hook: plain stdout is added to Claude's context.\ncd \"${CLAUDE_PROJECT_DIR:-.}\" 2>/dev/null || exit 0\ngit rev-parse --is-inside-work-tree >/dev/null 2>&1 || exit 0\necho \"## Where we are\"\necho \"- Branch: $(git branch --show-current)\"\nchanged=$(git status --short | wc -l | tr -d ' ')\necho \"- Uncommitted files: $changed\"\necho \"- Last commits:\"\ngit log --oneline -5 | sed 's/^/  /'\nexit 0\n"},
+  {c:"מתקדם במיוחד", t:"‏Hook: אסור לערוך ישירות על main", f:".claude/hooks/no-edit-on-main.sh", l:"bash", d:"‏PreToolUse עם matcher \"Edit|Write\": אם הענף הוא main או master, העריכה נחסמת (קוד יציאה 2) ו-Claude מקבל הסבר ופותח ענף. מחברים ב-settings.json תחת PreToolUse.",
+   code:"#!/usr/bin/env bash\n# PreToolUse hook (matcher: Edit|Write). Exit 2 blocks the edit; stderr tells Claude why.\nbranch=$(git -C \"${CLAUDE_PROJECT_DIR:-.}\" branch --show-current 2>/dev/null)\nif [ \"$branch\" = \"main\" ] || [ \"$branch\" = \"master\" ]; then\n  echo \"Blocked: you're on $branch. Create a branch first (git switch -c <name>), then edit.\" >&2\n  exit 2\nfi\nexit 0\n"},
+  {c:"מתקדם במיוחד", t:"‏Plugin משלכם: plugin.json", f:"my-plugin/.claude-plugin/plugin.json", l:"json", d:"ה-manifest של Plugin. רק הקובץ הזה נמצא בתוך ‎.claude-plugin/. התיקיות skills/, ‏commands/, ‏agents/ ו-hooks/ יושבות בשורש ה-Plugin. בודקים עם claude plugin validate ./my-plugin.",
+   code: JSON.stringify({name:"team-tools", version:"1.0.0", description:"Our team's review command, test skill and safety hooks", author:{name:"Your Team"}, repository:"https://github.com/your-org/team-tools"}, null, 2)},
+  {c:"מתקדם במיוחד", t:"‏marketplace משלכם לצוות", f:"my-marketplace/.claude-plugin/marketplace.json", l:"json", d:"ריפו אחד שמחזיק את ה-Plugins של הצוות. כל אחד מוסיף אותו פעם אחת עם ‎/plugin marketplace add your-org/my-marketplace, ומתקין עם ‎/plugin install team-tools@team-marketplace. ‏source הוא נתיב משורש ה-marketplace.",
+   code: JSON.stringify({name:"team-marketplace", description:"Plugins for our team", owner:{name:"Your Team"}, plugins:[{name:"team-tools", source:"./plugins/team-tools", description:"Review command, test skill and safety hooks"}]}, null, 2)},
+  {c:"מתקדם במיוחד", t:"‏Output Style: מורה שמסביר בעברית", f:"~/.claude/output-styles/hebrew-teacher.md", l:"markdown", d:"משנה את האופן שבו Claude עונה, בלי לוותר על יכולות הקוד (keep-coding-instructions: true). מפעילים עם ‎/output-style ובוחרים \"Hebrew teacher\". קבצי סגנון נקראים בהפעלה, אז אחרי יצירה מפעילים מחדש את Claude Code.",
+   code:"---\nname: Hebrew teacher\ndescription: Explains every change in Hebrew, step by step, while still writing the code\nkeep-coding-instructions: true\n---\n\nAnswer in Hebrew. Keep code, identifiers and commit messages in English.\n\nAfter every change:\n1. One sentence: what changed and why.\n2. The key lines, with path:line references.\n3. One thing worth learning from this change, explained simply.\n\nWhen something is risky (data loss, security, production), say so first, in bold.\n"}
+);
+
 // ================= packages & GitHub section: install kit, famous repos, code library =================
 (function(){
   const code = (lang, txt, file) => '<div class="code" data-lang="' + lang + '"' + (file ? ' data-file="' + esc(file) + '"' : '') + '><pre>' + esc(txt) + '</pre></div>';
@@ -8325,10 +8409,101 @@ BADGES.push(["packager","📦","אנשי החבילות","השלמתם את כל
 Object.keys(TRACKS).forEach(k => ["slashlab","israel"].forEach(id => { if(!TRACKS[k].m.includes(id)) TRACKS[k].m.push(id); }));
 BADGES.push(["slasher","⌨️","אמני הסלאש","השלמתם את פרק פקודות הסלאש", () => !!state.done.slashlab]);
 BADGES.push(["israeli","🇮🇱","מפתחים ישראלים","השלמתם את הפרק המיוחד לישראל", () => !!state.done.israel]);
+// ================= reading comfort: settings, reading time, "in this chapter", progress, back to top, read aloud =================
+(function(){
+  const LOOK0 = {theme: "default", scale: 100, compact: false};
+  const getL = () => Object.assign({}, LOOK0, store.get("look", null));
+  const OPTS = [
+    // [key, label, hint]
+    ["wide", "ריווח שורות נדיב", "יותר אוויר בין השורות והפסקאות. עוזר לקריאה ארוכה ולקשיי קריאה."],
+    ["narrow", "שורות קצרות", "טקסט צר יותר: העין לא צריכה לקפוץ רחוק לתחילת השורה הבאה."],
+    ["plain", "גופן פשוט", "גופן מערכת רגיל וברור (Arial / Segoe UI) במקום גופן העיצוב."],
+    ["wrap", "שבירת שורות בקוד", "שורות קוד ארוכות יורדות שורה במקום גלילה הצידה. נוח בטלפון."],
+    ["links", "קו תחתון לקישורים", "קישורים מזוהים לא רק לפי צבע."],
+    ["calm", "בלי אנימציות", "מבטל תנועה, קונפטי ומעברים."],
+    ["focus", "מצב קריאה (בלי תפריט צד)", "מסתיר את רשימת הפרקים במסך רחב. כפתור ☰ מחזיר אותה."]
+  ];
+  function applyRead(){
+    const L = getL(), r = document.documentElement;
+    OPTS.forEach(o => r.classList.toggle("rd-" + o[0], !!L[o[0]]));
+  }
+  // controls inside the existing "מראה" dialog
+  const form = $("#look .form");
+  form.insertAdjacentHTML("beforeend", '<fieldset class="rdSet"><legend>נוחות קריאה</legend>' + OPTS.map(o => '<label class="tick"><input type="checkbox" data-rd="' + o[0] + '"> <span><b>' + esc(o[1]) + '</b><br><span class="hint">' + esc(o[2]) + '</span></span></label>').join("") +
+    '<div class="row"><button class="btn sm" type="button" id="rdEasy">הכול לקריאה נוחה</button><button class="btn sm" type="button" id="rdReset">איפוס</button></div></fieldset>');
+  const drawRead = () => { const L = getL(); $$("[data-rd]").forEach(i => i.checked = !!L[i.dataset.rd]); };
+  const setRead = patch => { store.set("look", Object.assign(getL(), patch)); applyRead(); drawRead(); award("read", 5, "התאמתם את הקריאה"); };
+  form.addEventListener("change", e => { const i = e.target.closest("[data-rd]"); if(i) setRead({[i.dataset.rd]: i.checked}); });
+  $("#rdEasy").onclick = () => setRead({wide: true, narrow: true, plain: true, wrap: true, links: true, scale: Math.max(getL().scale || 100, 110)}) || applyLook();
+  $("#rdReset").onclick = () => { const p = {}; OPTS.forEach(o => p[o[0]] = false); p.scale = 100; setRead(p); applyLook(); };
+  $("#lookBtn").addEventListener("click", drawRead);
+  $("#lookBtn").textContent = "🎨 מראה וקריאה";
+  // focus mode: a button to bring the chapter list back
+  document.body.insertAdjacentHTML("beforeend", '<button class="btn sm rdShow" type="button" id="rdShow">☰ פרקים</button>');
+  $("#rdShow").onclick = () => setRead({focus: false});
+  REFRESH.push(applyRead);
+  applyRead();
+
+  // ---- per chapter: reading time, "in this chapter", read aloud ----
+  const words = el => { let n = 0; el.querySelectorAll("h1,h2,h3,p,li,td,summary").forEach(x => { if(!x.closest(".quiz,.code,nav.onpage")) n += (x.textContent.match(/\S+/g) || []).length; }); return n; };
+  const canSpeak = "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
+  mods.forEach(m => {
+    const id = m.id, min = Math.max(1, Math.round(words(m) / 170));
+    const bar = document.createElement("div"); bar.className = "rdBar";
+    bar.innerHTML = '<span class="hint" data-rt="' + min + '">⏱ ' + min + ' דק׳ קריאה</span>' + (canSpeak ? '<button class="btn sm" type="button" data-say="' + id + '" aria-pressed="false">🔊 הקראה</button>' : '');
+    const eb = m.querySelector(".eyebrow"); if(eb) eb.after(bar); else m.prepend(bar);
+    const h2s = [...m.querySelectorAll(":scope > h2, :scope > .grid2 > div > h2")].filter(h => !h.closest(".quiz"));
+    if(h2s.length >= 3){
+      h2s.forEach((h, i) => { if(!h.id) h.id = id + "-s" + (i + 1); h.tabIndex = -1; });
+      const nav = document.createElement("nav"); nav.className = "onpage"; nav.setAttribute("aria-label", "בפרק הזה");
+      nav.innerHTML = '<details><summary>בפרק הזה · ' + h2s.length + ' נושאים</summary><ol>' + h2s.map(h => '<li><button type="button" data-jump="' + h.id + '">' + esc(h.textContent.trim()) + '</button></li>').join("") + '</ol></details>';
+      const lead = m.querySelector(".lead") || m.querySelector("h1"); (lead || bar).after(nav);
+    }
+  });
+  document.addEventListener("click", e => {
+    const j = e.target.closest("[data-jump]"); if(!j) return;
+    const h = document.getElementById(j.dataset.jump); if(!h) return;
+    h.scrollIntoView({block: "start", behavior: document.documentElement.classList.contains("rd-calm") || matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
+    h.focus({preventScroll: true});
+  });
+
+  // read aloud, paragraph by paragraph (long single utterances get cut off in some browsers)
+  let speaking = null;
+  const stopSay = () => { if(!canSpeak) return; speechSynthesis.cancel(); $$("[data-say]").forEach(b => { b.setAttribute("aria-pressed", "false"); b.textContent = "🔊 הקראה"; }); speaking = null; };
+  function say(id){
+    const m = document.getElementById(id); if(!m) return;
+    const parts = [...m.querySelectorAll("h1,.lead,h2,h3,p,li")].filter(x => !x.closest(".quiz,.code,nav.onpage,.rdBar,.form,.tabs") && x.offsetParent !== null).map(x => x.textContent.replace(/\s+/g, " ").trim()).filter(Boolean);
+    const voice = speechSynthesis.getVoices().find(v => /^he|^iw/i.test(v.lang));
+    speechSynthesis.cancel();
+    parts.forEach((t, i) => { const u = new SpeechSynthesisUtterance(t); u.lang = "he-IL"; if(voice) u.voice = voice; u.rate = 1; if(i === parts.length - 1) u.onend = () => { if(speaking === id) stopSay(); }; speechSynthesis.speak(u); });
+    speaking = id;
+    const b = m.querySelector("[data-say]"); b.setAttribute("aria-pressed", "true"); b.textContent = "⏹ עצירה";
+    if(!voice) toast("אין קול עברי מותקן במכשיר. אפשר להוסיף אותו בהגדרות השפה של המערכת.");
+    award("say", 5, "הקראה");
+  }
+  document.addEventListener("click", e => { const b = e.target.closest("[data-say]"); if(!b) return; speaking === b.dataset.say ? stopSay() : say(b.dataset.say); });
+  addEventListener("hashchange", stopSay);
+
+  // ---- reading progress + back to top ----
+  document.body.insertAdjacentHTML("beforeend", '<div class="rdProg" aria-hidden="true"><i></i></div><button class="btn sm rdTop" type="button" id="rdTop" hidden aria-label="חזרה לראש הפרק">↑ למעלה</button>');
+  let tick = 0;
+  const onScroll = () => { if(tick) return; tick = requestAnimationFrame(() => { tick = 0;
+    const h = document.documentElement, max = h.scrollHeight - innerHeight;
+    $(".rdProg i").style.width = (max > 0 ? Math.min(100, scrollY / max * 100) : 0) + "%";
+    $("#rdTop").hidden = scrollY < 900;
+  }); };
+  addEventListener("scroll", onScroll, {passive: true}); addEventListener("hashchange", () => setTimeout(onScroll, 50));
+  $("#rdTop").onclick = () => { scrollTo({top: 0, behavior: document.documentElement.classList.contains("rd-calm") ? "auto" : "smooth"}); const h = document.querySelector(".mod.on h1"); if(h){ h.tabIndex = -1; h.focus({preventScroll: true}); } };
+  onScroll();
+  window.__rd = {applyRead, OPTS, words, say, stopSay};
+})();
+BADGES.push(["reader","📖","קוראים בנוחות","התאמתם את הגדרות הקריאה", () => !!state.awarded.read]);
 checkBadges(true);
 
 renderStats();
 show(ids.includes(location.hash.slice(1)) ? location.hash.slice(1) : store.get("last", "intro"), false);
+// a link with #chapter makes the browser jump to that <section> after load, hiding its top under the mobile bar
+addEventListener("load", () => { if(location.hash && scrollY > 0 && scrollY < 400) scrollTo(0, 0); });
 window.addEventListener("pagehide", () => store.set("last", ids[cur]));
 setInterval(() => store.set("last", ids[cur]), 5000);
 })();
