@@ -521,6 +521,15 @@ nav.onpage button:focus-visible{outline:2px solid var(--accent);outline-offset:2
 .rdTop{position:fixed;left:calc(18px + env(safe-area-inset-left,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:39;box-shadow:var(--shadow)}
 body.has-tutor .rdTop{bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 @media print{.rdBar,nav.onpage,.rdProg,.rdTop,.rdShow{display:none!important}}
+
+/* term tips */
+.gterm{all:unset;cursor:help;border-bottom:1.5px dotted var(--accent);color:inherit}
+.gterm:hover,.gterm[aria-expanded="true"]{background:color-mix(in srgb,var(--accent) 14%,transparent);border-radius:3px}
+.gterm:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+.termTip{position:absolute;z-index:65;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px 12px;box-shadow:var(--shadow);font-size:.92rem;line-height:1.5}
+.termTip .linkish{all:unset;cursor:pointer;color:var(--accent);text-decoration:underline;font-weight:700;margin-top:4px;display:inline-block}
+.termTip .linkish:focus-visible{outline:2px solid var(--accent)}
+@media print{.gterm{border:0}.termTip{display:none!important}}
 </style>
 
 <div class="app" dir="rtl" lang="he">
@@ -8415,7 +8424,8 @@ BADGES.push(["israeli","🇮🇱","מפתחים ישראלים","השלמתם א
     ["wrap", "שבירת שורות בקוד", "שורות קוד ארוכות יורדות שורה במקום גלילה הצידה. נוח בטלפון."],
     ["links", "קו תחתון לקישורים", "קישורים מזוהים לא רק לפי צבע."],
     ["calm", "בלי אנימציות", "מבטל תנועה, קונפטי ומעברים."],
-    ["focus", "מצב קריאה (בלי תפריט צד)", "מסתיר את רשימת הפרקים במסך רחב. כפתור ☰ מחזיר אותה."]
+    ["focus", "מצב קריאה (בלי תפריט צד)", "מסתיר את רשימת הפרקים במסך רחב. כפתור ☰ מחזיר אותה."],
+    ["noterms", "בלי הסברי מונחים", "מונחים כמו Hook או MCP לא יהיו לחיצים. ברירת המחדל: לחיצה על מונח מציגה הסבר קצר."]
   ];
   function applyRead(){
     const L = getL(), r = document.documentElement;
@@ -8490,6 +8500,76 @@ BADGES.push(["israeli","🇮🇱","מפתחים ישראלים","השלמתם א
   $("#rdTop").onclick = () => { scrollTo({top: 0, behavior: document.documentElement.classList.contains("rd-calm") ? "auto" : "smooth"}); const h = document.querySelector(".mod.on h1"); if(h){ h.tabIndex = -1; h.focus({preventScroll: true}); } };
   onScroll();
   window.__rd = {applyRead, OPTS, words, say, stopSay};
+})();
+// ================= term tips: the first time a glossary term appears in a chapter, it explains itself =================
+(function(){
+  const SKIP = new Set(["Tool","Prompt","Session","Diff","Commit","Token","Agent","Scope","Transport","Lint","Matcher"]);
+  const ALIAS = {"PR / Pull request": ["Pull request","PR"], "Allow / Deny rule": ["deny rule","allow rule"], "MCP server": ["MCP servers","MCP server"]};
+  const T = [];
+  GLOSS.forEach(g => (ALIAS[g[0]] || [g[0]]).forEach(w => { if(!SKIP.has(w)) T.push({w, g}); }));
+  T.sort((a, b) => b.w.length - a.w.length);
+  const esc2 = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  T.forEach(t => { const plural = /^[A-Za-z][a-z]+$|^[A-Z][a-z]+$/.test(t.w) ? "s?" : ""; t.re = new RegExp("(^|[^A-Za-z0-9_])(" + esc2(t.w) + plural + ")(?![A-Za-z0-9_])", /[a-z]/.test(t.w) ? "i" : ""); });
+  const BAD = "a,button,label,summary,select,textarea,input,code,pre,kbd,h1,h2,h3,h4,.code,.quiz,.tabs,.rdBar,nav,.pill,.gterm,.term,.form,.ltr,.hint,.eco,table,.tutor,.toast";
+  const MAX = 10;
+  function tag(m){
+    if(!m || m.dataset.terms || document.documentElement.classList.contains("rd-noterms")) return;
+    m.dataset.terms = "1";
+    const used = new Set(); let n = 0;
+    for(const t of T){
+      if(n >= MAX) break;
+      if(used.has(t.g[0])) continue;
+      const walker = document.createTreeWalker(m, NodeFilter.SHOW_TEXT, {acceptNode: x => {
+        const p = x.parentElement; if(!p || !/\S/.test(x.data)) return NodeFilter.FILTER_REJECT;
+        if(!p.closest("p,li,.lead,td,dd") || p.closest(BAD)) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT; }});
+      let node;
+      while((node = walker.nextNode())){
+        const mm = t.re.exec(node.data); if(!mm) continue;
+        const start = mm.index + mm[1].length, word = mm[2];
+        const after = node.splitText(start); after.splitText(word.length);
+        const b = document.createElement("button"); b.type = "button"; b.className = "gterm"; b.dataset.term = t.g[0]; b.textContent = word;
+        b.setAttribute("aria-expanded", "false");
+        after.replaceWith(b);
+        used.add(t.g[0]); n++;
+        break;
+      }
+    }
+  }
+  // one shared popup
+  document.body.insertAdjacentHTML("beforeend", '<div class="termTip" id="termTip" role="tooltip" hidden></div>');
+  const tip = $("#termTip"); let openBtn = null, byHover = false;
+  function close(){ if(openBtn){ openBtn.setAttribute("aria-expanded", "false"); openBtn.removeAttribute("aria-describedby"); } openBtn = null; tip.hidden = true; }
+  function open(b){
+    const g = GLOSS.find(x => x[0] === b.dataset.term); if(!g) return;
+    if(openBtn && openBtn !== b) close();
+    tip.innerHTML = '<b class="ltr">' + esc(g[0]) + '</b> · <b>' + esc(g[1]) + '</b><br>' + esc(g[2]) + '<br><button type="button" class="linkish" data-go="glossary">למילון המלא ←</button>';
+    tip.hidden = false; openBtn = b; b.setAttribute("aria-expanded", "true"); b.setAttribute("aria-describedby", "termTip");
+    const r = b.getBoundingClientRect(), w = Math.min(320, innerWidth - 24);
+    tip.style.width = w + "px";
+    let left = r.left + r.width / 2 - w / 2; left = Math.max(12, Math.min(left, innerWidth - w - 12));
+    const below = r.bottom + 8 + tip.offsetHeight < innerHeight;
+    tip.style.left = left + scrollX + "px"; tip.style.top = (below ? r.bottom + 8 : r.top - 8 - tip.offsetHeight) + scrollY + "px";
+    award("term", 3, "הסבר מונח");
+  }
+  document.addEventListener("click", e => {
+    const b = e.target.closest(".gterm");
+    if(b){ if(openBtn === b && !byHover) close(); else { open(b); byHover = false; } return; }   // a click after hover keeps it open
+    if(!e.target.closest("#termTip") || e.target.closest("[data-go]")) close();
+  });
+  document.addEventListener("mouseover", e => { const b = e.target.closest(".gterm"); if(b && matchMedia("(hover: hover)").matches && openBtn !== b){ open(b); byHover = true; } });
+  document.addEventListener("keydown", e => { if(e.key === "Escape" && openBtn){ const b = openBtn; close(); b.focus(); } });
+  addEventListener("hashchange", close); addEventListener("resize", close);
+
+  // tag the chapter that is shown, now and on every change
+  const run = () => tag(document.querySelector(".mod.on"));
+  const orig = show; show = function(id, push){ close(); orig(id, push); run(); };
+  addEventListener("hashchange", () => setTimeout(run, 0));
+  run();
+  function untag(){ close(); $$(".gterm").forEach(b => b.replaceWith(document.createTextNode(b.textContent))); $$(".mod[data-terms]").forEach(m => { m.removeAttribute("data-terms"); m.normalize(); }); }
+  REFRESH.push(() => { if(document.documentElement.classList.contains("rd-noterms")) untag(); else run(); });
+  document.addEventListener("change", e => { if(e.target.matches('[data-rd="noterms"]')) setTimeout(() => { if(e.target.checked) untag(); else run(); }, 0); });
+  window.__terms = {T, tag, open, close, untag};
 })();
 BADGES.push(["reader","📖","קוראים בנוחות","התאמתם את הגדרות הקריאה", () => !!state.awarded.read]);
 checkBadges(true);

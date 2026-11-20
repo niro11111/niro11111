@@ -47,7 +47,7 @@ const ok = (c, m) => console.log((c ? 'PASS ' : 'FAIL ') + m);
 
   // ---- settings ----
   await p.click('#lookBtn');
-  ok(await p.$$eval('[data-rd]', x => x.length) === 7, '7 reading options in the dialog');
+  ok(await p.$$eval('[data-rd]', x => x.length) === 8, '8 reading options in the dialog');
   await p.check('[data-rd="wrap"]'); await p.check('[data-rd="wide"]');
   ok(await p.evaluate(() => getComputedStyle(document.querySelector('.mod.on .code pre')).whiteSpace === 'pre-wrap' && parseFloat(getComputedStyle(document.body).lineHeight) / parseFloat(getComputedStyle(document.body).fontSize) > 1.9), 'code wrap and wide spacing apply');
   await p.click('#rdEasy');
@@ -61,6 +61,25 @@ const ok = (c, m) => console.log((c ? 'PASS ' : 'FAIL ') + m);
   ok(await p.evaluate(() => getComputedStyle(document.querySelector('.rail')).display !== 'none'), '☰ brings the chapter list back');
   await p.click('#lookBtn'); await p.click('#rdReset'); await p.click('#lookX');
   ok(await p.evaluate(() => !/rd-/.test(document.documentElement.className)), 'reset clears every reading option');
+
+  // ---- term tips ----
+  await go('hooks');
+  const tt = await p.evaluate(() => { const g = [...document.querySelectorAll('.mod.on .gterm')]; return {n: g.length, bad: g.filter(b => b.parentElement.closest('a,button,label,summary,code,pre,h1,h2,h3,.code,.quiz')).length, uniq: new Set(g.map(b => b.dataset.term)).size === g.length}; });
+  ok(tt.n >= 2 && tt.bad === 0 && tt.uniq, 'terms are tagged once per chapter, never inside links, code or headings (' + tt.n + ' here)');
+  await p.evaluate(() => document.querySelector('.mod.on .gterm').scrollIntoView({block: 'center'}));
+  await p.focus('.mod.on .gterm'); await p.keyboard.press('Enter'); await p.waitForTimeout(100);
+  const tipTxt = await p.evaluate(() => { const t = document.getElementById('termTip'); const b = document.querySelector('.mod.on .gterm'); return !t.hidden && b.getAttribute('aria-expanded') === 'true' && b.getAttribute('aria-describedby') === 'termTip' ? t.textContent : null; });
+  ok(tipTxt && /למילון/.test(tipTxt), 'keyboard opens the explanation: ' + (tipTxt || '').slice(0, 50));
+  await p.keyboard.press('Escape');
+  ok(await p.evaluate(() => document.getElementById('termTip').hidden && document.activeElement.classList.contains('gterm')), 'Esc closes it and keeps focus on the term');
+  await p.click('.mod.on .gterm'); await p.click('#termTip [data-go="glossary"]'); await p.waitForTimeout(150);
+  ok(await p.evaluate(() => location.hash === '#glossary' && document.getElementById('termTip').hidden), 'link goes to the glossary');
+  let total = 0; for (const id of ['intro', 'mcp', 'agents', 'skills', 'israel']) { await go(id); total += await p.$$eval('.mod.on .gterm', x => x.length); }
+  ok(total >= 10, total + ' terms explained across 5 chapters');
+  await p.click('#lookBtn'); await p.check('[data-rd="noterms"]'); await p.click('#lookX'); await p.waitForTimeout(50);
+  ok(await p.evaluate(() => document.querySelectorAll('.gterm').length === 0), 'turning explanations off removes every term button');
+  await p.click('#lookBtn'); await p.uncheck('[data-rd="noterms"]'); await p.click('#lookX'); await p.waitForTimeout(50);
+  ok(await p.$$eval('.mod.on .gterm', x => x.length) > 0, 'turning them back on restores them');
 
   // ---- advanced catalog ----
   await go('ecosystem');
