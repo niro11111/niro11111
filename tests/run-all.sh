@@ -29,6 +29,7 @@ run "search everything, cheat sheet, cards" node tests/e2e-v10.js
 run "packages & GitHub section"         node tests/e2e-packages.js
 run "slash commands & Israel chapters"   node tests/e2e-slash-israel.js
 run "reading comfort & advanced packages" node tests/e2e-reading-advanced.js
+run "highlights"                         node tests/e2e-highlights.js
 run "XSS attack on every input"        node tests/xss-fuzz.js
 run "accessibility audit (axe-core)"   node tests/a11y-axe.js
 run "monkey: 3000 random actions"      bash -c "node tests/monkey.js 1 1500 && node tests/monkey.js 2 1500"

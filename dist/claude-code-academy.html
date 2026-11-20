@@ -535,6 +535,15 @@ body.has-tutor .rdTop{bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 .termTip .linkish{all:unset;cursor:pointer;color:var(--accent);text-decoration:underline;font-weight:700;margin-top:4px;display:inline-block}
 .termTip .linkish:focus-visible{outline:2px solid var(--accent)}
 @media print{.gterm{border:0}.termTip{display:none!important}}
+
+/* highlights */
+mark.hl,mark.hlq{background:#ffe680;color:#1a1a1a;border-radius:2px;padding:0 1px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+mark.hl{cursor:pointer}
+mark.hl:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.hlBtn{position:absolute;z-index:66;box-shadow:var(--shadow)}
+#hlAll ul{margin:.4em 0 0;padding-inline-start:20px}
+#hlAll li{margin:4px 0}
+@media print{.hlBtn{display:none!important}mark.hl{background:#ffe680!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 </style>
 </head>
 <body>
@@ -8577,6 +8586,102 @@ BADGES.push(["israeli","🇮🇱","מפתחים ישראלים","השלמתם א
   document.addEventListener("change", e => { if(e.target.matches('[data-rd="noterms"]')) setTimeout(() => { if(e.target.checked) untag(); else run(); }, 0); });
   window.__terms = {T, tag, open, close, untag};
 })();
+// ================= highlights: select text in a chapter, mark it, find it again in the notebook =================
+(function(){
+  const BLOCK = "p,li,td,.lead,dd";
+  const OK = el => el && el.closest(".mod") && el.closest(BLOCK) && !el.closest("pre,code,.code,.quiz,textarea,input,button,label,summary,.form,nav.onpage,.rdBar,.gterm,#termTip");
+  const norm = s => s.replace(/\s+/g, " ").trim();
+  const get = () => store.get("hl", []);
+  const put = L => { store.set("hl", L); draw(); };
+  // text nodes of a block, with their offsets in the block's normalized-by-us text
+  function textNodes(block){ const out = []; const w = document.createTreeWalker(block, NodeFilter.SHOW_TEXT); let n; while((n = w.nextNode())){ out.push(n); } return out; }
+  function wrap(block, start, end, id){
+    // start/end are offsets in block.textContent
+    let pos = 0;
+    for(const n of textNodes(block)){
+      const a = pos, b = pos + n.data.length; pos = b;
+      if(b <= start || a >= end) continue;
+      const s = Math.max(start, a) - a, e = Math.min(end, b) - a;
+      let mid = n; if(s > 0) mid = n.splitText(s); if(e - s < mid.data.length) mid.splitText(e - s);
+      const mk = document.createElement("mark"); mk.className = "hl"; mk.dataset.hl = id; mk.tabIndex = 0; mk.title = "הדגשה: Enter להסרה";
+      mid.replaceWith(mk); mk.appendChild(mid);
+    }
+  }
+  // find the quote inside a chapter and wrap it
+  function place(h){
+    const m = document.getElementById(h.ch); if(!m || m.querySelector('mark[data-hl="' + h.id + '"]')) return true;
+    for(const block of m.querySelectorAll(BLOCK)){
+      if(!OK(block)) continue;
+      const t = block.textContent, i = t.indexOf(h.q);
+      if(i >= 0){ wrap(block, i, i + h.q.length, h.id); return true; }
+    }
+    return false;
+  }
+  function unwrap(id){ $$('mark[data-hl="' + id + '"]').forEach(mk => { const p = mk.parentNode; while(mk.firstChild) p.insertBefore(mk.firstChild, mk); mk.remove(); p.normalize(); }); }
+  function restore(m){ if(!m) return; get().filter(h => h.ch === m.id).forEach(place); }
+
+  // floating "highlight" button next to a selection
+  document.body.insertAdjacentHTML("beforeend", '<button type="button" class="btn sm hlBtn" id="hlBtn" hidden>🖍 הדגשה</button>');
+  const btn = $("#hlBtn"); let pending = null;
+  function check(){
+    const sel = getSelection(); pending = null;
+    if(!sel || sel.isCollapsed || !sel.rangeCount){ btn.hidden = true; return; }
+    const r = sel.getRangeAt(0), a = r.startContainer.parentElement, b = r.endContainer.parentElement;
+    const blockA = a && a.closest(BLOCK), blockB = b && b.closest(BLOCK);
+    const txt = sel.toString();
+    if(!OK(a) || !OK(b) || blockA !== blockB || norm(txt).length < 3 || txt.length > 400){ btn.hidden = true; return; }
+    // offsets of the selection inside the block's text
+    const pre = document.createRange(); pre.selectNodeContents(blockA); pre.setEnd(r.startContainer, r.startOffset);
+    const start = pre.toString().length;
+    pending = {block: blockA, start, end: start + txt.length, q: txt, ch: blockA.closest(".mod").id};
+    const rect = r.getBoundingClientRect();
+    btn.hidden = false;
+    btn.style.top = (rect.top + scrollY - btn.offsetHeight - 8) + "px";
+    btn.style.left = Math.max(8, Math.min(rect.left + scrollX + rect.width / 2 - btn.offsetWidth / 2, scrollX + innerWidth - btn.offsetWidth - 8)) + "px";
+  }
+  let t0; const later = () => { clearTimeout(t0); t0 = setTimeout(check, 30); };
+  document.addEventListener("mouseup", later); document.addEventListener("keyup", e => { if(e.shiftKey || e.key === "Shift") later(); }); document.addEventListener("selectionchange", () => { if(!btn.matches(":focus")) later(); });
+  btn.addEventListener("mousedown", e => e.preventDefault());   // keep the selection while clicking
+  btn.onclick = () => {
+    if(!pending) return;
+    const id = "h" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+    wrap(pending.block, pending.start, pending.end, id);
+    put(get().concat([{id, ch: pending.ch, q: pending.q, t: Date.now()}]));
+    getSelection().removeAllRanges(); btn.hidden = true; pending = null;
+    toast("🖍 נשמר במחברת"); award("hl", 5, "הדגשה ראשונה");
+  };
+  // click or Enter on a highlight removes it (after confirming in the toast-like menu)
+  function removeHl(id){ unwrap(id); put(get().filter(h => h.id !== id)); toast("ההדגשה הוסרה"); }
+  document.addEventListener("click", e => { const mk = e.target.closest("mark.hl"); if(mk && getSelection().isCollapsed && confirm("להסיר את ההדגשה?")) removeHl(mk.dataset.hl); });
+  document.addEventListener("keydown", e => { const mk = e.target.closest && e.target.closest("mark.hl"); if(mk && (e.key === "Enter" || e.key === "Delete")){ e.preventDefault(); if(confirm("להסיר את ההדגשה?")) removeHl(mk.dataset.hl); } });
+
+  // notebook: all highlights, grouped by chapter
+  $("#notesAll").insertAdjacentHTML("afterend", '<h2>ההדגשות שלי</h2><p class="hint">מסמנים טקסט בכל פרק ולוחצים 🖍 הדגשה. כאן כל ההדגשות, לפי פרק.</p><div id="hlAll"></div><div class="row"><button class="btn sm" type="button" id="hlExport">ייצוא ל-Markdown</button></div>');
+  function draw(){
+    const L = get(), by = {};
+    L.forEach(h => (by[h.ch] = by[h.ch] || []).push(h));
+    const ks = ids.filter(i => by[i]);
+    $("#hlAll").innerHTML = ks.length ? ks.map(k => '<div class="box"><a href="#' + k + '"><b>' + esc(document.getElementById(k)?.dataset.title || k) + '</b></a><ul>' + by[k].map(h => '<li><mark class="hlq">' + esc(norm(h.q)) + '</mark> <button type="button" class="btn sm" data-hlx="' + h.id + '" aria-label="הסרת ההדגשה">✕</button></li>').join("") + '</ul></div>').join("") : '<p class="hint">עוד אין הדגשות.</p>';
+    $("#hlExport").hidden = !ks.length;
+    return ks.length;
+  }
+  $("#hlAll").addEventListener("click", e => { const x = e.target.closest("[data-hlx]"); if(x) removeHl(x.dataset.hlx); });
+  $("#hlExport").onclick = () => {
+    const L = get(), by = {}; L.forEach(h => (by[h.ch] = by[h.ch] || []).push(h));
+    const md = "# ההדגשות שלי · אקדמיית Claude Code\n\n" + ids.filter(i => by[i]).map(k => "## " + (document.getElementById(k)?.dataset.title || k) + "\n\n" + by[k].map(h => "> " + norm(h.q)).join("\n\n")).join("\n\n") + "\n";
+    saveFile("my-highlights.md", md);
+  };
+
+  // restore on the shown chapter, on change, and when synced data arrives
+  const run = () => restore(document.querySelector(".mod.on"));
+  const orig = show; show = function(id, push){ btn.hidden = true; orig(id, push); run(); };
+  addEventListener("hashchange", () => setTimeout(run, 0));
+  REFRESH.push(() => { $$("mark.hl").forEach(mk => { if(!get().some(h => h.id === mk.dataset.hl)) unwrap(mk.dataset.hl); }); run(); draw(); });
+  SYNC_KEYS.push("hl");
+  run(); draw();
+  window.__hl = {get, place, unwrap, draw, check, removeHl};
+})();
+BADGES.push(["highlighter","🖍","מדגישים","סימנתם הדגשה ראשונה", () => !!state.awarded.hl]);
 BADGES.push(["reader","📖","קוראים בנוחות","התאמתם את הגדרות הקריאה", () => !!state.awarded.read]);
 checkBadges(true);
 
