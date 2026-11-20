@@ -539,6 +539,21 @@ mark.hl:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 #hlAll ul{margin:.4em 0 0;padding-inline-start:20px}
 #hlAll li{margin:4px 0}
 @media print{.hlBtn{display:none!important}mark.hl{background:#ffe680!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+
+/* clarity */
+.howto{border:2px solid var(--accent);border-radius:14px;padding:6px 18px 14px;margin:18px 0 8px;background:var(--surface)}
+.howto h2{margin:.5em 0 .3em;font-size:1.3rem}
+.howtoSteps{list-style:none;padding:0;margin:8px 0 12px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:700px){.howtoSteps{grid-template-columns:minmax(0,1fr)}}
+.howtoSteps li{display:flex;gap:10px;align-items:flex-start;max-width:none;counter-increment:hs}
+.howtoSteps b::before{content:counter(hs) ". "}
+.howtoSteps p{margin:.2em 0 0;color:var(--muted);font-size:.95rem;max-width:none}
+.howtoIc{font-size:1.5rem;line-height:1.2}
+.quizHow{margin-top:-.2em}
+@media (max-width:900px){.mod h2,.howto{scroll-margin-top:64px}}
+.statsWhat{font-size:.85rem;margin:6px 0 2px;color:var(--muted)}
+.statsWhat summary{cursor:pointer}
+.statsWhat ul{margin:4px 0;padding-inline-start:18px}
 </style>
 
 <div class="app" dir="rtl" lang="he">
@@ -8676,6 +8691,71 @@ BADGES.push(["israeli","🇮🇱","מפתחים ישראלים","השלמתם א
   window.__hl = {get, place, unwrap, draw, check, removeHl};
 })();
 BADGES.push(["highlighter","🖍","מדגישים","סימנתם הדגשה ראשונה", () => !!state.awarded.hl]);
+// ================= clarity: a one-minute "how it works", clearer quizzes, labelled buttons and counters =================
+(function(){
+  // ---- how it works, at the top of the home page ----
+  const STEPS = [
+    ["📚", "בוחרים פרק", "כל הפרקים ברשימה בצד (בטלפון: כפתור \"פרקים\" למעלה). הם מסודרים מהקל לקשה, אז אם אתם חדשים, התחילו מהראשון."],
+    ["👀", "קוראים ומנסים", "ליד כל קוד יש כפתור \"העתקה\". מילה עם קו מנוקד מתחתיה היא מונח מקצועי: לחיצה עליה מציגה הסבר קצר."],
+    ["✅", "עונים על הבוחן בסוף הפרק", "שלוש שאלות קצרות. כשכל התשובות נכונות, הפרק מסומן ב-✓ ברשימה ואתם מקבלים נקודות (XP)."],
+    ["🧰", "כלים שעוזרים", "🔍 חיפוש בכל החומר (Ctrl+K) · 🎨 מראה וקריאה: טקסט גדול, ריווח, הקראה בקול · ההתקדמות נשמרת לבד."]
+  ];
+  const intro = $("#intro .hero");
+  intro.insertAdjacentHTML("afterend",
+    '<section class="howto" id="howto" aria-labelledby="howtoH"><div class="row" style="justify-content:space-between;align-items:center"><h2 id="howtoH">איך משתמשים באקדמיה? (דקה אחת)</h2><button class="btn sm" type="button" id="howtoX">הבנתי, להסתיר</button></div>' +
+    '<ol class="howtoSteps">' + STEPS.map(s => '<li><span class="howtoIc" aria-hidden="true">' + s[0] + '</span><div><b>' + esc(s[1]) + '</b><p>' + esc(s[2]) + '</p></div></li>').join("") + '</ol>' +
+    '<div class="row"><button class="btn pri" type="button" data-go="install">מתחילים: פרק ההתקנה ←</button><button class="btn" type="button" id="howtoPlace">לא בטוחים מאיפה? מבחן מיון קצר</button></div></section>');
+  const setHow = hide => { $("#howto").hidden = hide; store.set("howtoHidden", hide); };
+  $("#howto").hidden = !!store.get("howtoHidden", false);
+  $("#howtoX").onclick = () => { setHow(true); toast("אפשר להחזיר אותו בכפתור ❓ איך זה עובד"); };
+  $("#howtoPlace").onclick = () => { show("dashboard"); setTimeout(() => { const el = $("#dbPlace"); if(el){ el.scrollIntoView({block: "center"}); const b = el.querySelector("button"); if(b) b.focus({preventScroll: true}); } }, 50); };
+  $(".rail-tools").insertAdjacentHTML("afterbegin", '<button class="btn sm" id="howBtn" type="button">❓ איך זה עובד</button>');
+  $("#howBtn").onclick = () => { setHow(false); show("intro"); setTimeout(() => { $("#howto").scrollIntoView({block: "start"}); $("#howtoH").tabIndex = -1; $("#howtoH").focus({preventScroll: true}); }, 30); };
+  isSyncKey = (orig => k => orig(k) || k === "howtoHidden")(isSyncKey);
+  if(typeof SYNC_KEYS !== "undefined") SYNC_KEYS.push("howtoHidden");
+
+  // ---- quizzes: say what to do, and where to go next ----
+  $$(".quiz").forEach(q => {
+    const h = q.querySelector("h2"); if(!h) return;
+    h.textContent = "בוחן סיום הפרק";
+    h.insertAdjacentHTML("afterend", '<p class="hint quizHow">בחרו תשובה לכל שאלה. אחרי כל בחירה תראו מיד אם צדקתם ולמה. כשכל התשובות נכונות, הפרק מסומן ב-✓.</p>');
+    q.addEventListener("change", () => setTimeout(() => {
+      const res = q.querySelector(".res"), mod = q.closest(".mod"); if(!res || !mod) return;
+      const i = ids.indexOf(mod.id), next = ids[i + 1];
+      if(state.done[mod.id] && next && !res.querySelector("[data-go]")){
+        res.insertAdjacentHTML("beforeend", ' <button class="btn sm pri" type="button" data-go="' + next + '">לפרק הבא: ' + esc(document.getElementById(next).dataset.title) + ' ←</button>');
+      }
+    }, 0));
+  });
+
+  // ---- every button and counter says what it does ----
+  const TIPS = {
+    "#howBtn": "הסבר קצר איך משתמשים במערכת",
+    "#lookBtn": "גודל טקסט, ערכת צבעים, ריווח, גופן פשוט והקראה",
+    "#palBtn": "חיפוש בכל הפרקים, הפקודות, הטריקים והחבילות",
+    "#themeBtn": "מעבר בין מצב בהיר לכהה",
+    "#menuBtn": "רשימת כל הפרקים"
+  };
+  Object.keys(TIPS).forEach(s => { const el = $(s); if(el && !el.title) el.title = TIPS[s]; });
+  $$(".rail-tools button").forEach(b => {
+    const t = b.textContent;
+    if(!b.title){
+      if(/הפתיעו/.test(t)) b.title = "פותח פרק, טריק או סוד אקראי";
+      else if(/הישגים/.test(t)) b.title = "התגים שצברתם ומה צריך כדי לקבל את הבאים";
+      else if(/קיצורים/.test(t)) b.title = "כל קיצורי המקלדת";
+      else if(/חיפוש/.test(t)) b.title = TIPS["#palBtn"];
+      else if(/איפוס/.test(t)) b.title = "מוחק את כל ההתקדמות בדפדפן הזה (תתבקשו לאשר)";
+      else if(/ערכת צבעים/.test(t)) b.title = TIPS["#themeBtn"];
+    }
+  });
+  const stats = $(".stats");
+  if(stats){
+    const exp = [["XP", "נקודות: מקבלים על בחנים, תרגולים ושימוש בכלים"], ["דרגה", "עולה לפי ה-XP: חניך, מתכנת זוטר, מפתח ועד מאסטר"], ["ימי רצף", "כמה ימים ברצף נכנסתם ולמדתם"]];
+    [...stats.children].forEach((d, i) => { if(exp[i]) d.title = exp[i][1]; });
+    stats.insertAdjacentHTML("afterend", '<details class="statsWhat"><summary>מה המספרים האלה?</summary><ul>' + exp.map(e => '<li><b>' + e[0] + '</b>: ' + esc(e[1]) + '</li>').join("") + '<li><b>הושלמו</b>: פרקים שעניתם בהם נכון על כל הבוחן</li></ul></details>');
+  }
+  window.__howto = {STEPS, setHow};
+})();
 BADGES.push(["reader","📖","קוראים בנוחות","התאמתם את הגדרות הקריאה", () => !!state.awarded.read]);
 checkBadges(true);
 
