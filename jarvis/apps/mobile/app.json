@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "JARVIS",
+    "slug": "jarvis",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#02040a",
+    "ios": {
+      "bundleIdentifier": "ai.jarvis.mobile",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "JARVIS listens only while you hold the talk button."
+      }
+    },
+    "android": {
+      "package": "ai.jarvis.mobile",
+      "permissions": [
+        "POST_NOTIFICATIONS"
+      ]
+    },
+    "plugins": [
+      "expo-notifications",
+      "expo-secure-store",
+      "expo-asset"
+    ]
+  }
+}

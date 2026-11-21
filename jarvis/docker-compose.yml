@@ -1,0 +1,13 @@
+services:
+  jarvis:
+    build: .
+    ports: ["127.0.0.1:7777:7777"]   # expose beyond localhost only behind HTTPS (see docs/SETUP_GUIDE.he.md)
+    volumes: ["jarvis-data:/data"]
+    environment:
+      - JARVIS_TOKEN=${JARVIS_TOKEN:?set JARVIS_TOKEN}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - HA_URL=${HA_URL:-}
+      - HA_TOKEN=${HA_TOKEN:-}
+    restart: unless-stopped
+volumes:
+  jarvis-data:

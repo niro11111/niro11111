@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-feature android:name="android.hardware.type.watch" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+    <application android:label="JARVIS" android:supportsRtl="true" android:theme="@android:style/Theme.DeviceDefault" android:usesCleartextTraffic="true">
+        <uses-library android:name="com.google.android.wearable" android:required="true" />
+        <meta-data android:name="com.google.android.wearable.standalone" android:value="true" />
+        <activity android:name=".MainActivity" android:exported="true">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity>
+        <service android:name=".JarvisTileService" android:exported="true" android:label="JARVIS" android:permission="com.google.android.wearable.permission.BIND_TILE_PROVIDER">
+            <intent-filter><action android:name="androidx.wear.tiles.action.BIND_TILE_PROVIDER" /></intent-filter>
+        </service>
+    </application>
+</manifest>
