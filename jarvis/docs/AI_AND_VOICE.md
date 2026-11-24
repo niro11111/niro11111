@@ -10,6 +10,20 @@
 
 Answers are **read aloud by default**. 🔊/🔇 in the top bar mutes, every answer has a 🔊 replay button, and "speak every answer" can limit reading to voice requests.
 
+### Settings → Hearing & Voice (`web/js/hearview.js`)
+
+| Setting | What it does |
+|---|---|
+| Microphone + live meter | Lists the microphones and shows the real input level ("✓ hearing you"). It also shows the precise error for a blocked mic, no mic, or a mic in use by another app. Chrome/Edge recognition always uses the browser's default mic, and the screen says where to change it. |
+| Recognition test | Shows exactly what was heard, the recognizer's confidence and the time taken. It warns when confidence is low. Nothing is sent. |
+| Language | he-IL, en-US, en-GB, ar-IL, ru-RU, fr-FR, es-ES |
+| End of sentence after a pause | Continuous recognition with JARVIS's own end-of-sentence timer: first pause, 0.9, 1.4 (default), 2 or 3 s. A short breath no longer cuts the sentence off. |
+| After hearing | Send at once, or put the text in the box to check it before sending |
+| Conversation mode | Keeps listening for the next sentence after an answer |
+| Interrupting | You can talk over JARVIS while he speaks |
+| Wake word | On/off; sensitivity strict, normal or loose (strict accepts only near-exact spellings); a test box |
+| Answering | Read every answer, voice, speed, pitch, volume, and a test button |
+
 ### Voice & microphone check (Conversation screen)
 
 The check shows:

@@ -72,6 +72,12 @@ document.addEventListener('click', async (e) => {
 
 voice.onFinal = (txt) => send(txt, 'voice');
 voice.onInterim = (txt) => $$('.interim').forEach((x) => { x.textContent = txt; });
+// "Review before sending": the heard sentence goes into the message box instead of being sent.
+addEventListener('jarvis:voice-review', (e) => {
+  const i = document.querySelector('.composer input[dir=auto]');
+  if (!i) { send(e.detail.text, 'voice'); return; }
+  i.value = e.detail.text; i.focus();
+});
 
 export function chatPanel({ cls = 'tall', title = true } = {}) {
   const el = document.createElement('div');

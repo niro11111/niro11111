@@ -11,6 +11,7 @@ import { TOOL_SCHEMAS } from './schemas.js';
 import { evaluate, parseDate, daysUntil, convert } from './utility.js';
 import { toMinor, goalProbability } from '../wealth/calc.js';
 import { gatherContext, contextBlock, withSources } from '../brain/context.js';
+import { integrationTools } from '../integrations/tools.js';
 
 const dt = (iso, lang) => new Date(iso).toLocaleString(lang === 'he' ? 'he-IL' : 'en-GB', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 
@@ -180,6 +181,17 @@ export function buildTools(s) {
     }
     const need = { complexity: a.complexity ?? 'medium', latency: ctx.channel === 'voice' || ctx.channel === 'watch' ? 'realtime' : 'normal', privacy: a.privacy, task: taskCategory(a.prompt) };
     const route = router.route(need);
+    // No language model here: a factual question ("who was…", "what is…") is answered from
+    // Wikipedia with its source instead of failing; anything else falls through to the local engine.
+    if (route.provider === 'local' && s.integrations && a.privacy !== 'local_only') {
+      const topic = String(a.prompt ?? '').trim().match(/^(?:who (?:was|is|were)|what (?:is|was|are) (?:an? |the )?|tell me about|מי (?:היה|הייתה|היו|זה|זו)|מה זה|מהו|מהי|ספר לי על)\s+(.{2,80}?)[?.!]*$/i)?.[1];
+      if (topic) {
+        try {
+          const w = await s.integrations.wiki({ query: topic });
+          return { data: { model: 'wikipedia', sources: [{ title: w.title, url: w.url }] }, summary: `${w.title}: ${w.extract}\n${ctx.lang === 'he' ? 'מקור' : 'Source'}: ${w.url}` };
+        } catch { /* no article or no network: the local engine answers */ }
+      }
+    }
     // Providers that support page tools get JARVIS's tools; every call still passes the policy.
     const tools = router.providers[route.provider]?.capabilities().tools ? s.core.modelTools(ctx) : undefined;
     const out = await router.complete(need, {
@@ -434,6 +446,9 @@ ${(a.memories ?? []).map((m) => `- ${m.content} [${m.provenance}]`).join('\n') |
     });
     return { data: rows, summary: rows.length ? rows.map((r) => `- ${r.goal}: ${Math.round(r.probability * 100)}% ${he2 ? 'סיכוי להגיע ליעד בזמן' : 'chance to reach it on time'}${r.medianMonths != null ? ` · ${he2 ? 'צפי' : 'expected'} ${r.medianMonths} ${he2 ? 'חודשים' : 'months'} (${r.p10Months}–${r.p90Months})` : ''}${r.monthsLeft != null ? ` · ${he2 ? 'נשארו' : 'left'} ${r.monthsLeft}` : ''}`).join('\n') + `\n${he2 ? 'סימולציה של 2,000 תרחישים עם תנודתיות בהפקדות. זו הערכה, לא הבטחה.' : 'Simulation of 2,000 scenarios with varying deposits. An estimate, not a guarantee.'}` : t(ctx.lang, 'goals_none') };
   }) });
+
+  // ---------- real external integrations ----------
+  integrationTools(s, def);
 
   return T;
 }

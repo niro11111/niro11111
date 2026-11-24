@@ -10,7 +10,7 @@ import { DemoHomeAdapter } from '../../server/home/smarthome.js';
 
 const require = createRequire(import.meta.url);
 const { chromium } = require('playwright');
-const VIEWS = ['command', 'conversation', 'map', 'agents', 'brain', 'learn', 'neural', 'graph', 'worlds', 'missions', 'ai', 'automations', 'knowledge', 'planner', 'wealth', 'home', 'devices', 'console', 'database', 'privacy', 'preferences'];
+const VIEWS = ['command', 'conversation', 'map', 'agents', 'brain', 'learn', 'neural', 'graph', 'worlds', 'missions', 'ai', 'automations', 'knowledge', 'planner', 'wealth', 'home', 'devices', 'console', 'database', 'integrations', 'hearing', 'privacy', 'preferences'];
 
 const s = await createApp({ router: new ModelRouter(), home: new DemoHomeAdapter(), fetch: async () => { throw new Error('offline'); } });
 const { WorldRunner } = await import('../../server/worlds/runner.js');
@@ -109,6 +109,53 @@ try {
     await page.click('[data-wt=security]'); await page.click('[data-kill]'); await page.click('.dlg-yes'); await page.waitForSelector('[data-rel]');
     assert.equal(s.worldRunner.preview(s.store.all('worlds')[0].id), null);
     assert.deepEqual(errors.filter((e) => !/Failed to load resource/.test(e)), []);
+  });
+  await check('Integrations: real statuses; a wrong token is refused; an unreachable service shows its real error; the token never comes back', async () => {
+    await page.goto(`${url}#integrations`); await page.waitForSelector('.integ[data-id=telegram]');
+    assert.equal(await page.locator('.integ').count(), 8);
+    assert.match(await page.textContent('.integ[data-id=telegram] .tag'), /לא מוגדר/);
+    await page.fill('.integ[data-id=telegram] input[name=botToken]', 'not-a-token');
+    await page.click('.integ[data-id=telegram] [data-act=save]');
+    await page.waitForSelector('.integ[data-id=telegram] .out .err');
+    assert.match(await page.textContent('.integ[data-id=telegram] .out'), /Telegram bot token/);
+    await page.click('.integ[data-id=fx] [data-act=test]');
+    await page.waitForSelector('.integ[data-id=fx] .out .err');
+    assert.match(await page.textContent('.integ[data-id=fx] .out'), /cannot reach api\.frankfurter\.dev/); // this test server is offline, and says so
+    await page.fill('.integ[data-id=telegram] input[name=botToken]', '123456789:AAHsecretTokenForTheE2E_abcdefgh');
+    await page.click('.integ[data-id=telegram] [data-act=save]'); await page.waitForTimeout(800);
+    await page.waitForSelector('.integ[data-id=telegram]');
+    assert.ok(!(await page.content()).includes('AAHsecretTokenForTheE2E'), 'token is shown back');
+    assert.match(await page.getAttribute('.integ[data-id=telegram] input[name=botToken]', 'placeholder'), /efgh/);
+    s.integrations.disconnect('telegram');
+  });
+  await check('Hearing & Voice: the microphone meter reacts to sound, settings persist, the recognition test shows what was heard', async () => {
+    const hp = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    await hp.addInitScript(() => {
+      // a real audio stream from an oscillator stands in for the microphone
+      navigator.mediaDevices.getUserMedia = async () => { const c = new AudioContext(); const o = c.createOscillator(); const g = c.createGain(); g.gain.value = 0.8; const d = c.createMediaStreamDestination(); o.connect(g).connect(d); o.start(); return d.stream; };
+      navigator.mediaDevices.enumerateDevices = async () => [{ kind: 'audioinput', deviceId: 'mic-1', label: 'USB Microphone' }];
+      class FakeSR { start() { this.onstart?.(); setTimeout(() => { this.onresult?.({ resultIndex: 0, results: [Object.assign([{ transcript: 'שלום ג׳ארוויס', confidence: 0.93 }], { isFinal: true })] }); }, 200); setTimeout(() => this.onend?.(), 1900); } stop() { setTimeout(() => this.onend?.(), 10); } abort() {} }
+      window.SpeechRecognition = FakeSR; window.webkitSpeechRecognition = FakeSR;
+    });
+    await hp.goto(url); await hp.fill('#tokenInput', 'e2e'); await hp.click('#loginForm button'); await hp.waitForSelector('#view .core-wrap');
+    await hp.goto(`${url}#hearing`); await hp.waitForSelector('#hMicOn');
+    assert.match(await hp.innerHTML('#hMic'), /USB Microphone/);
+    await hp.click('#hMicOn');
+    await hp.waitForFunction(() => parseFloat(document.getElementById('hLevel').style.width) > 12, null, { timeout: 5000 });
+    assert.match(await hp.textContent('#hLevelTxt'), /שומע אותך/);
+    await hp.selectOption('#hSil', '2000'); await hp.selectOption('#hSend', 'review');
+    assert.equal(await hp.evaluate(() => JSON.parse(localStorage.getItem('jarvis.voiceSilence') ?? localStorage.getItem('voiceSilence') ?? 'null')), 2000);
+    await hp.click('#hTest');
+    await hp.waitForSelector('#hHeard b', { timeout: 6000 });
+    assert.equal(await hp.textContent('#hHeard b'), 'שלום ג׳ארוויס');
+    assert.match(await hp.textContent('#hHeard'), /93%/);
+    // review mode: talking in the conversation puts the text in the box instead of sending it
+    await hp.goto(`${url}#conversation`); await hp.waitForSelector('#convBtn');
+    const before = await hp.locator('.chat .msg').count();
+    await hp.click('.composer .mic-btn');
+    await hp.waitForFunction(() => document.querySelector('.composer input[dir=auto]').value === 'שלום ג׳ארוויס', null, { timeout: 6000 });
+    assert.equal(await hp.locator('.chat .msg').count(), before);
+    await hp.close();
   });
 } finally { await browser.close(); srv.close(); s.worldRunner.stopAll(); fsx.rmSync(worldsDir, { recursive: true, force: true }); }
 console.log(failures ? `\n${failures} failed` : '\nall e2e checks passed');

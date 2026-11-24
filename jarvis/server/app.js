@@ -31,6 +31,7 @@ import { LearningEngine } from './learn/engine.js';
 import { MLService } from './ml/service.js';
 import { KnowledgeGraph } from './knowledge/graph.js';
 import { Worlds } from './worlds/engine.js';
+import { Integrations } from './integrations/hub.js';
 
 export async function createApp(opts = {}) {
   const { file = null, router = null, home = null, seed = true } = opts;
@@ -56,6 +57,9 @@ export async function createApp(opts = {}) {
   s.metrics = new Metrics(store);
   s.weather = new Weather(store, opts.fetch);
   s.privacy = new Privacy(store, audit);
+  s.fetch = opts.fetch ?? globalThis.fetch;
+  s.integrations = new Integrations(s);
+  s.notifications.senders.telegram = s.integrations.notificationSender();
   s.router.onCall = (c) => s.metrics.modelCall(c);
   s.tools = buildTools(s);
   s.core = new Core(s);

@@ -71,15 +71,16 @@ test('watchers: parsed from words, evaluated exactly, fire once on the edge with
   assert.equal(parseRule('תודיע לי כשיש חשבון באיחור').metric, 'bills_overdue');
   assert.deepEqual(parseRule('תתריע אם הרצף של ספורט נשבר'), { metric: 'habit_streak', params: { name: 'ספורט' }, op: '==', value: 0 });
   const s = await app();
-  const t = await ask(s, 'תתריע לי אם ההוצאות על מסעדות עוברות 500');
+  // The threshold is above anything the dated demo data can reach, so the edge is crossed only by the test's record.
+  const t = await ask(s, 'תתריע לי אם ההוצאות על מסעדות עוברות 5000');
   assert.equal(t.state, 'COMPLETED');
   const w = s.watchers.list()[0];
   const before = s.notifications.list().length;
-  s.wealth.record({ actor: 'user', householdId: s.householdId }, { amount: -60000, description: 'מסעדה', category: 'dining' });
+  s.wealth.record({ actor: 'user', householdId: s.householdId }, { amount: -600000, description: 'מסעדה', category: 'dining' });
   assert.equal((await s.watchers.tick()).length, 1);
   assert.equal(s.notifications.list().length, before + 1);
   assert.equal((await s.watchers.tick()).length, 0, 'no repeat while still true');
-  assert.ok(s.store.get('watchers', w.id).lastValue >= 600);
+  assert.ok(s.store.get('watchers', w.id).lastValue >= 6000);
   const ov = await ask(s, 'תודיע לי כשיש חשבון באיחור');
   assert.match(ov.response, /התנאי כבר מתקיים/, 'the demo household has an overdue water bill');
 });

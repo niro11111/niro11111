@@ -17,7 +17,18 @@ export const voice = {
   muted: local.get('voiceMuted', false), claudeVoice: local.get('claudeVoice', 'buttery'),
   cap: { dictation: null, tts: null }, // claude.ai capabilities (resolved asynchronously; null elsewhere)
   speaking: false, lastError: null, lastSpoken: '', onFinal: null, onInterim: null, onWakeText: null,
+  // hearing settings (Settings → Hearing & voice)
+  autoSend: local.get('voiceAutoSend', true),      // false: the heard text goes into the box for review
+  silenceMs: local.get('voiceSilence', 1400),      // pause that ends a sentence; 0 = stop at the first pause (browser default)
+  pitch: local.get('voicePitch', 1), volume: local.get('voiceVolume', 1),
+  micId: local.get('voiceMicId', ''), lastConfidence: null,
 };
+/** Hands the final heard text to the conversation (sent at once, or put in the box for review). */
+function deliver(txt) {
+  const x = String(txt ?? '').trim(); if (!x) return;
+  if (voice.autoSend || voice.testing) voice.onFinal?.(x);
+  else dispatchEvent(new CustomEvent('jarvis:voice-review', { detail: { text: x } }));
+}
 export const backends = () => ({ stt: voice.cap.dictation ? 'claude' : SR ? 'browser' : 'none', tts: voice.cap.tts ? 'claude' : 'speechSynthesis' in window ? 'browser' : 'none' });
 
 // ---------- claude.ai capabilities ----------
@@ -32,7 +43,7 @@ const capsReady = (async () => {
     const txt = text.trim(); if (!txt) return;
     voice.onInterim?.('');
     if (voice.wakeDictation) voice.onWakeText?.(txt); // continuous listening: the wake word decides
-    else { voice.onFinal?.(txt); if (!voice.conversation) d.stop().catch(() => {}); }
+    else { deliver(txt); if (!voice.conversation) d.stop().catch(() => {}); }
   });
   d?.onState(({ state, reason }) => {
     const on = state !== 'idle';
@@ -90,7 +101,7 @@ function indicator(on) {
 }
 async function startMeter() {
   try {
-    stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+    stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, ...(voice.micId ? { deviceId: { ideal: voice.micId } } : {}) } });
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const an = audioCtx.createAnalyser(); an.fftSize = 128;
     audioCtx.createMediaStreamSource(stream).connect(an);
@@ -114,21 +125,30 @@ export function startListening() {
   }
   if (!SR) { explain('browser', 'unsupported', { force: true }); return; }
   const rec = new SR();
-  rec.lang = voice.lang; rec.interimResults = true; rec.continuous = false;
+  // Continuous recognition with our own end-of-sentence pause, so a short breath does not cut
+  // the sentence off (the browser default stops at the first pause).
+  const waitPause = voice.silenceMs > 0;
+  rec.lang = voice.lang; rec.interimResults = true; rec.continuous = waitPause; rec.maxAlternatives = 1;
+  let finals = ''; let silence = 0; let sent = false;
+  const finish = () => { clearTimeout(silence); if (sent) return; const all = finals.trim(); if (!all) return; sent = true; voice.onInterim?.(''); deliver(all); try { rec.stop(); } catch {} };
   rec.onstart = () => { voice.live = true; indicator(true); setCoreState('listening'); startMeter(); };
   rec.onresult = (ev) => {
-    const r = ev.results[ev.results.length - 1];
-    const txt = r[0].transcript;
-    voice.onInterim?.(txt);
+    let interim = '';
+    for (let i = ev.resultIndex; i < ev.results.length; i++) {
+      const r = ev.results[i];
+      if (r.isFinal) { finals += ` ${r[0].transcript}`; voice.lastConfidence = r[0].confidence ?? null; } else interim += r[0].transcript;
+    }
+    voice.onInterim?.(`${finals} ${interim}`.trim());
     if (voice.speaking && voice.bargeIn) stopSpeaking(); // the user interrupted JARVIS
-    if (r.isFinal) { voice.onInterim?.(''); voice.onFinal?.(txt); }
+    if (!waitPause) { if (finals.trim()) finish(); return; }
+    clearTimeout(silence); silence = setTimeout(finish, voice.silenceMs + (interim ? 600 : 0));
   };
   rec.onerror = (ev) => {
     if (['no-speech', 'aborted'].includes(ev.error)) return;
     const code = ev.error === 'not-allowed' && location.protocol === 'file:' ? 'not-allowed-file' : ev.error;
     explain('browser', code, { force: true });
   };
-  rec.onend = () => { voice.live = false; indicator(false); stopMeter(); if (getCoreState() === 'listening') setCoreState('idle'); };
+  rec.onend = () => { finish(); voice.live = false; indicator(false); stopMeter(); if (getCoreState() === 'listening') setCoreState('idle'); };
   voice.rec = rec;
   try { rec.start(); } catch { /* already started */ }
 }
@@ -189,7 +209,7 @@ function speakBrowser(text) {
   const chunks = chunkText(text);
   chunks.forEach((c, i) => {
     const u = new SpeechSynthesisUtterance(c);
-    u.lang = v?.lang ?? lang; if (v) u.voice = v; u.rate = voice.rate;
+    u.lang = v?.lang ?? lang; if (v) u.voice = v; u.rate = voice.rate; u.pitch = voice.pitch; u.volume = voice.volume;
     let tick = 0;
     if (i === 0) u.onstart = () => { voice.speaking = true; setCoreState('speaking'); };
     u.onboundary = () => { tick++; setWave(Array.from({ length: 32 }, (_, k) => 0.25 + 0.6 * Math.abs(Math.sin(k * 0.7 + tick)))); };
@@ -223,7 +243,27 @@ export function speak(text, { force = false } = {}) {
 export function stopSpeaking() { try { voice.cap.tts?.stop().catch(() => {}); } catch {} window.speechSynthesis?.cancel(); clearInterval(keepAlive); voice.speaking = false; }
 export function setMuted(m) { voice.muted = !!m; local.set('voiceMuted', voice.muted); if (m) stopSpeaking(); dispatchEvent(new Event('jarvis:voice-mute')); }
 
-export function saveVoicePrefs() { local.set('voiceLang', voice.lang); local.set('voiceRate', voice.rate); local.set('voiceName', voice.voiceName); local.set('bargeIn', voice.bargeIn); local.set('claudeVoice', voice.claudeVoice); }
+export function saveVoicePrefs() {
+  local.set('voiceLang', voice.lang); local.set('voiceRate', voice.rate); local.set('voiceName', voice.voiceName); local.set('bargeIn', voice.bargeIn); local.set('claudeVoice', voice.claudeVoice);
+  local.set('voiceAutoSend', voice.autoSend); local.set('voiceSilence', voice.silenceMs); local.set('voicePitch', voice.pitch); local.set('voiceVolume', voice.volume); local.set('voiceMicId', voice.micId);
+}
+
+// ---------- microphone meter for the settings screen ----------
+/** Lists the microphones (names appear only after the microphone was allowed once). */
+export async function listMics() {
+  try { return (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'audioinput').map((d, i) => ({ id: d.deviceId, label: d.label || `Microphone ${i + 1}` })); } catch { return []; }
+}
+/** Live input level of a microphone: onLevel(0..1) about 30 times a second. Returns stop(). */
+export async function micLevel(deviceId, onLevel) {
+  const st = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, ...(deviceId ? { deviceId: { exact: deviceId } } : {}) } });
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const an = ctx.createAnalyser(); an.fftSize = 1024; ctx.createMediaStreamSource(st).connect(an);
+  const buf = new Float32Array(an.fftSize); let id = 0;
+  const loop = () => { an.getFloatTimeDomainData(buf); let sum = 0; for (const x of buf) sum += x * x; onLevel(Math.min(1, Math.sqrt(sum / buf.length) * 6)); id = requestAnimationFrame(loop); };
+  loop();
+  const track = st.getAudioTracks()[0];
+  return { label: track?.label ?? '', settings: track?.getSettings?.() ?? {}, stop: () => { cancelAnimationFrame(id); st.getTracks().forEach((t2) => t2.stop()); ctx.close().catch(() => {}); } };
+}
 
 // ---------- diagnostics ----------
 export async function diagnose() {

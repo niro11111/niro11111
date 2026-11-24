@@ -492,6 +492,26 @@ export function createApi(s, token, opts = {}) {
     { id: 'email', name: 'Email (SMTP / Gmail)', category: 'Email', auth: 'OAuth 2.0', status: 'available', permissions: [] },
   ]);
 
+  // --- real external integrations (server/integrations/hub.js) ---
+  const IX = '/api/integrations/hub';
+  r('GET', IX, () => s.integrations.list());
+  r('PUT', `${IX}/:id`, (req, p) => s.integrations.configure(p.id, req.body, req.actor));
+  r('DELETE', `${IX}/:id`, (req, p) => s.integrations.disconnect(p.id, req.actor));
+  r('POST', `${IX}/:id/test`, (req, p) => s.integrations.test(p.id));
+  r('POST', `${IX}/telegram/find-chat`, () => s.integrations.telegramFindChat());
+  r('POST', `${IX}/telegram/send`, (req) => s.integrations.telegramSend({ text: req.body.text }));
+  r('GET', `${IX}/make/scenarios`, () => s.integrations.makeScenarios());
+  r('POST', `${IX}/make/run`, (req) => s.integrations.makeRun({ scenario: req.body.scenario, data: req.body.data }));
+  r('POST', `${IX}/make/webhook`, (req) => s.integrations.makeWebhook({ name: req.body.name, payload: { text: req.body.text ?? 'test from JARVIS', test: !!req.body.test } }));
+  r('GET', `${IX}/airtable/tables`, () => s.integrations.airtableTables());
+  r('GET', `${IX}/airtable/records`, () => s.integrations.airtableList({ limit: 20 }));
+  r('POST', `${IX}/inbound/create`, (req) => s.integrations.inboundCreate(req.actor));
+  r('GET', '/api/knowledge/fx', (req) => s.integrations.fxRate({ from: req.query.get('from') ?? 'USD', to: req.query.get('to') ?? 'ILS', amount: Number(req.query.get('amount') ?? 1) }));
+  r('GET', '/api/knowledge/wiki', (req) => s.integrations.wiki({ query: req.query.get('q') }));
+  r('GET', '/api/knowledge/news', () => s.integrations.headlines({ limit: 8 }));
+  // Incoming webhook: authenticated by its own secret URL token instead of the owner token.
+  r('POST', '/api/hooks/in/:token', (req, p) => { if (!s.integrations.inboundCheck(p.token)) throw Object.assign(new Error('unknown hook'), { status: 404 }); return s.integrations.inboundHandle(req.body); }, 'hook');
+
   // --- desktop bridge protocol ---
   r('POST', '/api/bridge/poll', (req) => { s.bridge.heartbeat(req.body.info); return { commands: s.bridge.take() }; }, 'bridge');
   r('POST', '/api/bridge/result/:id', (req, p) => ({ accepted: s.bridge.result(p.id, req.body) }), 'bridge');
@@ -512,7 +532,12 @@ export function createApi(s, token, opts = {}) {
     const t0 = Date.now();
     const done = (status, b) => { s.metrics.request(url.pathname, status, Date.now() - t0); return { status, body: b }; };
     let who = { actor: 'anonymous', device: null };
-    if (url.pathname !== '/api/health') {
+    if (url.pathname.startsWith('/api/hooks/in/')) {
+      // own secret token in the URL; strict per-hook rate limit
+      const nowMs = Date.now(); const hits = (rate.get('hook') ?? []).filter((x) => nowMs - x < 60e3); hits.push(nowMs); rate.set('hook', hits);
+      if (hits.length > 30) return done(429, { error: 'rate limit exceeded' });
+      who = { actor: 'webhook', device: null };
+    } else if (url.pathname !== '/api/health') {
       who = authenticate(authorization);
       if (!who) return done(401, { error: 'unauthorized' });
       // Rate limit per credential: 300 requests per rolling minute.

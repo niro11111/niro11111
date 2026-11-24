@@ -51,16 +51,20 @@ export function wakePhrases(name = 'JARVIS', custom = '') {
   return [...base].map(normalizeSpeech).filter((p) => p.length >= 2);
 }
 
+// Wake-word sensitivity (Settings → Hearing & voice): letters per allowed recognition error.
+let PER = 5;
+export function setWakeSensitivity(level) { PER = level === 'strict' ? 8 : level === 'loose' ? 4 : 5; return PER; }
 function similar(a, b) {
   const x = a.replace(/\s/g, ''); const y = b.replace(/\s/g, '');
   if (x === y) return 0;
   // An inexact match must have about the same length ("jars" is 2 edits from "jarvis" but is another word).
   if (Math.abs(x.length - y.length) > Math.max(1, Math.round(y.length * 0.2))) return null;
-  const tol = Math.max(1, Math.floor(y.length / 5)); // about one edit per five letters
+  const tol = PER >= 8 && y.length < 8 ? 0 : Math.max(1, Math.floor(y.length / PER)); // about one edit per PER letters
   const d = levenshtein(x, y);
   if (d <= tol) return d / Math.max(1, y.length);
   // Phonetic path: only for words of similar length (so "מחשבון" ≠ "מחשב"), and an inexact
   // skeleton only when both skeletons have at least 4 sounds (so "jars" ≠ "jarvis").
+  if (PER >= 8) return null; // strict: known spellings and near-exact text only, no sound-alike
   if (Math.abs(x.length - y.length) > Math.max(1, Math.round(y.length * 0.25))) return null;
   const sx = skeleton(a); const sy = skeleton(b);
   if (sx.length < 3 || sy.length < 3) return null;

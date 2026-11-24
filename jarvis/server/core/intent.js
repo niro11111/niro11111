@@ -12,6 +12,39 @@ export function splitClauses(text) {
   return text.split(/\s*(?:,?\s+and then\s+|;\s*|\s+then\s+|\s+ואז\s+|\s+ואחר כך\s+)\s*/i).map((s) => s.trim()).filter(Boolean);
 }
 
+const CUR = [[/דולר|\$|usd|dollar/i, 'USD'], [/יורו|€|eur|euro/i, 'EUR'], [/פאונד|ליש"?ט|לירה שטרלינג|£|gbp|pound/i, 'GBP'], [/ין|jpy|yen/i, 'JPY'], [/פרנק|chf|franc/i, 'CHF'], [/שקל|ש"ח|₪|ils|nis|shekel/i, 'ILS']];
+const curOf = (s) => CUR.find(([re]) => re.test(s ?? ''))?.[1] ?? null;
+
+/** Requests served by real outside services: weather, rates, Wikipedia, news, Telegram, Make, Airtable. */
+export function parseIntegration(text) {
+  const t = text.trim(); let m;
+  // Telegram (only to the owner's own chat)
+  if ((m = t.match(/^(?:תשלח|שלח)(?: לי)?\s+(?:הודעה\s+)?(?:ל|ב)-?טלגרם[\s:,-]+(?:ש)?([\s\S]{1,4000})$/) ?? t.match(/^send (?:me )?(?:a )?(?:message )?(?:to|on|via) telegram[\s:,-]+([\s\S]{1,4000})$/i) ?? t.match(/^(?:telegram|טלגרם)[\s:]+([\s\S]{1,4000})$/i))) return { agent: 'communication', tool: 'telegram.send', args: { text: m[1].trim() } };
+  // Make
+  if (/^(?:list|show)(?: my)? (?:make )?scenarios\b|^(?:אילו|איזה|הצג|תראה|רשימת)(?: לי)?(?: את)? ?(?:ה)?תרחישים|^מה התרחישים/i.test(t)) return { agent: 'automation', tool: 'make.scenarios', args: {} };
+  if ((m = t.match(/^(?:הפעל|תפעיל|הרץ|תריץ)(?: את)?\s+(?:ה)?תרחיש\s+["'“]?(.+?)["'”]?(?:\s+ב-?(?:make|מייק))?[.!]?$/i) ?? t.match(/^run (?:the )?(?:make )?scenario\s+["'“]?(.+?)["'”]?(?: (?:in|on) make)?[.!]?$/i))) return { agent: 'automation', tool: 'make.run', args: { scenario: m[1].trim() } };
+  if ((m = t.match(/^(?:תשלח|שלח)\s+ל-?(?:make|מייק)(?:\s+(?:ל-?)?(?:webhook|וובהוק)\s+([\w֐-׿-]+))?[\s:,-]+([\s\S]{1,2000})$/i) ?? t.match(/^send to make(?: webhook ([\w-]+))?[\s:,-]+([\s\S]{1,2000})$/i))) return { agent: 'automation', tool: 'make.trigger', args: { name: m[1] ?? '', text: m[2].trim() } };
+  // Airtable
+  if ((m = t.match(/^(?:הוסף|תוסיף|רשום|תרשום)\s+(?:ל|ב)-?airtable[\s:,-]+([\s\S]{1,500})$/i) ?? t.match(/^(?:הוסף|תוסיף|רשום|תרשום)\s+([\s\S]{1,500}?)\s+(?:ל|ב)-?airtable$/i) ?? t.match(/^add\s+([\s\S]{1,500}?)\s+to airtable$/i) ?? t.match(/^airtable add[\s:]+([\s\S]{1,500})$/i))) return { agent: 'automation', tool: 'airtable.create', args: { text: m[1].trim() } };
+  if (/^(?:מה יש|הצג|תראה)(?: לי)?\s+(?:ב|את\s+)?-?airtable|^(?:show|list)(?: my)? airtable/i.test(t)) return { agent: 'automation', tool: 'airtable.list', args: {} };
+  // Exchange rates
+  const CURW = '(דולר(?:ים)?|יורו|פאונד|ליש"?ט|ין|פרנק(?:ים)?|שקל(?:ים)?|ש"ח)';
+  if ((m = t.match(new RegExp(`^(?:כמה|מה)\\s+(?:זה|שווה|שווים|עולה|עולים)\\s+(\\d+(?:[.,]\\d+)?)?\\s*${CURW}(?:\\s+(?:ב|ל)-?${CURW})?`)) ?? t.match(new RegExp(`^(?:כמה|המר|תמיר)\\s+(\\d+(?:[.,]\\d+)?)\\s*${CURW}(?:\\s+(?:ב|ל)-?${CURW})?[?.!]*$`)) ?? t.match(/^(?:how much is|convert)\s+(\d+(?:\.\d+)?)?\s*(usd|eur|gbp|jpy|chf|ils|dollars?|euros?|pounds?|shekels?)\s*(?:to|in)?\s*(usd|eur|gbp|jpy|chf|ils|dollars?|euros?|pounds?|shekels?)?/i))) {
+    const from = curOf(m[2]); let to = curOf(m[3]) ?? (from === 'ILS' ? 'USD' : 'ILS');
+    if (from === to) to = from === 'ILS' ? 'USD' : 'ILS';
+    if (from) return { agent: 'research', tool: 'fx.rate', args: { from, to, amount: m[1] ? Number(m[1].replace(',', '.')) : 1 } };
+  }
+  if ((m = t.match(/שער (?:ה)?(דולר|יורו|פאונד|ליש"?ט|ין|פרנק)/) ?? t.match(/(usd|eur|gbp|dollar|euro|pound) (?:exchange )?rate/i))) return { agent: 'research', tool: 'fx.rate', args: { from: curOf(m[1]), to: 'ILS', amount: 1 } };
+  // Weather
+  if (/מזג (?:ה)?אוויר|כמה מעלות|קר (?:היום|בחוץ)|חם (?:היום|בחוץ)|יירד גשם|\bweather\b|temperature outside|is it (?:cold|hot|raining)/i.test(t) && !/התרע|תריע|alert|notify|watch/i.test(t)) return { agent: 'research', tool: 'weather.now', args: {} };
+  // News
+  if (/^(?:מה )?(?:ה)?חדשות|^כותרות|^מה קורה בעולם|^מה חדש בחדשות|^(?:the )?(?:latest )?(?:news|headlines)\b|^what(?:'s| is) (?:in the news|happening in the world)/i.test(t)) return { agent: 'research', tool: 'news.headlines', args: { source: /ynet|וויינט|ווינט/i.test(t) ? 'ynet' : /bbc/i.test(t) ? 'BBC' : undefined } };
+  // Wikipedia
+  // (explicit requests only; "who was …" goes to the model, which falls back to Wikipedia when there is none)
+  if ((m = t.match(/^(?:חפש|תחפש)\s+(?:ב)?ו?ויקיפדיה\s+(?:על\s+)?(.+?)[?.!]*$/) ?? t.match(/^(?:ו?ויקיפדיה|wikipedia)[\s:]+(.+?)[?.!]*$/i) ?? t.match(/^(?:search |look up )?(.+?) on wikipedia[?.!]*$/i))) return { agent: 'research', tool: 'wiki.lookup', args: { query: m[1].trim() } };
+  return null;
+}
+
 export function parseClause(raw, convo = {}) {
   const text = raw.trim().replace(/^(hey\s+)?jarvis[,:]?\s*/i, '').replace(/^ג'?ארוויס[,:]?\s*/, '');
   const t = text.toLowerCase();
@@ -33,6 +66,9 @@ export function parseClause(raw, convo = {}) {
     return [{ agent: 'assistant', tool: 'settings.wake', args: { word: m[1].trim() } }];
   }
   if (/^(?:who are you|what(?:'s| is) your name|מי אתה|איך קוראים לך|מה שמך)[\s?!.]*$/i.test(text)) return [{ agent: 'assistant', tool: 'chat.smalltalk', args: { text } }];
+  // --- real external integrations ---
+  const ext = parseIntegration(text);
+  if (ext) return [ext];
   // --- feedback on the previous answer (voice or text) ---
   if ((m = text.match(/^(?:jarvis,?\s*)?(?:that(?:'s| was| is)|this (?:is|was)|it(?:'s| was))\s+(wrong|incorrect|not right|not what i asked|too long|too short|great|perfect|exactly right|helpful)[\s.!]*$/i) ?? text.match(/^(?:זה|זו|התשובה)\s+(?:היה |הייתה |היתה )?(לא נכון|לא נכונה|שגוי|שגויה|לא מה שביקשתי|ארוך מדי|ארוכה מדי|קצר מדי|קצרה מדי|מצוין|מצוינת|מעולה|בדיוק מה שרציתי|עזר(?:ה)?)[\s.!]*$/))) {
     const w = m[1].toLowerCase();

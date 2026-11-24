@@ -8,6 +8,8 @@ import { lineChart, donut, gauge } from './charts.js';
 import { learnView } from './learnview.js';
 import { neuralView, graphView, databaseView } from './mlview.js';
 import { worldsView } from './worldsview.js';
+import { hearView } from './hearview.js';
+import { integrationsView } from './integrationsview.js';
 import { wake, wakeWordOf, testWake, toggleWake, persona } from './wakeui.js';
 
 let cleanups = [];
@@ -53,7 +55,7 @@ async function command(v) {
     <div class="panel glass corner"><h2>${t('recent')}</h2><ul id="hRecent" class="list"></ul></div></div></div>`;
   $('#hChat').append(chatPanel({ cls: 'short' }));
   renderChats();
-  $('#talkBtn').onclick = () => { if (voice.live) stopAll(); else { voice.conversation = true; startListening(); } };
+  $('#talkBtn').onclick = () => { if (voice.live) stopAll(); else { voice.conversation = local.get('convMode', true); startListening(); } };
 
   const load = async () => {
     const [map, agents, tasks, notes, metrics, ov, devices, ap, events, prop] = await Promise.all([
@@ -114,7 +116,7 @@ async function conversation(v) {
   $('#vRate').oninput = (e) => { voice.rate = Number(e.target.value); saveVoicePrefs(); };
   $('#vVoice').onchange = (e) => { voice.voiceName = e.target.value; saveVoicePrefs(); };
   $('#vBarge').onchange = (e) => { voice.bargeIn = e.target.checked; saveVoicePrefs(); };
-  $('#convBtn').onclick = () => { if (voice.live) stopAll(); else { voice.conversation = true; startListening(); } };
+  $('#convBtn').onclick = () => { if (voice.live) stopAll(); else { voice.conversation = local.get('convMode', true); startListening(); } };
   $('#stopBtn').onclick = () => { stopAll(); setCoreState('idle'); };
   // Microphone permission: show the real state and ask through the browser's own prompt.
   const showMic = async () => {
@@ -158,9 +160,10 @@ async function conversation(v) {
     $('#vtHeard').textContent = he() ? '🎙 מקשיב… אמרו משפט קצר' : '🎙 Listening… say a short sentence';
     const prev = voice.onFinal; const prevI = voice.onInterim;
     voice.onInterim = (x) => { if (x && $('#vtHeard')) $('#vtHeard').textContent = `… ${x}`; };
-    voice.onFinal = (x) => { voice.onFinal = prev; voice.onInterim = prevI; if ($('#vtHeard')) $('#vtHeard').innerHTML = `<span class="ok">✓ ${he() ? 'נשמע' : 'Heard'}: </span><b>${esc(x)}</b>`; stopListening(); };
+    voice.testing = true;
+    voice.onFinal = (x) => { voice.testing = false; voice.onFinal = prev; voice.onInterim = prevI; if ($('#vtHeard')) $('#vtHeard').innerHTML = `<span class="ok">✓ ${he() ? 'נשמע' : 'Heard'}: </span><b>${esc(x)}</b>`; stopListening(); };
     startListening(); // straight from the click: required by Claude dictation
-    setTimeout(() => { if (voice.onFinal !== prev) { voice.onFinal = prev; voice.onInterim = prevI; } }, 20000);
+    setTimeout(() => { if (voice.onFinal !== prev) { voice.testing = false; voice.onFinal = prev; voice.onInterim = prevI; } }, 20000);
   };
 }
 
@@ -596,6 +599,6 @@ async function brainExtras(v) {
 export const VIEWS = [
   ['sec_core'], ['command', '◉', command], ['conversation', '◍', conversation], ['map', '⌬', map], ['agents', '⎔', agents], ['brain', '🧠', brainView], ['learn', '⟲', learnView], ['neural', '◎', neuralView], ['graph', '✳', graphView], ['worlds', '🌐', worldsView], ['missions', '◈', missionsView], ['ai', '✦', aiStudio], ['automations', '⟳', automations], ['knowledge', '⛁', knowledge],
   ['sec_life'], ['planner', '✓', planner], ['wealth', '₪', wealth], ['home', '⌂', home],
-  ['sec_system'], ['devices', '⌚', devices], ['console', '⌨', consoleView], ['database', '⛃', databaseView], ['privacy', '⛨', privacy], ['preferences', '⚙', settings],
+  ['sec_system'], ['devices', '⌚', devices], ['console', '⌨', consoleView], ['database', '⛃', databaseView], ['integrations', '🔌', integrationsView], ['hearing', '🎙', hearView], ['privacy', '⛨', privacy], ['preferences', '⚙', settings],
 ];
 export { toggleListening };

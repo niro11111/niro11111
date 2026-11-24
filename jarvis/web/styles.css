@@ -290,3 +290,12 @@ td.n, th.n { text-align: end; font-variant-numeric: tabular-nums; }
 .say-btn { float: inline-end; margin-inline-start: 6px; background: transparent; border: 1px solid var(--line, #1d2d45); border-radius: 999px; padding: 0 6px; cursor: pointer; font-size: 12px; line-height: 20px; color: inherit; opacity: .7; }
 .say-btn:hover, .say-btn:focus-visible { opacity: 1; border-color: var(--cyan, #2ee6ff); }
 .voice-check .kv { grid-template-columns: auto 1fr; }
+
+/* Hearing & voice: live microphone meter and the recognition result */
+.meter { position: relative; height: 18px; border-radius: 9px; background: rgba(255,255,255,.06); border: 1px solid var(--line, rgba(255,255,255,.12)); overflow: hidden; margin: 10px 0 6px; }
+.meter i { position: absolute; inset-block: 0; inset-inline-start: 0; width: 0; background: var(--muted, #6b7a90); transition: width .06s linear; }
+.meter i.warn { background: #d9a43a; } .meter i.ok { background: #3ccf8e; }
+.meter b { position: absolute; inset-inline-end: 8px; top: 1px; }
+.heard { min-height: 48px; margin-top: 10px; padding: 10px; border-radius: 8px; background: rgba(255,255,255,.04); font-size: 1.05em; }
+.integ h2 .ic { display: inline-block; min-width: 1.4em; text-align: center; }
+.integ textarea { width: 100%; font-family: var(--mono, monospace); font-size: 12px; }
