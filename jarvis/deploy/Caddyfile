@@ -1,0 +1,7 @@
+# Your own domain with automatic HTTPS (Let's Encrypt). DOMAIN comes from the environment.
+{$DOMAIN} {
+	encode gzip
+	reverse_proxy jarvis:7777 {
+		flush_interval -1   # live events (Server-Sent Events) stream immediately
+	}
+}
