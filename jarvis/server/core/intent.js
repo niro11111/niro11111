@@ -27,6 +27,23 @@ export function parseIntegration(text) {
   // Airtable
   if ((m = t.match(/^(?:הוסף|תוסיף|רשום|תרשום)\s+(?:ל|ב)-?airtable[\s:,-]+([\s\S]{1,500})$/i) ?? t.match(/^(?:הוסף|תוסיף|רשום|תרשום)\s+([\s\S]{1,500}?)\s+(?:ל|ב)-?airtable$/i) ?? t.match(/^add\s+([\s\S]{1,500}?)\s+to airtable$/i) ?? t.match(/^airtable add[\s:]+([\s\S]{1,500})$/i))) return { agent: 'automation', tool: 'airtable.create', args: { text: m[1].trim() } };
   if (/^(?:מה יש|הצג|תראה)(?: לי)?\s+(?:ב|את\s+)?-?airtable|^(?:show|list)(?: my)? airtable/i.test(t)) return { agent: 'automation', tool: 'airtable.list', args: {} };
+  // Shabbat, holidays, Hebrew date
+  if (/(?:כניסת|צאת|זמני|הדלקת נרות של)\s*(?:ה)?שבת|מתי (?:נכנסת|יוצאת|נכנס|יוצא)\s*(?:ה)?שבת|מתי (?:ה)?שבת (?:נכנסת|יוצאת)|הדלקת נרות|פרשת השבוע|shabbat (?:times|starts|ends)|candle[- ]lighting|havdalah|when does shabbat/i.test(t)) return { agent: 'research', tool: 'hebcal.shabbat', args: {} };
+  if (/(?:מתי|מה|אילו|איזה)\s+(?:ה)?חג(?:ים)?(?=$|[\s?.!,])|next (?:jewish )?holiday|upcoming holidays/i.test(t) && !/תזכיר|remind/i.test(t)) return { agent: 'research', tool: 'hebcal.holidays', args: {} };
+  if (/(?:מה )?התאריך העברי|תאריך עברי|hebrew date/i.test(t)) return { agent: 'research', tool: 'hebcal.date', args: {} };
+  // Crypto (before currencies: "כמה עולה ביטקוין")
+  const coinWords = /ביטקוין|bitcoin|\bbtc\b|את'?ריום|אית'?ריום|ethereum|סולאנה|solana|דוג'?קוין|dogecoin|ריפל|\bxrp\b|קרדנו|cardano|קריפטו|crypto/i;
+  if (coinWords.test(t) && /כמה|מחיר|שווה|עולה|שער|price|worth|how much|value/i.test(t)) {
+    const ids = [...new Set([[/ביטקוין|bitcoin|\bbtc\b/i, 'bitcoin'], [/את'?ריום|אית'?ריום|ethereum/i, 'ethereum'], [/סולאנה|solana/i, 'solana'], [/דוג'?קוין|dogecoin/i, 'dogecoin'], [/ריפל|\bxrp\b/i, 'ripple'], [/קרדנו|cardano/i, 'cardano']].filter(([re]) => re.test(t)).map(([, id]) => id))];
+    return { agent: 'research', tool: 'crypto.price', args: { coins: ids.length ? ids : ['bitcoin', 'ethereum'] } };
+  }
+  // Phone push (ntfy)
+  if ((m = t.match(/^(?:תשלח|שלח)(?: לי)?\s+(?:התראה|פוש|הודעה)\s+(?:ל|אל ה?)טלפון(?: שלי)?[\s:,-]+(?:ש)?([\s\S]{1,3000})$/) ?? t.match(/^(?:push|notify) (?:to )?my phone[\s:,-]+([\s\S]{1,3000})$/i) ?? t.match(/^send (?:a )?push(?: notification)?[\s:,-]+([\s\S]{1,3000})$/i))) return { agent: 'communication', tool: 'ntfy.send', args: { text: m[1].trim() } };
+  // Calendar sync
+  if (/^(?:סנכרן|תסנכרן|עדכן|תעדכן)(?: את)? (?:ה)?יומן|^sync (?:my )?calendar/i.test(t)) return { agent: 'assistant', tool: 'ical.sync', args: {} };
+  // GitHub
+  if ((m = t.match(/^(?:פתח|תפתח|צור|תיצור)\s+issue(?:\s+ב-?([\w.-]+\/[\w.-]+))?[\s:,-]+([\s\S]{1,250})$/i) ?? t.match(/^(?:create|open) (?:a )?(?:github )?issue(?: in ([\w.-]+\/[\w.-]+))?[\s:,-]+([\s\S]{1,250})$/i))) return { agent: 'coding', tool: 'github.create_issue', args: { repo: m[1] ?? '', title: m[2].trim() } };
+  if (/^(?:אילו|איזה|מה ה|הצג|תראה)(?: לי)?\s*issues|issues פתוחים|^(?:show |list )?my (?:github )?issues|^github issues/i.test(t)) return { agent: 'coding', tool: 'github.issues', args: {} };
   // Exchange rates
   const CURW = '(דולר(?:ים)?|יורו|פאונד|ליש"?ט|ין|פרנק(?:ים)?|שקל(?:ים)?|ש"ח)';
   if ((m = t.match(new RegExp(`^(?:כמה|מה)\\s+(?:זה|שווה|שווים|עולה|עולים)\\s+(\\d+(?:[.,]\\d+)?)?\\s*${CURW}(?:\\s+(?:ב|ל)-?${CURW})?`)) ?? t.match(new RegExp(`^(?:כמה|המר|תמיר)\\s+(\\d+(?:[.,]\\d+)?)\\s*${CURW}(?:\\s+(?:ב|ל)-?${CURW})?[?.!]*$`)) ?? t.match(/^(?:how much is|convert)\s+(\d+(?:\.\d+)?)?\s*(usd|eur|gbp|jpy|chf|ils|dollars?|euros?|pounds?|shekels?)\s*(?:to|in)?\s*(usd|eur|gbp|jpy|chf|ils|dollars?|euros?|pounds?|shekels?)?/i))) {
@@ -173,6 +190,10 @@ export function parseClause(raw, convo = {}) {
   if ((m = text.match(/(?:schedule|add (?:an )?(?:event|meeting)|קבע (?:פגישה|אירוע)|תקבע)\s+(.+)/i))) {
     const start = parseWhen(m[1]);
     if (start) return [{ agent: 'assistant', tool: 'calendar.create', args: { title: stripWhen(m[1]), start } }];
+  }
+  if (has(t, /^(?:מה|מה יש(?: לי)?|מה מחכה לי|תראה לי מה|הצג(?: לי)?(?: את)?)\s*(?:ב|את\s+)?(?:ה)?יומן|^(?:what(?:'s| is) (?:on )?(?:in )?my calendar|show (?:me )?my calendar|my (?:calendar|agenda))/)) {
+    const days = /היום|today/.test(t) ? 1 : /מחר|tomorrow/.test(t) ? 2 : /חודש|month/.test(t) ? 31 : 7;
+    return [{ agent: 'assistant', tool: 'calendar.list', args: { from: new Date().toISOString(), to: new Date(Date.now() + days * 864e5).toISOString() } }];
   }
   if (has(t, /family schedule|weekly family|לוח זמנים משפחתי|תכנון שבועי למשפחה/)) {
     return [{ agent: 'assistant', tool: 'calendar.list', args: { from: new Date().toISOString(), to: new Date(Date.now() + 7 * 864e5).toISOString() } },

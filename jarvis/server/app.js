@@ -60,6 +60,7 @@ export async function createApp(opts = {}) {
   s.fetch = opts.fetch ?? globalThis.fetch;
   s.integrations = new Integrations(s);
   s.notifications.senders.telegram = s.integrations.notificationSender();
+  s.notifications.senders.ntfy = s.integrations.ntfySender();
   s.router.onCall = (c) => s.metrics.modelCall(c);
   s.tools = buildTools(s);
   s.core = new Core(s);
@@ -102,6 +103,8 @@ export function startScheduler(s, { everyMs = 30_000 } = {}) {
       s.memory.purgeExpired();
       await s.automations.tick();
       if (Date.now() - lastWatch > 5 * 60e3) { lastWatch = Date.now(); await s.watchers.tick(); }
+      // Connected calendar: real sync every 30 minutes.
+      if (s.integrations.configured('ical') && Date.now() - (s.store.getMeta('ical_last_try', 0) || 0) > 30 * 60e3) { s.store.setMeta('ical_last_try', Date.now()); await s.integrations.icalSync().catch((e) => console.error('[ical]', e.message)); }
       await s.missions.tick();
       if (s.worldRunner && Date.now() - lastWorldCheck > 5 * 60e3) { lastWorldCheck = Date.now(); await s.worlds.monitorAll(); }
       if (Date.now() - lastLearn > 60 * 60e3) { lastLearn = Date.now(); s.kg.rebuild(); await s.learn.cycle(); }

@@ -1,13 +1,47 @@
+# JARVIS with Docker.
+#   docker compose up -d                          → http://127.0.0.1:7777 (this computer only)
+#   docker compose --profile public up -d         → + free Cloudflare quick tunnel; the https address is in:
+#                                                    docker compose logs tunnel | grep trycloudflare
+#   DOMAIN=jarvis.example.com docker compose --profile domain up -d
+#                                                 → your own domain with automatic HTTPS (Caddy + Let's Encrypt);
+#                                                    point the domain's DNS A record to this server first
+# Set JARVIS_TOKEN in .env (openssl rand -hex 24). Keys: ANTHROPIC_API_KEY, TELEGRAM_BOT_TOKEN, …
 services:
   jarvis:
     build: .
-    ports: ["127.0.0.1:7777:7777"]   # expose beyond localhost only behind HTTPS (see docs/SETUP_GUIDE.he.md)
+    ports: ["127.0.0.1:7777:7777"]   # never published directly: public access goes through HTTPS (tunnel or Caddy)
     volumes: ["jarvis-data:/data"]
     environment:
-      - JARVIS_TOKEN=${JARVIS_TOKEN:?set JARVIS_TOKEN}
+      - JARVIS_TOKEN=${JARVIS_TOKEN:?set JARVIS_TOKEN in .env}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - HA_URL=${HA_URL:-}
       - HA_TOKEN=${HA_TOKEN:-}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - MAKE_API_TOKEN=${MAKE_API_TOKEN:-}
+      - AIRTABLE_TOKEN=${AIRTABLE_TOKEN:-}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - NTFY_TOKEN=${NTFY_TOKEN:-}
+      - JARVIS_CORS=${JARVIS_CORS:-*}
     restart: unless-stopped
+
+  tunnel:
+    profiles: ["public"]
+    image: cloudflare/cloudflared:2024.12.2
+    command: tunnel --no-autoupdate --url http://jarvis:7777
+    depends_on: [jarvis]
+    restart: unless-stopped
+
+  caddy:
+    profiles: ["domain"]
+    image: caddy:2.8
+    ports: ["80:80", "443:443"]
+    environment:
+      - DOMAIN=${DOMAIN:-localhost}
+    volumes: ["./deploy/Caddyfile:/etc/caddy/Caddyfile:ro", "caddy-data:/data", "caddy-config:/config"]
+    depends_on: [jarvis]
+    restart: unless-stopped
+
 volumes:
   jarvis-data:
+  caddy-data:
+  caddy-config:

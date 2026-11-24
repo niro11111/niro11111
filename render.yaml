@@ -1,0 +1,22 @@
+# Render blueprint: Dashboard → New → Blueprint → this repository. Gives a real address
+# https://<name>.onrender.com with HTTPS. The persistent disk needs a paid instance type
+# (on the free type data resets when the service restarts).
+services:
+  - type: web
+    name: jarvis
+    runtime: docker
+    rootDir: jarvis
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    healthCheckPath: /api/health
+    envVars:
+      - key: JARVIS_TOKEN
+        generateValue: true      # shown in the Render dashboard → Environment
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+    disk:
+      name: jarvis-data
+      mountPath: /data
+      sizeGB: 1

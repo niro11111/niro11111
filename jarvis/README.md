@@ -8,9 +8,12 @@ A personal AI operating system for one household. It covers:
 - a self-improvement engine, an on-device machine-learning layer (neural network + classic algorithms),
   a personal knowledge graph, and a dedicated SQLite database
 
+**Quick start:** double-click `start-jarvis.bat` (Windows) / `start-jarvis.command` (Mac). Add `--public` for a real https address. See [docs/DEPLOY.he.md](docs/DEPLOY.he.md) for the HTML file, your own domain, Render and Fly. Real integrations are listed in [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md); the hands-free voice call in [docs/AI_AND_VOICE.md](docs/AI_AND_VOICE.md).
+
 ```bash
 cd jarvis && npm install && npm start     # backend + frontend + SQLite database at http://127.0.0.1:7777 (paste the printed token)
-npm test                                  # 122 unit / integration / API tests
+npm run start:public                      # same, plus a free public https address (needs cloudflared)
+npm test                                  # 135 unit / integration / API tests
 npm run load:test                         # concurrent mixed load against the real API router
 npm run test:e2e                          # browser tests: all screens, RTL/LTR, a11y, approvals, phone width
 npm run build:webapp                      # dist/webapp: the COMPLETE JARVIS in the browser, plus dist/jarvis.html:

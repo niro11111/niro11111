@@ -21,6 +21,11 @@ actually happened:
 | **Wikipedia** | article summary with its link (he/en) | "חפש בוויקיפדיה …"; with no AI model, "מי היה …" / "what is …" are answered from Wikipedia | nothing |
 | **News (RSS)** | headlines from ynet, BBC or any feeds you add; a failing feed is named, not hidden | "חדשות", "חדשות ynet" | nothing |
 | **Weather** | current weather for your location (Open-Meteo) | "מה מזג האוויר" | location in Preferences |
+| **Shabbat & holidays (Hebcal)** | candle lighting, havdalah, parasha, upcoming holidays (Hanukkah shown as one line), today's Hebrew date; times are those of the saved location, not the server's | "מתי כניסת שבת", "מתי החג הבא", "מה התאריך העברי" | nothing |
+| **Crypto (CoinGecko)** | price in ₪ and $ with the 24 h change | "כמה עולה ביטקוין", "מחיר ביטקוין ואתריום" | nothing |
+| **Phone push (ntfy)** | push to your phone through the free ntfy app; optionally every JARVIS notification | "שלח לי התראה לטלפון: …" | a long random topic (a "Random" button is provided) or your own ntfy server + token |
+| **Calendar (iCal)** | your Google/Outlook/Apple calendar synced read-only every 30 min (60 days ahead, recurring events, cancelled events skipped). The address is a secret and is masked. | "סנכרן את היומן", "מה יש לי ביומן" | the calendar's secret iCal address |
+| **GitHub** | open issues (PRs excluded), creating an issue (verified by reading it back) | "my github issues", "פתח issue: …" | fine-grained token (Issues read/write) |
 | **Incoming webhook** | Make or any service POSTs `{"action":"notify\|task\|note","text":"…"}` to a private URL | n/a | JARVIS server reachable from the internet (e.g. a tunnel) |
 
 ## Safety
@@ -63,3 +68,17 @@ In each case the card shows the exact error.
 | | News: live ynet and BBC headlines | real response |
 | | Wikipedia and Open-Meteo: blocked (429 / timeout) | the services' limits on datacenter IPs; on a home connection they answer normally |
 | Telegram, Make API, Airtable | Need your own tokens, so they could not be called live here | not tested live |
+
+### Live check, 24/11/2026
+
+From a cloud container, through JARVIS's own commands:
+
+| Service | Result |
+|---|---|
+| Hebcal: Shabbat | Tel Aviv, candle lighting Friday 27.11 16:16, havdalah 17:16, Parashat Vayishlach |
+| Hebcal: holidays | Hanukkah 4.12–12.12, Tu BiShvat 23.1, Purim 23.3 |
+| Hebcal: Hebrew date | "י״ד בְּכִסְלֵו תשפ״ז" |
+| CoinGecko | bitcoin ₪199,788 ($59,647, ▼4.82% in 24 h) |
+| ntfy.sh | Refused with "daily message quota reached" (429). That is the limit on the container's shared IP; from a home connection the same call works. |
+
+Connecting from anywhere (HTML file, phone, public address) is covered in [DEPLOY.he.md](DEPLOY.he.md).

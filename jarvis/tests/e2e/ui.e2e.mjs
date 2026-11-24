@@ -112,7 +112,7 @@ try {
   });
   await check('Integrations: real statuses; a wrong token is refused; an unreachable service shows its real error; the token never comes back', async () => {
     await page.goto(`${url}#integrations`); await page.waitForSelector('.integ[data-id=telegram]');
-    assert.equal(await page.locator('.integ').count(), 8);
+    assert.equal(await page.locator('.integ').count(), 13);
     assert.match(await page.textContent('.integ[data-id=telegram] .tag'), /לא מוגדר/);
     await page.fill('.integ[data-id=telegram] input[name=botToken]', 'not-a-token');
     await page.click('.integ[data-id=telegram] [data-act=save]');
@@ -198,6 +198,28 @@ try {
     assert.equal(userMsgs.length, 2, `echo leaked into the chat: ${JSON.stringify(userMsgs)}`);
     assert.deepEqual(ce, []);
     await cp.close();
+  });
+  await check('single HTML file (file://) connects to a real JARVIS server by address: a wrong token is refused, then it works on the server\'s data', async () => {
+    const html = pathx.resolve('dist/jarvis.html');
+    assert.ok(fsx.existsSync(html), 'build first: npm run build:webapp');
+    const fp = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    const fe = []; fp.on('pageerror', (e) => fe.push(e.message));
+    await fp.goto(`file://${html}#integrations`); await fp.waitForSelector('#srvF', { timeout: 20000 });
+    assert.match(await fp.textContent('.panel h2'), /כתובת וחיבור/);
+    const server = url.replace(/\/$/, '');
+    await fp.fill('#srvF input[name=url]', server); await fp.fill('#srvF input[name=token]', 'wrong');
+    await fp.click('#srvF button.primary'); await fp.waitForSelector('#srvOut .err');
+    assert.match(await fp.textContent('#srvOut'), /טוקן|token/i);
+    await fp.fill('#srvF input[name=token]', 'e2e'); await fp.click('#srvF button.primary');
+    await fp.waitForEvent('load'); await fp.goto(`file://${html}#conversation`); await fp.waitForSelector('.composer input[dir=auto]', { timeout: 20000 });
+    const before = s.store.all('tasks').length;
+    await fp.fill('.composer input[dir=auto]', 'תוסיף משימה לחדש דרכון'); await fp.press('.composer input[dir=auto]', 'Enter');
+    await fp.waitForFunction(() => /דרכון/.test([...document.querySelectorAll('.chat .msg.jarvis')].pop()?.textContent ?? ''), null, { timeout: 15000 });
+    assert.equal(s.store.all('tasks').length, before + 1, 'the task was created on the server');
+    assert.ok(s.store.all('tasks').some((x) => /דרכון/.test(x.title)));
+    await fp.goto(`file://${html}#integrations`); await fp.waitForSelector('#srvOff');
+    await fp.click('#srvOff'); await fp.waitForEvent('load');
+    assert.deepEqual(fe, []); await fp.close();
   });
 } finally { await browser.close(); srv.close(); s.worldRunner.stopAll(); fsx.rmSync(worldsDir, { recursive: true, force: true }); }
 console.log(failures ? `\n${failures} failed` : '\nall e2e checks passed');

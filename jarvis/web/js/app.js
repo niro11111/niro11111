@@ -1,5 +1,5 @@
 // JARVIS Command Center: boot, navigation, live events.
-import { api, auth, toast, $, $$, local } from './api.js';
+import { api, auth, toast, $, $$, local, remote } from './api.js';
 import { t, setLang, getLang } from './i18n.js';
 import { coreHTML, setCoreState, getCoreState } from './core.js';
 import { VIEWS, cleanup } from './views.js';
@@ -60,10 +60,10 @@ function onLiveEvent(e) {
 }
 
 function connectStream() {
-  if (window.JARVIS_LOCAL) { window.JARVIS_LOCAL.onEvent(onLiveEvent); return; }
-  if (window.JARVIS_MOCK) return; // no live stream in the recorded demo
+  if (window.JARVIS_LOCAL && !remote.active()) { window.JARVIS_LOCAL.onEvent(onLiveEvent); return; }
+  if (window.JARVIS_MOCK && !remote.active()) return; // no live stream in the recorded demo
   es?.close();
-  es = new EventSource(`/api/stream?token=${encodeURIComponent(auth.get())}`);
+  es = new EventSource(`${remote.url()}/api/stream?token=${encodeURIComponent(auth.get())}`);
   es.onmessage = (m) => onLiveEvent(JSON.parse(m.data));
   es.onerror = () => { if (es.readyState === EventSource.CLOSED) setCoreState('error'); };
 }
@@ -100,6 +100,9 @@ addEventListener('jarvis:storage', (e) => {
 });
 
 async function boot() {
+  // The start script opens the browser already signed in (#token=…); the token is removed from the address at once.
+  const tk = location.hash.match(/^#token=([^&]+)/);
+  if (tk) { auth.set(decodeURIComponent(tk[1])); history.replaceState(null, '', location.pathname + location.search); current = 'command'; }
   if (!auth.get() && !window.JARVIS_MOCK && !window.JARVIS_LOCAL) return showLogin();
   document.getElementById('bootMsg')?.remove();
   connectStream(); refreshBadges(); setInterval(refreshBadges, 30000);

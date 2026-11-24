@@ -1,0 +1,26 @@
+# Fly.io: fly launch --no-deploy (keep this file), fly volumes create jarvis_data --size 1,
+# fly secrets set JARVIS_TOKEN=$(openssl rand -hex 24), fly deploy → https://<app>.fly.dev
+app = "jarvis-change-me"
+primary_region = "fra"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  JARVIS_HOST = "0.0.0.0"
+  PORT = "7777"
+
+[http_service]
+  internal_port = 7777
+  force_https = true
+  auto_stop_machines = "off"
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    path = "/api/health"
+    interval = "30s"
+    timeout = "5s"
+
+[mounts]
+  source = "jarvis_data"
+  destination = "/data"

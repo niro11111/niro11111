@@ -9,6 +9,8 @@
   },
   "scripts": {
     "start": "node --no-warnings server/index.js",
+    "start:easy": "node scripts/start.mjs",
+    "start:public": "node scripts/start.mjs --public",
     "test": "node --no-warnings --test tests/*.test.js",
     "test:e2e": "node tests/e2e/ui.e2e.mjs",
     "build:prototypes": "node prototypes/build.mjs",

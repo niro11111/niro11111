@@ -7,9 +7,10 @@
 // Secrets (tokens) are stored server-side, are never returned by the API (only a masked hint)
 // and environment variables override stored values (TELEGRAM_BOT_TOKEN, MAKE_API_TOKEN, AIRTABLE_TOKEN).
 import { randomBytes } from 'node:crypto';
+import { MORE_CONNECTORS, MORE_SECRETS, MORE_ENV, moreMethods } from './more.js';
 
-const SECRET_KEYS = { telegram: ['botToken'], make: ['apiToken'], airtable: ['token'] };
-const ENV = { 'telegram.botToken': 'TELEGRAM_BOT_TOKEN', 'make.apiToken': 'MAKE_API_TOKEN', 'airtable.token': 'AIRTABLE_TOKEN' };
+const SECRET_KEYS = { telegram: ['botToken'], make: ['apiToken'], airtable: ['token'], ...MORE_SECRETS };
+const ENV = { 'telegram.botToken': 'TELEGRAM_BOT_TOKEN', 'make.apiToken': 'MAKE_API_TOKEN', 'airtable.token': 'AIRTABLE_TOKEN', ...MORE_ENV };
 const env = (k) => (typeof process !== 'undefined' ? process.env?.[ENV[k]] : undefined);
 const mask = (v) => (v ? `••••${String(v).slice(-4)}` : '');
 const WIKI_UA = 'JARVIS-personal-assistant/1.0 (self-hosted; Wikimedia API client)';
@@ -28,6 +29,7 @@ export const CONNECTORS = {
   wikipedia: { name: 'Wikipedia', category: 'Knowledge', fields: [], keyless: true, docs: 'No key needed. Hebrew and English Wikipedia.' },
   news: { name: 'News (RSS)', category: 'Knowledge', fields: ['feeds'], keyless: true, docs: 'No key needed. Any RSS feed; ynet and BBC are preset.' },
   weather: { name: 'Weather (Open-Meteo)', category: 'Knowledge', fields: [], keyless: true, docs: 'No key needed. Location is set in Preferences.' },
+  ...MORE_CONNECTORS,
   inbound: { name: 'Incoming webhook (to JARVIS)', category: 'Automation', fields: [], docs: 'Lets Make or any service POST to JARVIS: notify, add a task or a note. Needs the JARVIS server reachable from the internet (for example through a tunnel).' },
 };
 
@@ -63,6 +65,9 @@ export class Integrations {
       case 'telegram': return !!(c.botToken && c.chatId);
       case 'airtable': return !!(c.token && c.baseId);
       case 'inbound': return !!c.token;
+      case 'ntfy': return !!c.topic;
+      case 'ical': return !!c.url;
+      case 'github': return !!c.token;
       default: return true;
     }
   }
@@ -96,12 +101,19 @@ export class Integrations {
     }
     if (id === 'telegram') { if (next.botToken && !/^\d{5,}:[\w-]{20,}$/.test(next.botToken)) throw err('this does not look like a Telegram bot token (123456:ABC…)'); next.forwardNotifications = !!next.forwardNotifications; }
     if (id === 'airtable' && next.baseId && !/^app\w{10,}$/.test(next.baseId)) throw err('the base id starts with "app" (from the base URL)');
+    if (id === 'ntfy') {
+      if (next.topic && !/^[\w-]{1,64}$/.test(next.topic)) throw err('topic: letters, digits, - and _ only (up to 64)');
+      if (next.server) next.server = this.safeUrl(next.server).replace(/\/+$/, ''); else delete next.server;
+      next.forwardNotifications = !!next.forwardNotifications;
+    }
+    if (id === 'ical' && next.url) next.url = this.safeUrl(String(next.url).replace(/^webcal:/i, 'https:'));
+    if (id === 'github' && next.repo && !/^[\w.-]+\/[\w.-]+$/.test(next.repo)) throw err('repository as owner/name');
     if (id === 'news') next.feeds = (Array.isArray(next.feeds) ? next.feeds : []).filter((f) => f?.url).slice(0, 10).map((f) => ({ name: String(f.name || 'feed').slice(0, 30), url: this.safeUrl(f.url) }));
     this.s.store.setMeta(`integration:${id}`, next);
     this.s.store.setMeta(`integration_state:${id}`, null);
-    if (id === 'telegram' && 'forwardNotifications' in body) { // the Telegram notification channel follows the switch
-      const ch = this.s.notifications.prefs().channels.filter((c) => c !== 'telegram');
-      this.s.notifications.setPrefs({ channels: next.forwardNotifications ? [...ch, 'telegram'] : ch });
+    if ((id === 'telegram' || id === 'ntfy') && 'forwardNotifications' in body) { // the notification channel follows the switch
+      const ch = this.s.notifications.prefs().channels.filter((c) => c !== id);
+      this.s.notifications.setPrefs({ channels: next.forwardNotifications ? [...ch, id] : ch });
     }
     this.s.audit.log(actor, 'integration.configure', { id, fields: Object.keys(body).filter((k) => d.fields.includes(k)) });
     return this.list().find((x) => x.id === id);
@@ -164,6 +176,11 @@ export class Integrations {
       case 'wikipedia': return this.tracked('wikipedia', async () => { const r = await this.wiki({ query: 'ירושלים', lang: 'he' }); return { ok: true, detail: `"${r.title}" found` }; });
       case 'news': return this.tracked('news', async () => { const r = await this.headlines({ limit: 3 }); return { ok: true, detail: `${r.items.length} headlines from ${r.sources.filter((x) => x.ok).map((x) => x.name).join(', ')}` }; });
       case 'weather': return this.tracked('weather', async () => { const w = await this.s.weather.current(); if (!w.available) throw err(w.reason, 502); return { ok: true, detail: `${w.location}: ${w.temperature}°` }; });
+      case 'hebcal': return this.tracked('hebcal', async () => { const r = await this.shabbat({}); return { ok: true, detail: `${r.location}: ${r.candles?.title ?? ''} · ${r.havdalah?.title ?? ''}` }; });
+      case 'crypto': return this.tracked('crypto', async () => { const r = await this.cryptoPrice({ coins: ['bitcoin'] }); return { ok: true, detail: `bitcoin ₪${r.prices[0].ils.toLocaleString('en')} / $${r.prices[0].usd.toLocaleString('en')}` }; });
+      case 'ntfy': return this.ntfySend({ text: 'JARVIS is connected ✓', title: 'JARVIS' }).then((r) => ({ ok: true, detail: r.detail }));
+      case 'ical': return this.icalSync().then((r) => ({ ok: true, detail: r.detail }));
+      case 'github': return this.tracked('github', async () => { const u = await this.gh('/user'); return { ok: true, detail: `signed in as ${u.login}` }; });
       case 'inbound': return { ok: this.configured('inbound'), status: this.status('inbound'), detail: this.configured('inbound') ? 'POST JSON to the URL shown to try it.' : 'create the incoming URL first' };
       default: throw err(`unknown integration ${id}`, 404);
     }
@@ -329,3 +346,6 @@ export class Integrations {
     throw err('action must be notify, task or note');
   }
 }
+
+// More connectors (Hebcal, CoinGecko, ntfy, iCal, GitHub) live in more.js.
+Object.assign(Integrations.prototype, moreMethods);

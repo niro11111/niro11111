@@ -11,12 +11,34 @@ let TOKEN = local.get('token', '');
 let onUnauthorized = () => {};
 export const auth = { get: () => TOKEN, set(tok) { TOKEN = tok; local.set('token', tok); }, onUnauthorized(fn) { onUnauthorized = fn; } };
 
+/**
+ * Remote JARVIS server. When set, this page (also the single HTML file or the in-browser build)
+ * talks to that server instead of its own in-page runtime: same data on every device.
+ */
+export const remote = {
+  url: () => String(local.get('serverUrl', '') || '').replace(/\/+$/, ''),
+  active: () => !!remote.url(),
+  async test(url, token) {
+    const base = String(url).trim().replace(/\/+$/, '');
+    if (!/^https?:\/\//i.test(base)) throw new Error('the address starts with https://');
+    let h;
+    try { h = await (await fetch(`${base}/api/health`, { signal: AbortSignal.timeout(8000) })).json(); } catch (e) { throw new Error(`no JARVIS server answers at ${base} (${e.message})`); }
+    if (h?.name !== 'J.A.R.V.I.S') throw new Error(`${base} is not a JARVIS server`);
+    const r = await fetch(`${base}/api/status`, { headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(8000) });
+    if (r.status === 401) throw new Error('the server is there, but the access token is wrong');
+    if (!r.ok) throw new Error(`server error ${r.status}`);
+    return { base, health: h, status: await r.json() };
+  },
+  connect(url, token) { local.set('serverUrl', String(url).trim().replace(/\/+$/, '')); auth.set(token); },
+  disconnect() { local.set('serverUrl', ''); },
+};
+
 export async function api(path, opts = {}) {
   // Prototype/demo build: a recorded in-browser backend answers instead of the server.
-  // In-browser runtime: the full JARVIS runs in this page.
-  if (window.JARVIS_LOCAL) return window.JARVIS_LOCAL.api(path, { method: opts.method ?? 'GET', body: opts.body });
-  if (window.JARVIS_MOCK) return window.JARVIS_MOCK(path, { ...opts, body: opts.body && typeof opts.body !== 'string' ? JSON.stringify(opts.body) : opts.body });
-  const r = await fetch(path, { ...opts, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${TOKEN}`, ...(opts.headers ?? {}) },
+  // In-browser runtime: the full JARVIS runs in this page (unless a remote server is connected).
+  if (window.JARVIS_LOCAL && !remote.active()) return window.JARVIS_LOCAL.api(path, { method: opts.method ?? 'GET', body: opts.body });
+  if (window.JARVIS_MOCK && !remote.active()) return window.JARVIS_MOCK(path, { ...opts, body: opts.body && typeof opts.body !== 'string' ? JSON.stringify(opts.body) : opts.body });
+  const r = await fetch(remote.url() + path, { ...opts, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${TOKEN}`, ...(opts.headers ?? {}) },
     body: opts.body && typeof opts.body !== 'string' ? JSON.stringify(opts.body) : opts.body });
   if (r.status === 401) { onUnauthorized(); throw new Error('unauthorized'); }
   const data = await r.json().catch(() => null);

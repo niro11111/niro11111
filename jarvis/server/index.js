@@ -17,7 +17,27 @@ export function createServer(s, token, opts = {}) {
   return http.createServer(async (req, res) => {
     const url = new URL(req.url, 'http://local');
     res.setHeader('X-Content-Type-Options', 'nosniff');
-    if (!url.pathname.startsWith('/api/')) return serveStatic(url.pathname, res);
+    res.setHeader('Referrer-Policy', 'no-referrer');
+    // Behind HTTPS (tunnel, Caddy, Render, Fly): tell browsers to stay on HTTPS.
+    if (req.headers['x-forwarded-proto'] === 'https') res.setHeader('Strict-Transport-Security', 'max-age=31536000');
+    if (url.pathname.startsWith('/api/')) {
+      // The API is called with a bearer token (never cookies), so other origins may call it: the
+      // single HTML file (origin "null"), the phone app, or the web app on another address.
+      // JARVIS_CORS narrows it to a list of origins.
+      const allow = process.env.JARVIS_CORS ?? '*';
+      const origin = req.headers.origin;
+      if (allow === '*' || (origin && allow.split(',').map((x) => x.trim()).includes(origin))) {
+        res.setHeader('Access-Control-Allow-Origin', allow === '*' ? '*' : origin);
+        res.setHeader('Access-Control-Allow-Headers', 'authorization, content-type');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+        res.setHeader('Access-Control-Max-Age', '600');
+        if (allow !== '*') res.setHeader('Vary', 'Origin');
+      }
+      if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
+    } else {
+      res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+      return serveStatic(url.pathname, res);
+    }
     if (url.pathname === '/api/stream') {
       if (!api.authenticate(`Bearer ${url.searchParams.get('token')}`)) return send(res, 401, { error: 'unauthorized' });
       res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' });

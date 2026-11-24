@@ -178,3 +178,113 @@ test('wake-word sensitivity: strict rejects a misheard name that normal accepts'
   assert.equal(matchWake('jarvis turn on the light', P).matched, true);
   setWakeSensitivity('normal');
 });
+
+// ---------- Hebcal, CoinGecko, ntfy, iCal, GitHub, CORS ----------
+import { parseICS } from '../server/integrations/more.js';
+import { createServer } from '../server/index.js';
+
+function moreNet() {
+  const calls = [];
+  const json = (b, status = 200) => ({ ok: status < 400, status, text: async () => JSON.stringify(b) });
+  const at = (days, h) => { const d = new Date(Date.now() + days * 864e5); d.setUTCHours(h, 0, 0, 0); return d.toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z'; };
+  let title = 'פגישה עם רואה חשבון';
+  const ics = () => ['BEGIN:VCALENDAR', 'BEGIN:VEVENT', 'UID:a1', `SUMMARY:${title}`, `DTSTART:${at(2, 8)}`, `DTEND:${at(2, 9)}`, 'LOCATION:תל אביב', 'END:VEVENT',
+    'BEGIN:VEVENT', 'UID:w1', 'SUMMARY:Gym', `DTSTART:${at(3, 17)}`, `DTEND:${at(3, 18)}`, 'RRULE:FREQ=WEEKLY;COUNT=3', 'END:VEVENT',
+    'BEGIN:VEVENT', 'UID:c1', 'SUMMARY:Cancelled', 'STATUS:CANCELLED', `DTSTART:${at(4, 10)}`, 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+  const fetch = async (url, o = {}) => {
+    const u = new URL(url); const h = o.headers ?? {}; const body = o.body ? JSON.parse(o.body) : null;
+    calls.push({ url: String(url), method: o.method ?? 'GET', headers: h, body });
+    if (u.hostname === 'www.hebcal.com' && u.pathname === '/shabbat') return json({ items: [{ category: 'candles', title: 'הדלקת נרות: 16:16', date: '2099-11-27T16:16:00+02:00' }, { category: 'parashat', title: 'Vayishlach', hebrew: 'פרשת וישלח', date: '2099-11-28' }, { category: 'havdalah', title: 'הבדלה: 17:16', date: '2099-11-28T17:16:00+02:00' }] });
+    if (u.hostname === 'www.hebcal.com' && u.pathname === '/hebcal') return json({ items: ['א׳ נר', 'ב׳ נרות', 'ג׳ נרות'].map((n, i) => ({ category: 'holiday', title: `Chanukah: ${i + 1} Candles`, hebrew: `חנוכה: ${n}`, date: `2099-12-0${4 + i}` })).concat([{ category: 'holiday', title: 'Tu BiShvat', hebrew: 'ט״ו בשבט', date: '2100-01-23' }]) });
+    if (u.hostname === 'www.hebcal.com' && u.pathname === '/converter') return json({ hebrew: 'י״ד בְּכִסְלֵו תשפ״ז', hy: 5787, hm: 'Kislev', hd: 14, events: [] });
+    if (u.hostname === 'api.coingecko.com') return json({ bitcoin: { ils: 199788, usd: 59647, usd_24h_change: -4.8213, last_updated_at: 1 } });
+    if (u.hostname === 'ntfy.sh') return json({ id: 'Xy12', time: 1, event: 'message', topic: body.topic, message: body.message });
+    if (u.hostname === 'calendar.example.com') return { ok: true, status: 200, text: async () => ics() };
+    if (u.hostname === 'api.github.com') {
+      if (h.authorization !== 'Bearer ghp_test') return json({ message: 'Bad credentials' }, 401);
+      if (u.pathname === '/user') return json({ login: 'niro' });
+      if (u.pathname === '/issues') return json([{ number: 3, title: 'Voice bug', html_url: 'https://github.com/o/r/issues/3', repository: { full_name: 'o/r' } }, { number: 4, title: 'a PR', pull_request: {}, repository: { full_name: 'o/r' } }]);
+      if (u.pathname === '/repos/o/r/issues' && o.method === 'POST') return json({ number: 9, html_url: 'https://github.com/o/r/issues/9' });
+      if (u.pathname === '/repos/o/r/issues/9') return json({ number: 9 });
+    }
+    return json({ error: 'unexpected' }, 404);
+  };
+  return { fetch, calls, rename: (t) => { title = t; } };
+}
+async function mk2() {
+  const net = moreNet();
+  const s = await createApp({ file: null, router: new ModelRouter(), home: new DemoHomeAdapter(), seed: true, fetch: net.fetch });
+  return { s, net };
+}
+const say = (s, text, c = 't') => s.core.handle(text, { householdId: s.householdId, conversationId: c });
+
+test('Hebcal: Shabbat times shown in the location\'s own time (not the server\'s), holidays grouped, Hebrew date', async () => {
+  const { s, net } = await mk2();
+  const r = await say(s, 'מתי כניסת שבת');
+  assert.equal(r.state, 'COMPLETED', r.response);
+  assert.match(r.response, /16:16/); assert.match(r.response, /17:16/); assert.match(r.response, /פרשת וישלח/);
+  assert.match(net.calls.find((c) => c.url.includes('/shabbat')).url, /tzid=Asia%2FJerusalem/); // Tel Aviv, whatever the server's zone
+  const h = await say(s, 'מתי החג הבא', 't2');
+  assert.equal((h.response.match(/חנוכה/g) ?? []).length, 1, h.response); // eight nights → one line
+  assert.match(h.response, /ט״ו בשבט/);
+  assert.match((await say(s, 'מה התאריך העברי', 't3')).response, /כסלו|כִסְלֵו/);
+});
+
+test('crypto price, ntfy push (verified id, JSON body for Hebrew) and notification forwarding', async () => {
+  const { s, net } = await mk2();
+  assert.match((await say(s, 'כמה עולה ביטקוין')).response, /₪199,788.*▼4\.82%/);
+  await assert.rejects(() => s.integrations.ntfySend({ text: 'x' }), /topic is not set/);
+  assert.throws(() => s.integrations.configure('ntfy', { topic: 'bad topic!' }), /topic/);
+  s.integrations.configure('ntfy', { topic: 'jarvis-abc123', forwardNotifications: true });
+  const r = await say(s, 'שלח לי התראה לטלפון: לקחת מטריה', 't2');
+  assert.equal(r.state, 'COMPLETED', r.response);
+  assert.deepEqual(net.calls.find((c) => c.url === 'https://ntfy.sh/').body.message, 'לקחת מטריה');
+  const n = await s.notifications.send({ title: 'חשבון חשמל לתשלום', priority: 'critical' });
+  assert.deepEqual(n.deliveries.find((d) => d.channel === 'ntfy'), { channel: 'ntfy', status: 'sent' });
+});
+
+test('iCal: real feed parsed (recurrence, cancelled skipped), synced into the calendar, re-sync updates in place, URL masked', async () => {
+  const { s, net } = await mk2();
+  s.integrations.configure('ical', { url: 'webcal://calendar.example.com/secret/basic.ics' });
+  assert.ok(!JSON.stringify(s.integrations.list()).includes('secret/basic'), 'calendar address leaked');
+  const r = await say(s, 'סנכרן את היומן');
+  assert.equal(r.state, 'COMPLETED', r.response);
+  const mine = () => s.store.all('events', (e) => e.source === 'ical');
+  assert.deepEqual(mine().map((e) => e.title).sort(), ['Gym', 'Gym', 'Gym', 'פגישה עם רואה חשבון']);
+  assert.ok(net.calls.some((c) => c.url.startsWith('https://calendar.example.com/')), 'webcal:// fetched over https');
+  net.rename('פגישה עם רו״ח (הוזז)');
+  const again = await s.integrations.icalSync();
+  assert.equal(again.added, 0); assert.equal(again.updated, 1);
+  assert.equal(mine().length, 4);
+  const cal = await say(s, 'מה יש לי ביומן', 't2'); // the synced events answer by voice
+  assert.deepEqual(cal.plan.tools, ['calendar.list']); assert.match(cal.response, /Gym/); assert.match(cal.response, /הוזז/);
+  assert.deepEqual(parseICS('BEGIN:VEVENT\r\nDTSTART;VALUE=DATE:20991224\r\nSUMMARY:Holiday\r\nEND:VEVENT', { from: new Date('2099-12-01'), to: new Date('2100-01-01') }).map((e) => [e.title, e.allDay]), [['Holiday', true]]);
+});
+
+test('GitHub: issues (PRs excluded), create issue by voice, verified by reading it back', async () => {
+  const envTok = process.env.GITHUB_TOKEN; delete process.env.GITHUB_TOKEN; // the stored token is what this test checks
+  const { s, net } = await mk2();
+  s.integrations.configure('github', { token: 'ghp_test', repo: 'o/r' });
+  assert.match((await s.integrations.test('github')).detail, /niro/);
+  const l = await say(s, 'my github issues');
+  assert.match(l.response, /o\/r#3 Voice bug/); assert.doesNotMatch(l.response, /a PR/);
+  const c = await say(s, 'פתח issue: לתקן את הקול', 't2');
+  assert.equal(c.state, 'COMPLETED', c.response); assert.match(c.response, /#9/);
+  assert.equal(net.calls.find((x) => x.method === 'POST' && x.url.includes('api.github.com')).body.title, 'לתקן את הקול');
+  assert.ok(net.calls.some((x) => x.url.endsWith('/repos/o/r/issues/9')), 'verified');
+  if (envTok) process.env.GITHUB_TOKEN = envTok;
+});
+
+test('server: CORS lets the HTML file (origin null) call the API with the token; static pages are not framed', async () => {
+  const s = await createApp({ file: null, router: new ModelRouter(), home: new DemoHomeAdapter() });
+  const srv = createServer(s, 'tok'); await new Promise((r) => srv.listen(0, '127.0.0.1', r));
+  const base = `http://127.0.0.1:${srv.address().port}`;
+  try {
+    const pre = await fetch(`${base}/api/status`, { method: 'OPTIONS', headers: { origin: 'null', 'access-control-request-method': 'GET' } });
+    assert.equal(pre.status, 204); assert.equal(pre.headers.get('access-control-allow-origin'), '*');
+    const ok = await fetch(`${base}/api/status`, { headers: { origin: 'null', authorization: 'Bearer tok' } });
+    assert.equal(ok.status, 200); assert.equal(ok.headers.get('access-control-allow-origin'), '*');
+    assert.equal((await fetch(`${base}/api/status`, { headers: { origin: 'null' } })).status, 401); // CORS does not replace the token
+    assert.equal((await fetch(`${base}/`)).headers.get('x-frame-options'), 'SAMEORIGIN');
+  } finally { srv.close(); }
+});
