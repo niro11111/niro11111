@@ -21,6 +21,7 @@ const schema = z.object({
   LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).default("info"),
   BACKUP_DIR: z.string().optional(),
   BACKUP_EVERY_HOURS: z.coerce.number().min(0).default(0),
+  BACKUP_KEEP: z.coerce.number().int().min(1).max(1000).default(14),   // newest backups kept; older ones are removed
   // AI gateway (optional): the tutor and AI features on your own server
   ANTHROPIC_API_KEY: z.string().optional(),
   ANTHROPIC_BASE_URL: z.string().url().optional(),

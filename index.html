@@ -8116,10 +8116,10 @@ BADGES.push(["packager","📦","אנשי החבילות","השלמתם את כל
   function expand(body, raw, names, skillDir){
     raw = (raw || "").trim();
     const args = splitArgs(raw), nm = (names || []).filter(n => /^[A-Za-z_]\w*$/.test(n));
-    // shell placeholders are found in the file as written, so typed arguments can never start a command
-    const shells = [];
+    // ! commands are shown as written: the docs do not say whether arguments are substituted inside them
+    const shells = []; let shellArg = false;
     let t = body.replace(/^```!\n([\s\S]*?)\n```/gm, (m, c) => { shells.push("[output of:\n" + c + "\n]"); return "\u0000" + (shells.length - 1) + "\u0000"; });
-    t = t.replace(/(^|\s)!`([^`\n]+)`/gm, (m, pre, c) => { shells.push("[output of `" + c + "`]"); return pre + "\u0000" + (shells.length - 1) + "\u0000"; });
+    t = t.replace(/(^|\s)!`([^`\n]+)`/gm, (m, pre, c) => { if(/\$/.test(c)) shellArg = true; shells.push("[output of `" + c + "`]"); return pre + "\u0000" + (shells.length - 1) + "\u0000"; });
     let got = false;
     const re = new RegExp("(\\\\*)\\$(?:ARGUMENTS\\[(\\d+)\\]|(ARGUMENTS)(?![\\w\\[])|(\\d+)" + (nm.length ? "|(" + nm.join("|") + ")(?!\\w)" : "") + ")", "g");
     t = t.replace(re, (m, bs, idx, all, num, name) => {
@@ -8133,7 +8133,7 @@ BADGES.push(["packager","📦","אנשי החבילות","השלמתם את כל
     t = t.replace(/\$\{CLAUDE_SKILL_DIR\}/g, skillDir || ".claude/skills/NAME").replace(/\$\{CLAUDE_SESSION_ID\}/g, "[session id]").replace(/\$\{CLAUDE_PROJECT_DIR\}/g, "[project root]").replace(/\$\{CLAUDE_EFFORT\}/g, "[effort level]");
     t = t.replace(/\u0000(\d+)\u0000/g, (m, n) => shells[+n]);
     if(raw && !got) t += "\n\nARGUMENTS: " + raw;
-    return {text: t, args, got, shells: shells.length};
+    return {text: t, args, got, shells: shells.length, shellArg};
   }
 
   // YAML scalar that always parses as the string it shows
@@ -8283,7 +8283,7 @@ BADGES.push(["packager","📦","אנשי החבילות","השלמתם את כל
     if(m){ if(m[1] !== name) note = "שימו לב: הקלדתם ‎/" + m[1] + " והפקודה נקראת ‎/" + name + ". הסימולטור מריץ אותה בכל זאת."; typed = m[2]; }
     const r = expand(body, typed, names, (scope === "user" ? "~/.claude/skills/" : ".claude/skills/") + name);
     setCode("#slSim", r.text);
-    $("#slSimNote").textContent = (note ? note + " " : "") + "ארגומנטים: " + (r.args.length ? r.args.map((a, i) => "$" + i + "=" + a).join("  ") : "אין") + (r.shells ? " · " + r.shells + " פקודות ! ירוצו לפני השליחה" : "") + (!r.got && typed.trim() ? " · אף placeholder לא קיבל ארגומנט, אז נוספה שורת ARGUMENTS:" : "");
+    $("#slSimNote").textContent = (note ? note + " " : "") + "ארגומנטים: " + (r.args.length ? r.args.map((a, i) => "$" + i + "=" + a).join("  ") : "אין") + (r.shells ? " · " + r.shells + " פקודות ! ירוצו לפני השליחה" : "") + (!r.got && typed.trim() ? " · אף placeholder לא קיבל ארגומנט, אז נוספה שורת ARGUMENTS:" : "") + (r.shellArg ? " · שימו לב: יש $ בתוך פקודת !. התיעוד לא מפרט אם ארגומנטים מוחלפים שם, ולכן הפקודה מוצגת כמו שנכתבה." : "");
     return {path, file, lint: L, sim: r};
   }
   $("#slForm").addEventListener("input", build); $("#slForm").addEventListener("change", e => { if(e.target.id !== "slTpl") build(); });
@@ -8468,8 +8468,8 @@ BADGES.push(["israeli","🇮🇱","מפתחים ישראלים","השלמתם א
   const drawRead = () => { const L = getL(); $$("[data-rd]").forEach(i => i.checked = !!L[i.dataset.rd]); };
   const setRead = patch => { store.set("look", Object.assign(getL(), patch)); applyRead(); drawRead(); award("read", 5, "התאמתם את הקריאה"); };
   form.addEventListener("change", e => { const i = e.target.closest("[data-rd]"); if(i) setRead({[i.dataset.rd]: i.checked}); });
-  $("#rdEasy").onclick = () => setRead({wide: true, narrow: true, plain: true, wrap: true, links: true, scale: Math.max(getL().scale || 100, 110)}) || applyLook();
-  $("#rdReset").onclick = () => { const p = {}; OPTS.forEach(o => p[o[0]] = false); p.scale = 100; setRead(p); applyLook(); };
+  $("#rdEasy").onclick = () => setRead({wide: true, narrow: true, plain: true, wrap: true, links: true, scale: Math.max(getL().scale || 100, 110), rdScale: (getL().scale || 100) < 110}) || applyLook();
+  $("#rdReset").onclick = () => { const p = {}; OPTS.forEach(o => p[o[0]] = false); if(getL().rdScale){ p.scale = 100; p.rdScale = false; } setRead(p); applyLook(); };
   $("#lookBtn").addEventListener("click", drawRead);
   $("#lookBtn").textContent = "🎨 מראה וקריאה";
   // focus mode: a button to bring the chapter list back
@@ -8529,6 +8529,7 @@ BADGES.push(["israeli","🇮🇱","מפתחים ישראלים","השלמתם א
   addEventListener("scroll", onScroll, {passive: true}); addEventListener("hashchange", () => setTimeout(onScroll, 50));
   $("#rdTop").onclick = () => { scrollTo({top: 0, behavior: document.documentElement.classList.contains("rd-calm") ? "auto" : "smooth"}); const h = document.querySelector(".mod.on h1"); if(h){ h.tabIndex = -1; h.focus({preventScroll: true}); } };
   onScroll();
+  { const o = show; show = function(id, push){ stopSay(); o(id, push); setTimeout(onScroll, 50); }; }
   window.__rd = {applyRead, OPTS, words, say, stopSay};
 })();
 // ================= term tips: the first time a glossary term appears in a chapter, it explains itself =================
@@ -8540,7 +8541,7 @@ BADGES.push(["israeli","🇮🇱","מפתחים ישראלים","השלמתם א
   T.sort((a, b) => b.w.length - a.w.length);
   const esc2 = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   T.forEach(t => { const plural = /^[A-Za-z][a-z]+$|^[A-Z][a-z]+$/.test(t.w) ? "s?" : ""; t.re = new RegExp("(^|[^A-Za-z0-9_])(" + esc2(t.w) + plural + ")(?![A-Za-z0-9_])", /[a-z]/.test(t.w) ? "i" : ""); });
-  const BAD = "a,button,label,summary,select,textarea,input,code,pre,kbd,h1,h2,h3,h4,.code,.quiz,.tabs,.rdBar,nav,.pill,.gterm,.term,.form,.ltr,.hint,.eco,table,.tutor,.toast";
+  const BAD = "a,button,label,summary,select,textarea,input,code,pre,kbd,h1,h2,h3,h4,.code,.quiz,.tabs,.rdBar,nav,.pill,.gterm,.term,.form,.ltr,.hint,.eco,.tutor,.toast";
   const MAX = 10;
   function tag(m){
     if(!m || m.dataset.terms || document.documentElement.classList.contains("rd-noterms")) return;
@@ -8606,7 +8607,8 @@ BADGES.push(["israeli","🇮🇱","מפתחים ישראלים","השלמתם א
   const BLOCK = "p,li,td,.lead,dd";
   const OK = el => el && el.closest(".mod") && el.closest(BLOCK) && !el.closest("pre,code,.code,.quiz,textarea,input,button,label,summary,.form,nav.onpage,.rdBar,.gterm,#termTip");
   const norm = s => s.replace(/\s+/g, " ").trim();
-  const get = () => store.get("hl", []);
+  const valid = h => h && typeof h.id === "string" && /^h[a-z0-9]{3,20}$/.test(h.id) && typeof h.q === "string" && h.q.length <= 400 && ids.includes(h.ch);
+  const get = () => { const L = store.get("hl", []); return Array.isArray(L) ? L.filter(valid) : []; };
   const put = L => { store.set("hl", L); draw(); };
   // text nodes of a block, with their offsets in the block's normalized-by-us text
   function textNodes(block){ const out = []; const w = document.createTreeWalker(block, NodeFilter.SHOW_TEXT); let n; while((n = w.nextNode())){ out.push(n); } return out; }
@@ -8615,7 +8617,7 @@ BADGES.push(["israeli","🇮🇱","מפתחים ישראלים","השלמתם א
     let pos = 0;
     for(const n of textNodes(block)){
       const a = pos, b = pos + n.data.length; pos = b;
-      if(b <= start || a >= end) continue;
+      if(b <= start || a >= end || n.parentElement.closest(".gterm")) continue;
       const s = Math.max(start, a) - a, e = Math.min(end, b) - a;
       let mid = n; if(s > 0) mid = n.splitText(s); if(e - s < mid.data.length) mid.splitText(e - s);
       const mk = document.createElement("mark"); mk.className = "hl"; mk.dataset.hl = id; mk.tabIndex = 0; mk.title = "הדגשה: Enter להסרה";
@@ -8625,9 +8627,13 @@ BADGES.push(["israeli","🇮🇱","מפתחים ישראלים","השלמתם א
   // find the quote inside a chapter and wrap it
   function place(h){
     const m = document.getElementById(h.ch); if(!m || m.querySelector('mark[data-hl="' + h.id + '"]')) return true;
-    for(const block of m.querySelectorAll(BLOCK)){
+    const blocks = [...m.querySelectorAll(BLOCK)], own = blocks[h.bi];
+    // 1) the same block and offset, 2) the same block anywhere, 3) the first match in the chapter
+    if(own && OK(own) && own.textContent.substr(h.o, h.q.length) === h.q){ wrap(own, h.o, h.o + h.q.length, h.id); return true; }
+    if(own && OK(own) && own.textContent.includes(h.q)){ const i = own.textContent.indexOf(h.q); wrap(own, i, i + h.q.length, h.id); return true; }
+    for(const block of blocks){
       if(!OK(block)) continue;
-      const t = block.textContent, i = t.indexOf(h.q);
+      const i = block.textContent.indexOf(h.q);
       if(i >= 0){ wrap(block, i, i + h.q.length, h.id); return true; }
     }
     return false;
@@ -8643,12 +8649,13 @@ BADGES.push(["israeli","🇮🇱","מפתחים ישראלים","השלמתם א
     if(!sel || sel.isCollapsed || !sel.rangeCount){ btn.hidden = true; return; }
     const r = sel.getRangeAt(0), a = r.startContainer.parentElement, b = r.endContainer.parentElement;
     const blockA = a && a.closest(BLOCK), blockB = b && b.closest(BLOCK);
-    const txt = sel.toString();
+    const txt = r.toString();   // same rules as textContent, so offsets line up
     if(!OK(a) || !OK(b) || blockA !== blockB || norm(txt).length < 3 || txt.length > 400){ btn.hidden = true; return; }
     // offsets of the selection inside the block's text
     const pre = document.createRange(); pre.selectNodeContents(blockA); pre.setEnd(r.startContainer, r.startOffset);
     const start = pre.toString().length;
-    pending = {block: blockA, start, end: start + txt.length, q: txt, ch: blockA.closest(".mod").id};
+    const mod = blockA.closest(".mod");
+    pending = {block: blockA, start, end: start + txt.length, q: txt, ch: mod.id, bi: [...mod.querySelectorAll(BLOCK)].indexOf(blockA)};
     const rect = r.getBoundingClientRect();
     btn.hidden = false;
     btn.style.top = (rect.top + scrollY - btn.offsetHeight - 8) + "px";
@@ -8661,7 +8668,7 @@ BADGES.push(["israeli","🇮🇱","מפתחים ישראלים","השלמתם א
     if(!pending) return;
     const id = "h" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
     wrap(pending.block, pending.start, pending.end, id);
-    put(get().concat([{id, ch: pending.ch, q: pending.q, t: Date.now()}]));
+    put(get().concat([{id, ch: pending.ch, q: pending.q, bi: pending.bi, o: pending.start, t: Date.now()}]));
     getSelection().removeAllRanges(); btn.hidden = true; pending = null;
     toast("🖍 נשמר במחברת"); award("hl", 5, "הדגשה ראשונה");
   };
@@ -8728,7 +8735,9 @@ BADGES.push(["highlighter","🖍","מדגישים","סימנתם הדגשה רא
     q.addEventListener("change", () => setTimeout(() => {
       const res = q.querySelector(".res"), mod = q.closest(".mod"); if(!res || !mod) return;
       const i = ids.indexOf(mod.id), next = ids[i + 1];
-      if(state.done[mod.id] && next && !res.querySelector("[data-go]")){
+      const qs = q.querySelectorAll(".q"), right = q.querySelectorAll('.q[data-ok="1"]').length;
+      const old = res.querySelector("[data-go]"); if(old && right !== qs.length) old.remove();
+      if(right === qs.length && qs.length && next && !res.querySelector("[data-go]")){
         res.insertAdjacentHTML("beforeend", ' <button class="btn sm pri" type="button" data-go="' + next + '">לפרק הבא: ' + esc(document.getElementById(next).dataset.title) + ' ←</button>');
       }
     }, 0));

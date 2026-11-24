@@ -45,6 +45,10 @@ const ok = (c, m) => console.log((c ? 'PASS ' : 'FAIL ') + m);
   await go('slashlab');
   ok(await p.evaluate(c0 => window.__cancel > c0 && /הקראה/.test(document.querySelector('#israel [data-say]').textContent), c0), 'changing chapter stops reading');
 
+  await go('israel'); await p.click('#israel [data-say]');
+  const c1 = await p.evaluate(() => window.__cancel);
+  await p.click('#nextBtn'); await p.waitForTimeout(150);
+  ok(await p.evaluate(c1 => window.__cancel > c1 && /הקראה/.test(document.querySelector('#israel [data-say]').textContent), c1), 'the Next button also stops reading (not only the address bar)');
   // ---- settings ----
   await p.click('#lookBtn');
   ok(await p.$$eval('[data-rd]', x => x.length) === 8, '8 reading options in the dialog');
@@ -53,6 +57,10 @@ const ok = (c, m) => console.log((c ? 'PASS ' : 'FAIL ') + m);
   await p.click('#rdEasy');
   const easy = await p.evaluate(() => ({cls: document.documentElement.className, fs: getComputedStyle(document.documentElement).getPropertyValue('--fs').trim()}));
   ok(/rd-plain/.test(easy.cls) && /rd-narrow/.test(easy.cls) && /rd-links/.test(easy.cls) && easy.fs === '1.1', '"easy reading" turns on the readable set and 110% text');
+  await p.click('#rdReset'); await p.fill('#lookScale', '125'); await p.dispatchEvent('#lookScale', 'input');
+  await p.check('[data-rd="wide"]'); await p.click('#rdReset');
+  ok(await p.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--fs').trim() === '1.25'), 'reset keeps the text size chosen with the slider');
+  await p.click('#rdEasy');
   await p.check('[data-rd="focus"]'); await p.click('#lookX');
   ok(await p.evaluate(() => getComputedStyle(document.querySelector('.rail')).display === 'none' && getComputedStyle(document.getElementById('rdShow')).display !== 'none'), 'focus mode hides the chapter list and shows ☰');
   await p.reload(); await p.waitForTimeout(500);

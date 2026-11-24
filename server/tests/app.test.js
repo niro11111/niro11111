@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { buildApp } from "../src/app.js";
-import { openDb, migrate, backup } from "../src/db.js";
+import { openDb, migrate, backup, pruneBackups } from "../src/db.js";
 import { loadConfig } from "../src/config.js";
 import { hashPassword, verifyPassword, inlineScriptHashes } from "../src/security.js";
 
@@ -248,6 +248,19 @@ describe("web app and operations", () => {
     const copy = openDb(out);
     expect(copy.prepare("SELECT email FROM users").get().email).toBe("z@example.com");
     copy.close(); file.close();
+  });
+  it("keeps only the newest backups and leaves other files alone", async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cca-keep-"));
+    const names = ["academy-2026-01-01T00-00-00-000Z.db", "academy-2026-01-02T00-00-00-000Z.db", "academy-2026-01-03T00-00-00-000Z.db", "academy-2026-01-04T00-00-00-000Z.db"];
+    for (const n of names) fs.writeFileSync(path.join(dir, n), "x");
+    fs.writeFileSync(path.join(dir, "notes.txt"), "mine");
+    expect(pruneBackups(dir, 2)).toEqual(names.slice(0, 2));
+    expect(fs.readdirSync(dir).sort()).toEqual([...names.slice(2), "notes.txt"].sort());
+    expect(pruneBackups(dir, 5)).toEqual([]);
+  });
+  it("rejects a bad BACKUP_KEEP", () => {
+    expect(() => loadConfig({ BACKUP_KEEP: "0" })).toThrow();
+    expect(loadConfig({}).BACKUP_KEEP).toBe(14);
   });
   it("compresses large responses", async () => {
     fs.writeFileSync(path.join(site, "big.js"), "x".repeat(50000));

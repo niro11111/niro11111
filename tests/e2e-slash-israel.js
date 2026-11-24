@@ -52,6 +52,8 @@ const ok = (c, m) => console.log((c ? 'PASS ' : 'FAIL ') + m);
   await p.selectOption('#slTpl', 'explain-file');
   ok(/Explain src\/auth\/session\.ts for a beginner reader/.test(await p.$eval('#slSim pre', e => e.textContent)), 'template loads and simulates');
 
+  await p.fill('#slBody', 'Check: !`npm explain $0`'); await p.fill('#slTry', '/x lodash');
+  ok(/התיעוד לא מפרט/.test(await p.textContent('#slSimNote')), 'simulator says plainly that $ inside a ! command is not documented');
   // ---- pack: YAML + install script really runs ----
   const pk = await p.evaluate(() => window.__sl.PK.map(x => ({n: x.n, f: window.__sl.pkFile(x)})));
   ok(pk.length === 16, '16 community commands');

@@ -21,7 +21,7 @@ RUN npm ci --omit=dev && npm cache clean --force
 
 # 3. runtime: small, non-root, with a health check
 FROM node:22-bookworm-slim
-ENV NODE_ENV=production HOST=0.0.0.0 PORT=8080 DATABASE_PATH=/data/academy.db SITE_DIR=/app/site BACKUP_DIR=/data/backups BACKUP_EVERY_HOURS=24
+ENV NODE_ENV=production HOST=0.0.0.0 PORT=8080 DATABASE_PATH=/data/academy.db SITE_DIR=/app/site BACKUP_DIR=/data/backups BACKUP_EVERY_HOURS=24 BACKUP_KEEP=14
 WORKDIR /app/server
 COPY --from=deps /app/server/node_modules ./node_modules
 COPY server/package.json ./

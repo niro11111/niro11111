@@ -1,6 +1,6 @@
 // Entry point: config, database, HTTP server, scheduled backups, graceful shutdown.
 import { loadConfig } from "./config.js";
-import { openDb, backup } from "./db.js";
+import { openDb, backup, pruneBackups } from "./db.js";
 import { buildApp } from "./app.js";
 
 const config = loadConfig();
@@ -9,7 +9,11 @@ const app = await buildApp({ config, db });
 
 let timer = null;
 if (config.BACKUP_DIR && config.BACKUP_EVERY_HOURS > 0) {
-  timer = setInterval(() => backup(db, config.BACKUP_DIR).then(f => app.log.info({ file: f }, "backup done"), err => app.log.error({ err }, "backup failed")), config.BACKUP_EVERY_HOURS * 3600000);
+  const run = () => backup(db, config.BACKUP_DIR).then(f => {
+    const removed = pruneBackups(config.BACKUP_DIR, config.BACKUP_KEEP);
+    app.log.info({ file: f, removed: removed.length }, "backup done");
+  }, err => app.log.error({ err }, "backup failed"));
+  timer = setInterval(run, config.BACKUP_EVERY_HOURS * 3600000);
   timer.unref();
 }
 

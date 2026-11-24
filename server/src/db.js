@@ -82,3 +82,11 @@ export async function backup(db, dir) {
   await db.backup(file);
   return file;
 }
+
+// Keep the newest `keep` backups (by their timestamped names) and remove the rest, so the volume never fills up.
+export function pruneBackups(dir, keep) {
+  const files = fs.readdirSync(dir).filter(f => /^academy-[\dT-]+Z\.db$/.test(f)).sort();
+  const old = files.slice(0, Math.max(0, files.length - keep));
+  for (const f of old) fs.rmSync(path.join(dir, f), { force: true });
+  return old;
+}

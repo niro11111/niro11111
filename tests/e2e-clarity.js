@@ -38,6 +38,10 @@ const ok = (c, m) => console.log((c ? 'PASS ' : 'FAIL ') + m);
   ok(nx && nx[0] === ids[ids.indexOf('mcp') + 1], 'finishing a quiz offers the next chapter: ' + (nx && nx[1]));
   await p.click('#mcp .quiz .res [data-go]'); await p.waitForTimeout(150);
   ok(await p.evaluate(n => location.hash === '#' + n, nx[0]), 'and the button goes there');
+  await p.evaluate(() => { location.hash = 'mcp'; }); await p.waitForTimeout(150);
+  await p.evaluate(() => { const q = document.querySelector('#mcp .quiz .q'); const Q = window.__Q.mcp; q.querySelectorAll('input')[(Q[0][2] + 1) % 4].click(); });
+  await p.waitForTimeout(100);
+  ok(!(await p.$('#mcp .quiz .res [data-go]')), 'changing an answer to a wrong one removes the next-chapter button, even on a finished chapter');
   // wrong answers: no next button yet
   await p.evaluate(() => { location.hash = 'skills'; }); await p.waitForTimeout(150);
   await p.evaluate(() => { const qz = document.querySelector('#skills .quiz'); const Q = window.__Q.skills; qz.querySelectorAll('.q').forEach(q => q.querySelectorAll('input')[(Q[+q.dataset.i][2] + 1) % 4].click()); });
