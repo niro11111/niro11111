@@ -10,6 +10,26 @@
 
 Answers are **read aloud by default**. 🔊/🔇 in the top bar mutes, every answer has a 🔊 replay button, and "speak every answer" can limit reading to voice requests.
 
+### 📞 Voice call (`web/js/call.js`)
+
+Start it from 📞 in the top bar, the "Call JARVIS" button (Command and Conversation screens) or Alt+J.
+
+| | |
+|---|---|
+| Flow | JARVIS listens; you speak; the sentence ends after a natural pause; he answers aloud; he listens again by himself. This repeats until you hang up. |
+| Interrupting | Talk while he speaks and he stops. His own voice coming back from the speakers is recognized (most of the heard words match what he is saying) and ignored. |
+| Keys | Space = push-to-talk (also stops him), M = mute the microphone, Esc = hang up |
+| Robustness | Browsers end recognition on their own after silence or about 60 s; the call restarts it. A microphone that keeps stopping (more than 6 times in 8 s) stops the call with a clear message instead of looping. A speech failure never replaces the answer, which stays on screen. The wake-word listener pauses during the call. |
+| Website, server, HTML file (Chrome/Edge) | Fully hands-free |
+| claude.ai | Claude dictation may only start from a click or key press, so each turn starts with one tap or the Space key, held while you talk. Answers are spoken in a Claude voice. |
+| Fixed along the way | A slow screen render could replace the newer screen when switching quickly, so the message box disappeared. Each render now has its own container. |
+
+Tests:
+- `ui.e2e`: two hands-free turns, the echo of his own voice ignored, mute, hang up.
+- `webapp.e2e`: a claude.ai call with Claude dictation and voice, and the next turn started with the Space key.
+
+![call](call-screen.png)
+
 ### Settings → Hearing & Voice (`web/js/hearview.js`)
 
 | Setting | What it does |

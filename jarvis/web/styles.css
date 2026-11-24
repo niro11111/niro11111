@@ -299,3 +299,29 @@ td.n, th.n { text-align: end; font-variant-numeric: tabular-nums; }
 .heard { min-height: 48px; margin-top: 10px; padding: 10px; border-radius: 8px; background: rgba(255,255,255,.04); font-size: 1.05em; }
 .integ h2 .ic { display: inline-block; min-width: 1.4em; text-align: center; }
 .integ textarea { width: 100%; font-family: var(--mono, monospace); font-size: 12px; }
+
+/* Voice call with JARVIS */
+.call-btn { font-size: 1.05em; }
+.call-overlay { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; background: rgba(2, 6, 14, .72); backdrop-filter: blur(6px); padding: 16px; }
+.call-card { width: min(460px, 100%); max-height: calc(100vh - 32px); overflow: auto; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 20px; border-radius: 18px; text-align: center; }
+.call-top { display: flex; align-items: center; gap: 8px; width: 100%; } .call-top .call-time { margin-inline-start: auto; }
+.call-dot { width: 9px; height: 9px; border-radius: 50%; background: #3ccf8e; box-shadow: 0 0 10px #3ccf8e; animation: callblink 1.6s infinite; }
+@keyframes callblink { 50% { opacity: .35; } }
+.call-orb { position: relative; width: 170px; height: 170px; border-radius: 50%; border: 0; cursor: pointer; background: radial-gradient(circle at 50% 40%, #6fe3ff 0%, #1673c9 45%, #071a33 75%); box-shadow: 0 0 40px rgba(60, 180, 255, .45); margin: 10px 0; }
+.call-orb span { position: absolute; inset: -8px; border-radius: 50%; border: 2px solid rgba(110, 220, 255, .5); opacity: 0; }
+[data-phase=listening] .call-orb span { animation: callring 1.8s infinite; } [data-phase=listening] .call-orb span:nth-child(2) { animation-delay: .6s; } [data-phase=listening] .call-orb span:nth-child(3) { animation-delay: 1.2s; }
+@keyframes callring { 0% { transform: scale(.9); opacity: .9; } 100% { transform: scale(1.35); opacity: 0; } }
+[data-phase=speaking] .call-orb { animation: callspeak .5s ease-in-out infinite alternate; background: radial-gradient(circle at 50% 40%, #b2fff0 0%, #1fb48c 45%, #06281f 75%); box-shadow: 0 0 50px rgba(60, 220, 170, .5); }
+@keyframes callspeak { to { transform: scale(1.06); } }
+[data-phase=thinking] .call-orb { animation: callthink 1.2s linear infinite; background: conic-gradient(from 0deg, #1673c9, #6fe3ff, #1673c9); }
+@keyframes callthink { to { filter: hue-rotate(60deg); transform: rotate(360deg); } }
+[data-phase=paused] .call-orb, [data-phase=tap] .call-orb { filter: grayscale(.7) brightness(.8); }
+[data-phase=error] .call-orb { background: radial-gradient(circle at 50% 40%, #ffb3b3 0%, #c93a3a 45%, #330707 75%); }
+.call-phase { font-size: 1.15em; font-weight: 600; min-height: 1.4em; }
+.call-live { min-height: 1.3em; font-size: 1.05em; }
+.call-note { color: #f0b54a; min-height: 1em; }
+.call-log { width: 100%; max-height: 190px; overflow: auto; display: flex; flex-direction: column; gap: 6px; text-align: start; }
+.call-log .cl { padding: 6px 10px; border-radius: 10px; background: rgba(255,255,255,.05); font-size: .92em; }
+.call-log .cl.jarvis { background: rgba(60, 180, 255, .1); }
+.call-ctrl { display: flex; gap: 10px; }
+.call-ctrl .call-mute[aria-pressed=true] { background: rgba(240, 181, 74, .25); }

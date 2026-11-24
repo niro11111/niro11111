@@ -26,7 +26,7 @@ export async function send(text, channel = 'text') {
   try {
     const task = await api('/api/command', { method: 'POST', body: { text, conversationId, channel } });
     await handleTask(task, channel);
-  } catch (e) { setCoreState('error'); push({ role: 'jarvis', text: e.message }); }
+  } catch (e) { setCoreState('error'); push({ role: 'jarvis', text: e.message }); dispatchEvent(new CustomEvent('jarvis:answered', { detail: { text: e.message, state: 'FAILED', spoken: false } })); }
 }
 
 async function handleTask(task, channel) {
@@ -42,8 +42,10 @@ async function handleTask(task, channel) {
   if (local.get('dictation', false)) setTimeout(() => document.querySelector('.composer input[dir=auto]')?.focus(), 50);
   setCoreState(task.state === 'FAILED' ? 'error' : approval ? 'approval' : 'idle');
   // Answers are read aloud by default (🔇 in the top bar mutes; the setting "speak every answer" can limit it to voice requests).
-  if ((channel === 'voice' || local.get('speakAll', true)) && task.response) speak(task.response);
+  const spoken = (channel === 'voice' || local.get('speakAll', true)) && !!task.response && !voice.muted;
+  if (spoken) speak(task.response);
   chatEvents.dispatchEvent(new Event('task'));
+  dispatchEvent(new CustomEvent('jarvis:answered', { detail: { text: task.response ?? '', state: task.state, spoken, approval: !!approval } }));
 }
 
 document.addEventListener('click', async (e) => {

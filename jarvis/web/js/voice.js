@@ -116,7 +116,7 @@ function stopMeter() { cancelAnimationFrame(raf); stream?.getTracks().forEach((t
 /** Start listening. MUST be called straight from a click/key press (Claude dictation requires it). */
 export function startListening() {
   if (voice.live) return;
-  if (voice.speaking) stopSpeaking();
+  if (voice.speaking && !voice.call) stopSpeaking(); // in a call the microphone opens while he speaks, so he can be interrupted
   const d = voice.cap.dictation;
   if (d) {
     voice.wakeDictation = false;
@@ -139,16 +139,29 @@ export function startListening() {
       if (r.isFinal) { finals += ` ${r[0].transcript}`; voice.lastConfidence = r[0].confidence ?? null; } else interim += r[0].transcript;
     }
     voice.onInterim?.(`${finals} ${interim}`.trim());
-    if (voice.speaking && voice.bargeIn) stopSpeaking(); // the user interrupted JARVIS
+    // While JARVIS speaks, the microphone also hears his own voice from the speakers: text that
+    // mostly repeats what he is saying is his echo and is dropped; anything else is the user
+    // interrupting, which stops him.
+    if (voice.speaking) {
+      if (isEcho(`${finals} ${interim}`, voice.lastSpoken)) { finals = ''; voice.onInterim?.(''); return; }
+      if (voice.bargeIn) stopSpeaking(); else { finals = ''; return; }
+    }
     if (!waitPause) { if (finals.trim()) finish(); return; }
     clearTimeout(silence); silence = setTimeout(finish, voice.silenceMs + (interim ? 600 : 0));
   };
+  let fatal = false;
   rec.onerror = (ev) => {
     if (['no-speech', 'aborted'].includes(ev.error)) return;
+    fatal = true;
     const code = ev.error === 'not-allowed' && location.protocol === 'file:' ? 'not-allowed-file' : ev.error;
     explain('browser', code, { force: true });
+    dispatchEvent(new CustomEvent('jarvis:listen-failed', { detail: { code } }));
   };
-  rec.onend = () => { finish(); voice.live = false; indicator(false); stopMeter(); if (getCoreState() === 'listening') setCoreState('idle'); };
+  rec.onend = () => {
+    finish(); voice.live = false; indicator(false); stopMeter(); if (getCoreState() === 'listening') setCoreState('idle');
+    // Browsers end recognition on their own (silence, ~60 s limit): a call restarts it.
+    if (!sent && !fatal) dispatchEvent(new Event('jarvis:listen-ended'));
+  };
   voice.rec = rec;
   try { rec.start(); } catch { /* already started */ }
 }
@@ -209,12 +222,12 @@ function speakBrowser(text) {
   const chunks = chunkText(text);
   chunks.forEach((c, i) => {
     const u = new SpeechSynthesisUtterance(c);
-    u.lang = v?.lang ?? lang; if (v) u.voice = v; u.rate = voice.rate; u.pitch = voice.pitch; u.volume = voice.volume;
+    u.lang = v?.lang ?? lang; if (v) { try { u.voice = v; } catch { /* not a real voice object: the language decides */ } } u.rate = voice.rate; u.pitch = voice.pitch; u.volume = voice.volume;
     let tick = 0;
-    if (i === 0) u.onstart = () => { voice.speaking = true; setCoreState('speaking'); };
+    if (i === 0) u.onstart = () => { voice.speaking = true; setCoreState('speaking'); dispatchEvent(new Event('jarvis:speech-start')); };
     u.onboundary = () => { tick++; setWave(Array.from({ length: 32 }, (_, k) => 0.25 + 0.6 * Math.abs(Math.sin(k * 0.7 + tick)))); };
-    if (i === chunks.length - 1) u.onend = () => { voice.speaking = false; clearInterval(keepAlive); setWave(null); if (getCoreState() === 'speaking') setCoreState('idle'); if (voice.conversation) startListening(); };
-    u.onerror = (e) => { if (!['interrupted', 'canceled'].includes(e.error)) { voice.speaking = false; voice.lastError = { key: `browser-tts:${e.error}`, text: e.error }; } };
+    if (i === chunks.length - 1) u.onend = () => { voice.speaking = false; clearInterval(keepAlive); setWave(null); if (getCoreState() === 'speaking') setCoreState('idle'); speechEnded(); if (voice.conversation && !voice.call) startListening(); };
+    u.onerror = (e) => { if (!['interrupted', 'canceled'].includes(e.error)) { voice.speaking = false; voice.lastError = { key: `browser-tts:${e.error}`, text: e.error }; speechEnded(); } };
     synth.speak(u);
   });
   // Chrome stops speaking long readings after ~15 s unless nudged.
@@ -230,15 +243,29 @@ async function speakClaude(text) {
   for (const s of clean.split(/(?<=[.!?])\s+/)) { if ((cur + ' ' + s).length > 1800) { if (cur) lines.push(cur); cur = s.slice(0, 1800); } else cur = `${cur} ${s}`.trim(); }
   if (cur) lines.push(cur);
   const language = isHebrew(clean) ? 'he' : 'en';
-  try { await tt.speak(lines.slice(0, 100).map((x) => ({ text: x })), { voice: voice.claudeVoice, rate: voice.rate, language }); }
+  try { dispatchEvent(new Event('jarvis:speech-start')); await tt.speak(lines.slice(0, 100).map((x) => ({ text: x })), { voice: voice.claudeVoice, rate: voice.rate, language }); }
   catch (e) { if (e?.code && !['stopped'].includes(e.code)) explain('claude-tts', e.code === 'busy' ? 'no_gesture' : e.code); }
+  finally { voice.speaking = false; speechEnded(); }
+}
+let endTimer = 0;
+/** One 'jarvis:speech-end' per reading (a call listens again right after it). */
+function speechEnded() { clearTimeout(endTimer); endTimer = setTimeout(() => { if (!voice.speaking) dispatchEvent(new Event('jarvis:speech-end')); }, 120); }
+const words = (x) => normalizeWords(x).split(' ').filter((w) => w.length > 1);
+function normalizeWords(x) { return String(x ?? '').toLowerCase().replace(/[\u0591-\u05C7]/g, '').replace(/[^\p{L}\p{N}\s]/gu, ' ').replace(/\s+/g, ' ').trim(); }
+/** True when heard text is mostly words JARVIS is saying right now (his own voice from the speakers). */
+export function isEcho(heard, spoken) {
+  const h = words(heard); if (!h.length) return false;
+  const sp = new Set(words(cleanForSpeech(spoken)));
+  const hit = h.filter((w) => sp.has(w)).length;
+  return hit / h.length >= 0.6;
 }
 /** Speak a reply (respects mute). */
 export function speak(text, { force = false } = {}) {
-  if (!text || (voice.muted && !force)) return;
+  if (!text || (voice.muted && !force)) { speechEnded(); return; }
   voice.lastSpoken = text;
-  if (voice.cap.tts) return speakClaude(text);
-  return speakBrowser(text);
+  // Speaking must never break an answer: any audio failure is reported, the text stays on screen.
+  try { if (voice.cap.tts) return speakClaude(text).catch(() => speechEnded()); return speakBrowser(text); }
+  catch (e) { voice.speaking = false; voice.lastError = { key: 'tts:exception', text: e.message, at: Date.now() }; speechEnded(); }
 }
 export function stopSpeaking() { try { voice.cap.tts?.stop().catch(() => {}); } catch {} window.speechSynthesis?.cancel(); clearInterval(keepAlive); voice.speaking = false; }
 export function setMuted(m) { voice.muted = !!m; local.set('voiceMuted', voice.muted); if (m) stopSpeaking(); dispatchEvent(new Event('jarvis:voice-mute')); }

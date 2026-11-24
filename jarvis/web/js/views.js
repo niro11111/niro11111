@@ -9,6 +9,7 @@ import { learnView } from './learnview.js';
 import { neuralView, graphView, databaseView } from './mlview.js';
 import { worldsView } from './worldsview.js';
 import { hearView } from './hearview.js';
+import { toggleCall } from './call.js';
 import { integrationsView } from './integrationsview.js';
 import { wake, wakeWordOf, testWake, toggleWake, persona } from './wakeui.js';
 
@@ -38,7 +39,7 @@ async function command(v) {
     <div class="hud-col hud-center">
       ${coreHTML()}
       <div class="interim muted small" dir="auto" style="min-height:20px"></div>
-      <button id="talkBtn" class="talk-btn">◉ ${esc(t('talk').toUpperCase())}</button>
+      <button id="talkBtn" class="talk-btn">📞 ${esc(t('call_jarvis'))}</button>
       <div class="panel glass corner" style="width:100%"><h2>${t('current_task')}</h2><div id="hTask"></div></div>
       <div class="panel glass corner" style="width:100%"><div class="gauges" id="hGauges"></div></div>
     </div>
@@ -55,7 +56,7 @@ async function command(v) {
     <div class="panel glass corner"><h2>${t('recent')}</h2><ul id="hRecent" class="list"></ul></div></div></div>`;
   $('#hChat').append(chatPanel({ cls: 'short' }));
   renderChats();
-  $('#talkBtn').onclick = () => { if (voice.live) stopAll(); else { voice.conversation = local.get('convMode', true); startListening(); } };
+  $('#talkBtn').onclick = () => toggleCall(); // straight from the click: required to open the microphone
 
   const load = async () => {
     const [map, agents, tasks, notes, metrics, ov, devices, ap, events, prop] = await Promise.all([
@@ -92,7 +93,7 @@ async function command(v) {
 // ===================================================== Conversation
 async function conversation(v) {
   v.innerHTML = `<div class="grid"><div class="c5 panel glass corner" style="display:flex;flex-direction:column;align-items:center;gap:12px">${coreHTML()}
-    <button id="convBtn" class="talk-btn">◉ ${esc(t('talk').toUpperCase())}</button>
+    <button id="convBtn" class="talk-btn">📞 ${esc(t('call_jarvis'))}</button>
     <div class="row"><button id="stopBtn" class="btn sm">■ ${t('stop')}</button><span class="xs muted">Alt+Space · Esc</span></div>
     ${voice.supported || voice.cap.dictation ? '' : `<p class="err small">${t('no_stt')}</p>`}
     <div class="panel glass" style="width:100%;padding:12px"><div class="row"><b class="small grow">${t('mic_state')}</b><span id="micState" class="tag xs">…</span><button id="micReq" class="btn sm">🎙 ${t('mic_request')}</button></div>
@@ -116,7 +117,7 @@ async function conversation(v) {
   $('#vRate').oninput = (e) => { voice.rate = Number(e.target.value); saveVoicePrefs(); };
   $('#vVoice').onchange = (e) => { voice.voiceName = e.target.value; saveVoicePrefs(); };
   $('#vBarge').onchange = (e) => { voice.bargeIn = e.target.checked; saveVoicePrefs(); };
-  $('#convBtn').onclick = () => { if (voice.live) stopAll(); else { voice.conversation = local.get('convMode', true); startListening(); } };
+  $('#convBtn').onclick = () => toggleCall();
   $('#stopBtn').onclick = () => { stopAll(); setCoreState('idle'); };
   // Microphone permission: show the real state and ask through the browser's own prompt.
   const showMic = async () => {

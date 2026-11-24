@@ -6,6 +6,7 @@ import { VIEWS, cleanup } from './views.js';
 import { renderChats } from './chat.js';
 import { initWake } from './wakeui.js';
 import { initCopilot } from './copilot.js';
+import { toggleCall } from './call.js';
 
 const views = Object.fromEntries(VIEWS.filter((x) => x[2]).map(([id, , fn]) => [id, fn]));
 let current = location.hash.slice(1) || 'command';
@@ -21,9 +22,12 @@ async function render() {
   $('#viewTitle').textContent = t(current);
   $('#viewSub').textContent = t(`sub_${current}`);
   document.title = `${document.documentElement.dataset.assistant || 'J.A.R.V.I.S'} · ${t(current)}`;
-  const v = $('#view');
-  try { await views[current](v); } catch (e) { if (e.message !== 'unauthorized') v.innerHTML = `<div class="panel glass err">${e.message}</div>`; }
-  renderChats();
+  // Each render gets its own container: a slower render of the previous screen that finishes
+  // later writes into its own (already removed) container and can no longer replace this screen.
+  const v = document.createElement('div'); v.className = 'view-inner';
+  $('#view').replaceChildren(v);
+  try { await views[current](v); } catch (e) { if (e.message !== 'unauthorized' && v.isConnected) v.innerHTML = `<div class="panel glass err">${e.message}</div>`; }
+  if (v.isConnected) renderChats();
 }
 
 function tickClock() {
@@ -101,6 +105,8 @@ async function boot() {
   connectStream(); refreshBadges(); setInterval(refreshBadges, 30000);
   initWake();
   initCopilot();
+  document.getElementById('callBtn')?.addEventListener('click', () => toggleCall());
+  addEventListener('keydown', (e) => { if (e.altKey && (e.code === 'KeyJ')) { e.preventDefault(); toggleCall(); } });
   await render();
 }
 boot();

@@ -202,6 +202,25 @@ try {
     await pc.waitForTimeout(400);
     assert.doesNotMatch(await pc.textContent('.chat'), /סתם משפט/);
     if (process.env.SHOTVOICE) await pc.screenshot({ path: process.env.SHOTVOICE });
+    await pc.click('#wakeBtn'); // wake mode off before the call
+    // Voice call in claude.ai: Claude dictation → answer in a Claude voice → one tap/Space per turn
+    const starts = () => pc.evaluate(() => window.__claudeLog.filter((x) => x === 'dictation.start').length);
+    const s0 = await starts();
+    await pc.click('#callBtn');
+    await pc.waitForSelector('.call-overlay');
+    assert.equal(await starts(), s0 + 1, 'the call opened Claude dictation from the click');
+    const t0 = await pc.evaluate(() => window.__claudeLog.filter((x) => Array.isArray(x) && x[0] === 'tts.speak').length);
+    await pc.evaluate(() => window.__say('כמה הוצאנו החודש'));
+    await pc.waitForFunction((n) => window.__claudeLog.filter((x) => Array.isArray(x) && x[0] === 'tts.speak').length > n, t0, { timeout: 15000 });
+    await pc.waitForFunction(() => document.querySelector('.call-overlay')?.dataset.phase === 'tap', null, { timeout: 5000 });
+    assert.match(await pc.textContent('.call-log'), /הוצאתם/);
+    await pc.keyboard.down('Space');
+    assert.equal(await starts(), s0 + 2, 'Space started the next turn');
+    await pc.evaluate(() => window.__say('מה המשימות שלי'));
+    await pc.keyboard.up('Space');
+    await pc.waitForFunction(() => document.querySelectorAll('.call-log .cl.jarvis').length >= 2, null, { timeout: 15000 });
+    await pc.click('.call-end');
+    assert.equal(await pc.locator('.call-overlay').count(), 0);
     assert.deepEqual(ec, []); await ctxC.close();
   });
   await check('dictation mode sends automatically after a pause', async () => {

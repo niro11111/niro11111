@@ -157,6 +157,48 @@ try {
     assert.equal(await hp.locator('.chat .msg').count(), before);
     await hp.close();
   });
+  await check('Voice call: hands-free turns (listen → answer aloud → listen again), his own echo is ignored, mute and hang up', async () => {
+    const cp = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    const ce = []; cp.on('pageerror', (e) => ce.push(e.message));
+    await cp.addInitScript(() => {
+      window.__said = []; window.__starts = 0; window.__queue = ['כמה הוצאנו החודש', 'מה המשימות שלי'];
+      const synth = { speaking: false, cur: null, speak(u) { this.cur = u; window.__said.push(u.text); setTimeout(() => { this.speaking = true; u.onstart?.(); setTimeout(() => { this.speaking = false; u.onend?.(); }, 500); }, 30); }, cancel() { this.speaking = false; }, getVoices: () => [{ name: 'Test Hebrew', lang: 'he-IL' }], pause() {}, resume() {}, addEventListener() {}, removeEventListener() {} };
+      Object.defineProperty(window, 'speechSynthesis', { value: synth, configurable: true });
+      const result = (text) => ({ resultIndex: 0, results: [Object.assign([{ transcript: text, confidence: 0.9 }], { isFinal: true })] });
+      class FakeSR {
+        start() {
+          window.__starts++; this.onstart?.();
+          if (synth.speaking && window.__said.length) setTimeout(() => this.onresult?.(result(window.__said[window.__said.length - 1].split(' ').slice(0, 6).join(' '))), 60); // echo of his own voice
+          const next = window.__queue.shift();
+          if (next) setTimeout(() => this.onresult?.(result(next)), synth.speaking ? 900 : 250);
+        }
+        stop() { setTimeout(() => this.onend?.(), 10); } abort() { this.stop(); }
+      }
+      window.SpeechRecognition = FakeSR; window.webkitSpeechRecognition = FakeSR;
+      navigator.mediaDevices.getUserMedia = async () => { throw new Error('meter not needed'); };
+    });
+    await cp.goto(url); await cp.fill('#tokenInput', 'e2e'); await cp.click('#loginForm button'); await cp.waitForSelector('#view .core-wrap');
+    await cp.goto(`${url}#conversation`); await cp.waitForSelector('#convBtn');
+    await cp.click('#convBtn');
+    await cp.waitForSelector('.call-overlay');
+    // two full turns with no clicks
+    await cp.waitForFunction(() => document.querySelectorAll('.call-log .cl.jarvis').length >= 2, null, { timeout: 20000 });
+    const log = await cp.$$eval('.call-log .cl', (els) => els.map((e) => e.className.split(' ')[1] + ':' + e.textContent));
+    assert.equal(log.filter((x) => x.startsWith('you:')).length, 2, JSON.stringify(log));
+    assert.match(log.find((x) => x.startsWith('you:')), /כמה הוצאנו החודש/);
+    assert.ok((await cp.evaluate(() => window.__said.length)) >= 2, `both answers were spoken: ${JSON.stringify(await cp.evaluate(() => window.__said))} log ${JSON.stringify(log)}`);
+    assert.ok((await cp.evaluate(() => window.__starts)) >= 2, 'listening restarted by itself');
+    // after the answers it is listening again
+    await cp.waitForFunction(() => document.querySelector('.call-overlay')?.dataset.phase === 'listening', null, { timeout: 5000 });
+    await cp.click('.call-mute');
+    assert.equal(await cp.getAttribute('.call-overlay', 'data-phase'), 'paused');
+    await cp.keyboard.press('Escape');
+    assert.equal(await cp.locator('.call-overlay').count(), 0);
+    const userMsgs = await cp.$$eval('.chat .msg.user', (els) => els.map((e) => e.textContent));
+    assert.equal(userMsgs.length, 2, `echo leaked into the chat: ${JSON.stringify(userMsgs)}`);
+    assert.deepEqual(ce, []);
+    await cp.close();
+  });
 } finally { await browser.close(); srv.close(); s.worldRunner.stopAll(); fsx.rmSync(worldsDir, { recursive: true, force: true }); }
 console.log(failures ? `\n${failures} failed` : '\nall e2e checks passed');
 process.exit(failures ? 1 : 0);
