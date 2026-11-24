@@ -165,3 +165,21 @@ test('API: owner-only writes, dashboard, file access, artifact download, devices
     assert.equal((await call(`/api/worlds/${id}/kill`, { method: 'POST', body: {} })).body.killed, true);
   } finally { srv.close(); }
 });
+
+test('WEBSITE: "build me a website for a barbershop" → full public site + admin + booking, built, tested and verified live', async () => {
+  const s = await withRunner();
+  const t = await ask(s, 'תבנה לי אתר למספרה בשם "הספר של דני" בתל אביב טלפון 03-5551234');
+  assert.equal(t.state, 'COMPLETED', t.response); assert.deepEqual(t.plan.tools, ['world.create']);
+  const id = s.store.all('worlds')[0].id;
+  const { world, mission } = await s.worlds.pipelines.get(id);
+  assert.equal(mission.status, 'completed', JSON.stringify(mission.tasks.map((x) => [x.id, x.status])));
+  assert.equal(world.status, 'verified');
+  assert.equal(world.spec.site.kind, 'barber'); assert.equal(world.spec.site.commerce, 'booking');
+  assert.equal(world.spec.site.contact.phone, '03-5551234');
+  const d = s.worlds.dashboard(id);
+  assert.equal(d.testRuns[0].failed, 0); assert.ok(d.testRuns[0].passed >= 20, `passed ${d.testRuns[0].passed}`);
+  const names = d.verifications[0].checks.map((c) => c.name);
+  for (const n of ['public site: home page with SEO tags', 'public site: sitemap.xml and robots.txt', 'public site: catalog is public, contact form saves']) assert.ok(names.includes(n), n);
+  assert.ok(d.verifications[0].checks.every((c) => c.ok), JSON.stringify(d.verifications[0].checks.filter((c) => !c.ok)));
+  assert.ok(d.builds[0].steps.some((x) => x.name === 'site entry' && x.ok));
+});

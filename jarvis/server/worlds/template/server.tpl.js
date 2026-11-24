@@ -68,10 +68,71 @@ export class Db {
   save() { const tmp = this.file + '.tmp'; fs.writeFileSync(tmp, JSON.stringify(this.data)); fs.renameSync(tmp, this.file); }
 }
 
+// ---------- public website (present when schema.site is set) ----------
+const SITE_KEYS = ['name', 'tagline', 'heroTitle', 'heroText', 'about', 'features', 'faq', 'contact', 'palette', 'city'];
+const xmlEsc = (s) => String(s).replace(/[<>&'"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' }[c]));
+const originOf = (req) => (req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http') + '://' + (req.headers.host || 'localhost');
+
+/** Server-side checkout: prices and stock come from the database, never from the browser. */
+export function checkout(db, body) {
+  const c = body && body.customer; const items = body && body.items;
+  const errors = [];
+  if (!c || typeof c.name !== 'string' || !c.name.trim()) errors.push('customer.name is required');
+  if (!c || typeof c.email !== 'string' || !EMAIL.test(c.email)) errors.push('customer.email must be a valid e-mail address');
+  if (c && c.phone && !PHONE.test(c.phone)) errors.push('customer.phone must be a valid phone number');
+  if (!Array.isArray(items) || !items.length || items.length > 50) errors.push('items: 1 to 50 lines');
+  if (errors.length) return { status: 400, body: { error: 'validation failed', errors } };
+  const lines = []; let total = 0;
+  for (const it of items) {
+    const p = db.get('products', String(it.id));
+    const qty = Math.floor(Number(it.qty));
+    if (!p || p.active === false) return { status: 400, body: { error: 'product not available: ' + it.id } };
+    if (!(qty >= 1 && qty <= 99)) return { status: 400, body: { error: 'quantity must be 1-99' } };
+    if (typeof p.stock === 'number' && p.stock < qty) return { status: 409, body: { error: 'not enough stock for ' + p.name + ' (' + p.stock + ' left)' } };
+    lines.push({ p, qty }); total += Math.round(p.price * 100) * qty;
+  }
+  for (const l of lines) if (typeof l.p.stock === 'number') db.update('products', l.p.id, { stock: l.p.stock - l.qty });
+  const order = db.insert('orders', { customer: c.name.trim() + ' <' + c.email.trim() + '>' + (c.phone ? ' ' + c.phone : '') + (c.address ? ' · ' + String(c.address).slice(0, 300) : ''), items: lines.map((l) => l.qty + ' × ' + l.p.name + ' @ ' + l.p.price).join('\n'), total: total / 100, status: 'pending', orderDate: new Date().toISOString().slice(0, 10) });
+  return { status: 201, body: { orderId: order.id, total: total / 100, items: lines.map((l) => ({ name: l.p.name, qty: l.qty, price: l.p.price })) } };
+}
+
+/** Online booking: the slot must be in the future and free (no overlap with an active booking). */
+export function book(db, body) {
+  const errors = [];
+  if (!body || typeof body.name !== 'string' || !body.name.trim()) errors.push('name is required');
+  if (!body || typeof body.phone !== 'string' || !PHONE.test(body.phone)) errors.push('phone must be a valid phone number');
+  if (body && body.email && !EMAIL.test(body.email)) errors.push('email must be a valid e-mail address');
+  const start = body && Date.parse(body.start);
+  if (!Number.isFinite(start)) errors.push('start must be a date and time');
+  if (errors.length) return { status: 400, body: { error: 'validation failed', errors } };
+  const svc = db.get('services', String(body.serviceId));
+  if (!svc || svc.active === false) return { status: 400, body: { error: 'service not available' } };
+  if (start < Date.now()) return { status: 400, body: { error: 'choose a time in the future' } };
+  const end = start + (Number(svc.durationMinutes) || 30) * 60000;
+  const clash = busy(db, start - 864e5, end + 864e5).some((b) => start < b.end && end > b.start);
+  if (clash) return { status: 409, body: { error: 'this time is already taken' } };
+  const rec = db.insert('bookings', { customer: body.name.trim() + ' ' + body.phone.trim(), service: svc.name, start: new Date(start).toISOString(), status: 'requested', notes: [body.email, body.notes].filter(Boolean).join(' · ').slice(0, 1000) });
+  return { status: 201, body: { bookingId: rec.id, service: svc.name, start: rec.start, status: rec.status } };
+}
+/** Taken intervals (ms) between from and to, from active bookings. */
+export function busy(db, from, to) {
+  const dur = (name) => { const s = db.all('services').find((x) => x.name === name); return (s && Number(s.durationMinutes)) || 30; };
+  return db.all('bookings').filter((b) => b.status !== 'cancelled').map((b) => ({ start: Date.parse(b.start), end: Date.parse(b.start) + dur(b.service) * 60000 })).filter((b) => b.end > from && b.start < to);
+}
+
 function safeEqual(a, b) { const x = Buffer.from(String(a)); const y = Buffer.from(String(b)); return x.length === y.length && crypto.timingSafeEqual(x, y); }
 
 export function createApp({ dataDir = process.env.DATA_DIR || path.join(ROOT, 'data'), token = process.env.APP_TOKEN || '' } = {}) {
   const db = new Db(path.join(dataDir, 'db.json'));
+  // First start: starter content written by JARVIS (services/products, posts) so the site is not empty.
+  const seedFile = path.join(ROOT, 'seed.json');
+  if (!db.data.__seeded && fs.existsSync(seedFile)) {
+    const seed = JSON.parse(fs.readFileSync(seedFile, 'utf8'));
+    for (const [name, rows] of Object.entries(seed)) for (const r of rows) db.insert(name, r);
+    db.data.__seeded = new Date().toISOString(); db.save();
+  }
+  const SITE = schema.site || null;
+  const site = () => ({ ...SITE, ...(db.data.__site || {}) });
   const metrics = { requests: 0, errors: 0, startedAt: Date.now(), byStatus: {} };
   const entities = Object.fromEntries(schema.entities.map((e) => [e.name, e]));
 
@@ -102,12 +163,45 @@ export function createApp({ dataDir = process.env.DATA_DIR || path.join(ROOT, 'd
     metrics.requests++;
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Referrer-Policy', 'no-referrer');
-    res.setHeader('Content-Security-Policy', "default-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");
+    res.setHeader('Content-Security-Policy', "default-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");
     const url = new URL(req.url, 'http://local');
     try {
-      if (!url.pathname.startsWith('/api/')) return serveStatic(url.pathname, res);
+      if (!url.pathname.startsWith('/api/')) {
+        if (url.pathname === '/admin' || url.pathname === '/admin/') return serveStatic('/index.html', res);
+        if (SITE && url.pathname === '/') return serveStatic('/site/index.html', res);
+        if (SITE && url.pathname === '/robots.txt') return send(res, 200, 'User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/\nSitemap: ' + originOf(req) + '/sitemap.xml\n');
+        if (SITE && url.pathname === '/sitemap.xml') {
+          const o = originOf(req);
+          const urls = ['/', ...db.all('posts').filter((p) => p.published).map((p) => '/?post=' + p.id)];
+          return send(res, 200, '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + urls.map((u) => '<url><loc>' + xmlEsc(o + u) + '</loc></url>').join('') + '</urlset>\n', { 'Content-Type': 'application/xml; charset=utf-8' });
+        }
+        return serveStatic(url.pathname, res);
+      }
+      if (SITE && url.pathname === '/api/site') {
+        if (req.method === 'GET') return send(res, 200, site());
+        if (req.method === 'PUT') {
+          if (!isAdmin(req)) return send(res, 401, { error: 'unauthorized' });
+          const b = await readBody(req); const patch = {};
+          for (const k of SITE_KEYS) if (k in b) { if (JSON.stringify(b[k]).length > 20000) return send(res, 400, { error: k + ' is too long' }); patch[k] = b[k]; }
+          db.data.__site = { ...(db.data.__site || {}), ...patch }; db.save();
+          return send(res, 200, site());
+        }
+        return send(res, 405, { error: 'method not allowed' });
+      }
+      if (SITE && url.pathname.startsWith('/api/public/') && req.method === 'GET') {
+        const name = url.pathname.split('/')[3]; const flag = (schema.publicRead || {})[name];
+        if (!flag || !entities[name]) return send(res, 404, { error: 'not public' });
+        return send(res, 200, { items: ((rows) => (name === 'posts' ? rows.slice(-100).reverse() : rows.slice(0, 100)))(db.all(name).filter((r) => r[flag] === true)) });
+      }
+      if (SITE && SITE.commerce === 'store' && url.pathname === '/api/checkout' && req.method === 'POST') { const r = checkout(db, await readBody(req)); return send(res, r.status, r.body); }
+      if (SITE && SITE.commerce === 'booking' && url.pathname === '/api/book' && req.method === 'POST') { const r = book(db, await readBody(req)); return send(res, r.status, r.body); }
+      if (SITE && SITE.commerce === 'booking' && url.pathname === '/api/busy' && req.method === 'GET') {
+        const from = Date.parse(url.searchParams.get('from')); const to = Date.parse(url.searchParams.get('to'));
+        if (!Number.isFinite(from) || !Number.isFinite(to) || to - from > 31 * 864e5) return send(res, 400, { error: 'from/to (max 31 days)' });
+        return send(res, 200, { busy: busy(db, from, to).map((b) => ({ start: new Date(b.start).toISOString(), end: new Date(b.end).toISOString() })) });
+      }
       if (url.pathname === '/api/health') return send(res, 200, { ok: true, name: schema.title, version: schema.version, entities: schema.entities.length, uptimeSec: Math.round((Date.now() - metrics.startedAt) / 1000) });
-      if (url.pathname === '/api/schema') return send(res, 200, { title: schema.title, lang: schema.lang, entities: schema.entities.map(({ name, label, labelHe, fields, public: pub }) => ({ name, label, labelHe, fields, public: !!pub })), authRequired: !!token });
+      if (url.pathname === '/api/schema') return send(res, 200, { title: schema.title, lang: schema.lang, entities: schema.entities.map(({ name, label, labelHe, fields, public: pub }) => ({ name, label, labelHe, fields, public: !!pub })), authRequired: !!token, site: !!SITE });
       if (url.pathname === '/api/metrics') { if (!isAdmin(req)) return send(res, 401, { error: 'unauthorized' }); return send(res, 200, { ...metrics, uptimeSec: Math.round((Date.now() - metrics.startedAt) / 1000), records: Object.fromEntries(schema.entities.map((e) => [e.name, db.all(e.name).length])) }); }
       const [, , name, id] = url.pathname.split('/');
       const entity = entities[name];

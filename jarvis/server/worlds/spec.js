@@ -3,6 +3,25 @@
 // and an architecture. Nothing is invented: requirements come from the request or from a named,
 // visible project template; anything else is listed as an assumption or a question.
 
+import { wantsSite, siteProfile, siteEntities, PUBLIC_READ } from './site.js';
+
+/** Website-type projects also get the public site: its profile and the entities it needs. */
+function withSite(spec) {
+  if (!wantsSite(spec)) return spec;
+  const site = siteProfile(spec);
+  const extra = siteEntities(spec, site);
+  const he = spec.lang === 'he';
+  spec.entities.push(...extra);
+  spec.site = site;
+  spec.publicRead = Object.fromEntries(spec.entities.filter((e) => PUBLIC_READ[e.name]).map((e) => [e.name, PUBLIC_READ[e.name]]));
+  spec.publicEntities = spec.entities.filter((e) => e.public).map((e) => e.name);
+  spec.requirements.unshift(...(he
+    ? ['אתר ציבורי מלא: דף בית, שירותים/מוצרים, אודות, שאלות נפוצות, בלוג, צור קשר', site.commerce === 'store' ? 'חנות: סל קניות והזמנה, מחיר ומלאי מחושבים בשרת' : site.commerce === 'booking' ? 'קביעת תורים אונליין עם בדיקת התנגשויות' : 'טופס יצירת קשר שנשמר במערכת', 'SEO: כותרות, תיאור, Open Graph, נתונים מובנים, sitemap.xml ו-robots.txt', 'ממשק ניהול לעריכת כל התוכן']
+    : ['Complete public website: home, services/products, about, FAQ, blog, contact', site.commerce === 'store' ? 'Store: cart and checkout, prices and stock computed on the server' : site.commerce === 'booking' ? 'Online booking with conflict checks' : 'Contact form saved in the system', 'SEO: titles, description, Open Graph, structured data, sitemap.xml and robots.txt', 'Admin to edit all content']));
+  spec.assumptions.push(...site.notes);
+  return spec;
+}
+
 const F = (name, type = 'string', extra = {}) => ({ name, type, required: false, ...extra });
 const req = (f) => ({ ...f, required: true });
 
@@ -36,7 +55,6 @@ export const TEMPLATES = {
     { name: 'tickets', label: 'Tickets', labelHe: 'פניות', fields: [req(F('subject')), req(F('customerEmail', 'email')), F('description', 'text'), F('priority', 'enum', { options: ['low', 'normal', 'high', 'urgent'] }), F('status', 'enum', { options: ['open', 'pending', 'resolved', 'closed'] })] },
     { name: 'articles', label: 'Knowledge base', labelHe: 'מאגר ידע', fields: [req(F('title')), F('body', 'text'), F('published', 'boolean')] }] },
   website: { label: 'Company website', labelHe: 'אתר חברה', entities: [
-    { name: 'pages', label: 'Pages', labelHe: 'עמודים', fields: [req(F('title')), req(F('slug')), F('body', 'text'), F('published', 'boolean')] },
     { name: 'leads', label: 'Contact requests', labelHe: 'פניות מהאתר', public: true, fields: [req(F('name')), req(F('email', 'email')), F('phone', 'phone'), req(F('message', 'text'))] }] },
   education: { label: 'Education platform', labelHe: 'פלטפורמת לימוד', entities: [
     { name: 'courses', label: 'Courses', labelHe: 'קורסים', fields: [req(F('title')), F('description', 'text'), F('price', 'money'), F('published', 'boolean')] },
@@ -44,7 +62,7 @@ export const TEMPLATES = {
     { name: 'enrollments', label: 'Enrollments', labelHe: 'הרשמות', fields: [req(F('student')), req(F('course')), F('progress', 'number'), F('enrolledAt', 'date')] }] },
 };
 // A "digital business" is a composition: public website + leads, CRM, orders and support.
-TEMPLATES.business = { label: 'Digital business', labelHe: 'עסק דיגיטלי', entities: [TEMPLATES.website.entities[1], TEMPLATES.crm.entities[0], TEMPLATES.crm.entities[1], TEMPLATES.ecommerce.entities[2], TEMPLATES.support.entities[0]] };
+TEMPLATES.business = { label: 'Digital business', labelHe: 'עסק דיגיטלי', entities: [TEMPLATES.website.entities[0], TEMPLATES.crm.entities[0], TEMPLATES.crm.entities[1], TEMPLATES.ecommerce.entities[2], TEMPLATES.support.entities[0]] };
 
 const TYPE_RULES = [
   ['business', /(?:online|digital|internet) business|start(?:up)? (?:a )?business|עסק (?:דיגיטלי|אונליין|מקוון|באינטרנט)|עסק שלם/i],
@@ -95,9 +113,11 @@ export function understand(text, { lang } = {}) {
   const he = lang ? lang === 'he' : /[֐-׿]/.test(t);
   const type = TYPE_RULES.find(([, re]) => re.test(t))?.[0] ?? null;
   const ents = explicitEntities(t);
-  const name = t.match(/\b(?:called|named)\s+["'“]?([^"'”,.]{2,40})["'”]?/i)?.[1]?.trim()
+  const name = t.match(/\b(?:called|named)\s+["'“]([^"'”]{2,40})["'”]/i)?.[1]?.trim()
+    ?? t.match(/\b(?:called|named)\s+([^"'”,.]{2,40}?)(?=\s+(?:for|in|with|that|which|selling|where)\b|[,.]|$)/i)?.[1]?.trim()
     ?? t.match(/for (?:my )?(?:company|business)\s+["'“]?([A-Z][^"'”,.]{1,40})["'”]?/)?.[1]?.trim()
-    ?? t.match(/(?:בשם|שנקרא|שנקראת)\s+["'“]?([^"'”,.]{2,40})["'”]?/)?.[1]?.trim() ?? null;
+    ?? t.match(/(?:בשם|שנקרא|שנקראת)\s+["'“״]([^"'”״]{2,40})["'”״]/)?.[1]?.trim()
+    ?? t.match(/(?:בשם|שנקרא|שנקראת)\s+([^"'”,.]{2,40}?)(?=\s+(?:ב|ל|עם|ש|שמוכר|שמוכרת)[\u05D0-\u05EA]|[,.]|$)/)?.[1]?.trim() ?? null;
   const audience = t.match(/(?:for|aimed at|targeting)\s+((?:small|local|young|busy|independent)[^,.]{2,60})/i)?.[1] ?? t.match(/(?:עבור|ל)(בעלי [^,.]{2,40}|לקוחות [^,.]{2,40}|משפחות[^,.]{0,40})/)?.[1] ?? null;
   const budget = t.match(/budget (?:of )?([$₪€]?\s?\d[\d,.]*\s?(?:k|K|USD|ILS|₪|\$)?)|תקציב (?:של )?(\d[\d,.]*\s?(?:₪|ש"ח|שקל)?)/i);
   const integrations = [...new Set([...(t.match(/\b(stripe|paypal|gmail|google calendar|slack|whatsapp|github|twilio|sendgrid|shopify)\b/gi) ?? [])].map((x) => x.toLowerCase()))];
@@ -112,7 +132,7 @@ export function understand(text, { lang } = {}) {
   if (tpl && !ents.length) assumptions.push(he ? `המבנה מבוסס על תבנית "${tpl.labelHe}" כי לא פורטו ישויות. אפשר לשנות.` : `The data model uses the "${tpl.label}" template because no entities were specified. You can change it.`);
   if (!audience) assumptions.push(he ? 'קהל היעד לא צוין.' : 'No target audience was specified.');
   assumptions.push(he ? 'משתמש מנהל אחד עם אסימון גישה; ניתן להוסיף משתמשים בהמשך.' : 'One admin user with an access token; more users can be added later.');
-  return {
+  const out = {
     status: 'specified', request: t, lang: he ? 'he' : 'en', type: type ?? 'custom', templateLabel: tpl ? (he ? tpl.labelHe : tpl.label) : null,
     title, slug: slug(title), audience, budget: budget ? (budget[1] ?? budget[2]).trim() : null, integrations, entities,
     publicEntities: entities.filter((e) => e.public).map((e) => e.name),
@@ -125,6 +145,7 @@ export function understand(text, { lang } = {}) {
     assumptions,
     openQuestions: integrations.length ? [he ? `לחיבור ${integrations.join(', ')} צריך פרטי גישה (לא יוזנו פרטים מזויפים).` : `Connecting ${integrations.join(', ')} needs credentials (no fake credentials are ever used).`] : [],
   };
+  return withSite(out);
 }
 
 const TYPE_DB = { string: 'TEXT', text: 'TEXT', email: 'TEXT (validated e-mail)', phone: 'TEXT (validated phone)', number: 'NUMBER', money: 'NUMBER (2 decimals)', date: 'DATE (YYYY-MM-DD)', datetime: 'DATETIME (ISO 8601)', boolean: 'BOOLEAN', enum: 'TEXT (one of options)' };

@@ -7,8 +7,8 @@ export const INDEX_HTML = String.raw`<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>__TITLE__</title>
-<link rel="stylesheet" href="styles.css">
-<script type="module" src="app.js"></script>
+<link rel="stylesheet" href="/styles.css">
+<script type="module" src="/app.js"></script>
 </head>
 <body>
 <header class="top"><h1 id="title">__TITLE__</h1><div class="auth"><input id="token" type="password" placeholder="Admin token" aria-label="Admin token" autocomplete="off"><button id="saveToken" type="button">✓</button></div></header>
@@ -102,6 +102,20 @@ function select(e) {
   renderForm(); renderList();
 }
 
+/** Site settings: the public site's texts, contact details and colors (JSON, validated on the server). */
+async function siteSettings() {
+  for (const b of document.querySelectorAll('#nav button')) b.classList.toggle('on', b.dataset.name === '__site');
+  const cfg = await api('/api/site');
+  const keys = ['name', 'tagline', 'heroTitle', 'heroText', 'about', 'contact', 'features', 'faq', 'palette'];
+  const ta = el('textarea', { rows: 22, spellcheck: false, value: JSON.stringify(Object.fromEntries(keys.map((k) => [k, cfg[k]])), null, 2) }); ta.style.width = '100%'; ta.style.fontFamily = 'monospace';
+  const save = el('button', { type: 'button', textContent: T('Save', 'שמירה'), onclick: async () => {
+    try { await api('/api/site', { method: 'PUT', body: JSON.parse(ta.value) }); $('#formMsg').textContent = T('Saved. Reload the site to see it.', 'נשמר. רעננו את האתר כדי לראות.'); $('#formMsg').className = 'ok'; }
+    catch (e) { $('#formMsg').textContent = e.message; $('#formMsg').className = 'err'; } } });
+  $('#formTitle').textContent = T('Site settings', 'הגדרות האתר');
+  $('#form').replaceChildren(el('p', { textContent: T('Texts, contact details (phone, email, address, hours) and colors of the public site.', 'הטקסטים, פרטי הקשר (טלפון, אימייל, כתובת, שעות) והצבעים של האתר הציבורי.') }), ta, save);
+  $('#listTitle').textContent = ''; $('#table').replaceChildren(); $('#listMsg').textContent = T('Services, products, posts and testimonials are edited in their own sections. A testimonial appears on the site only when "approved" is on.', 'שירותים, מוצרים, פוסטים והמלצות נערכים בחלקים שלהם. המלצה מופיעה באתר רק כשהשדה "approved" מסומן.');
+}
+
 async function boot() {
   schema = await api('/api/schema');
   document.title = schema.title; $('#title').textContent = schema.title;
@@ -109,6 +123,10 @@ async function boot() {
   $('#saveToken').onclick = () => { try { localStorage.setItem('app.token', $('#token').value); } catch {} renderList(); };
   const nav = $('#nav');
   for (const e of schema.entities) { const b = el('button', { type: 'button', textContent: label(e), onclick: () => select(e) }); b.dataset.name = e.name; nav.append(b); }
+  if (schema.site) {
+    const sb = el('button', { type: 'button', textContent: T('Site settings', 'הגדרות האתר'), onclick: siteSettings }); sb.dataset.name = '__site'; nav.append(sb);
+    nav.append(el('a', { href: '/', target: '_blank', rel: 'noopener', className: 'navlink', textContent: T('View site ↗', 'צפייה באתר ↗') }));
+  }
   $('#form').onsubmit = async (ev) => {
     ev.preventDefault();
     const form = $('#form');

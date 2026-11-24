@@ -4,6 +4,7 @@
 import SERVER from './template/server.tpl.js';
 import TESTS from './template/tests.tpl.js';
 import { INDEX_HTML, APP_JS, STYLES_CSS } from './template/ui.tpl.js';
+import { SITE_HTML, SITE_CSS, SITE_JS, SITE_TESTS } from './template/site.tpl.js';
 
 const escHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const safeName = (s) => String(s).replace(/[^a-zA-Z0-9]/g, '');
@@ -24,7 +25,27 @@ export function appSchema(spec, version = 1) {
     });
     return { name, label: e.label ?? name, labelHe: e.labelHe ?? null, public: !!e.public, fields };
   });
-  return { title: spec.title, lang: spec.lang ?? 'en', version: `1.0.${version - 1}`, entities };
+  const site = spec.site ? (({ seedServices, notes, kind, ...pub }) => pub)(spec.site) : undefined;
+  return { title: spec.title, lang: spec.lang ?? 'en', version: `1.0.${version - 1}`, entities, ...(site ? { site, publicRead: spec.publicRead ?? {} } : {}) };
+}
+
+/** Starter content for the public site, built only from the site profile (no invented facts). */
+export function siteSeed(spec) {
+  const p = spec.site; const he = spec.lang === 'he'; const seed = {};
+  const names = new Set(spec.entities.map((e) => e.name));
+  if (names.has('services')) seed.services = p.seedServices.map((x) => ({ ...x, active: true }));
+  if (names.has('products')) {
+    const cat = (spec.request.match(/(?:selling|sells|שמוכר(?:ת|ים)?|למכירת)\s+([^,.]{2,30})/i)?.[1] ?? (he ? 'מוצרים' : 'products')).trim();
+    seed.products = [1, 2, 3].map((i) => ({ name: he ? `${cat} – דוגמה ${i}` : `${cat} – sample ${i}`, description: he ? 'מוצר לדוגמה: ערכו את השם, התיאור, המחיר והמלאי בממשק הניהול, או מחקו.' : 'Sample product: edit the name, description, price and stock in the admin, or delete it.', price: [49, 89, 149][i - 1], stock: 10, category: cat, active: true }));
+  }
+  if (names.has('posts')) {
+    const offer = (p.seedServices ?? []).map((x) => `• ${x.name}: ${x.description}`).join('\n');
+    seed.posts = [
+      { title: he ? `ברוכים הבאים ל${p.name}` : `Welcome to ${p.name}`, summary: p.tagline, body: `${p.about}\n\n${offer}`, published: true },
+      { title: he ? 'שאלות נפוצות לפני שמגיעים' : 'Questions to ask before you come', summary: he ? 'התשובות לשאלות שהכי שואלים אותנו' : 'Answers to what we are asked most', body: (p.faq ?? []).map((f) => `${f.q}\n${f.a}`).join('\n\n'), published: true },
+    ];
+  }
+  return seed;
 }
 
 export function generateProject(spec, { version = 1 } = {}) {
@@ -39,6 +60,7 @@ export function generateProject(spec, { version = 1 } = {}) {
     'public/app.js': APP_JS,
     'public/styles.css': STYLES_CSS,
     'tests/api.test.js': TESTS,
+    ...(spec.site ? siteFiles(spec, schema) : {}),
     '.env.example': ['# Copy to .env (never commit real values)', 'PORT=3000', 'HOST=127.0.0.1', 'APP_TOKEN=   # required in production: admin bearer token', 'DATA_DIR=./data', ''].join('\n'),
     '.gitignore': 'node_modules/\ndata/\n.env\n',
     Dockerfile: ['FROM node:22-alpine', 'WORKDIR /app', 'COPY . .', 'ENV HOST=0.0.0.0 PORT=3000 DATA_DIR=/data', 'VOLUME /data', 'EXPOSE 3000', 'USER node', 'HEALTHCHECK CMD wget -qO- http://127.0.0.1:3000/api/health || exit 1', 'CMD ["node", "server.js"]', ''].join('\n'),
@@ -51,4 +73,15 @@ export function generateProject(spec, { version = 1 } = {}) {
     ].join('\n'),
   };
   return { files, schema };
+}
+
+function siteFiles(spec, schema) {
+  const p = spec.site; const he = spec.lang === 'he';
+  const desc = `${p.tagline}. ${p.about}`.slice(0, 160);
+  const ld = { '@context': 'https://schema.org', '@type': p.kind === 'restaurant' ? 'Restaurant' : p.commerce === 'store' ? 'Store' : 'LocalBusiness', name: p.name, description: desc,
+    ...(p.contact?.phone ? { telephone: p.contact.phone } : {}), ...(p.contact?.email ? { email: p.contact.email } : {}), ...(p.city ? { address: { '@type': 'PostalAddress', addressLocality: p.city } } : {}) };
+  const html = SITE_HTML.replace(/__TITLE__/g, escHtml(p.name)).replace(/__TAGLINE__/g, escHtml(p.tagline)).replace(/__DESC__/g, escHtml(desc))
+    .replace('__LANG__', he ? 'he' : 'en').replace('__DIR__', he ? 'rtl' : 'ltr').replace('__BG__', p.palette.bg).replace('__ACCENT_URL__', encodeURIComponent(p.palette.accent))
+    .replace('__SKIP__', he ? 'דילוג לתוכן' : 'Skip to content').replace('__JSONLD__', JSON.stringify(ld).replace(/</g, '\\u003c'));
+  return { 'public/site/index.html': html, 'public/site/site.css': SITE_CSS, 'public/site/site.js': SITE_JS, 'tests/site.test.js': SITE_TESTS, 'seed.json': JSON.stringify(siteSeed(spec), null, 2) + '\n' };
 }

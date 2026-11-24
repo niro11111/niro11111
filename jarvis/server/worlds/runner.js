@@ -82,7 +82,9 @@ export class WorldRunner {
     }
     for (const f of files.filter((x) => x.path.endsWith('.json'))) { try { JSON.parse(f.content); steps.push({ name: `json ${f.path}`, ok: true }); } catch (e) { steps.push({ name: `json ${f.path}`, ok: false, detail: e.message }); } }
     const html = files.find((f) => f.path === 'public/index.html');
-    steps.push({ name: 'html entry', ok: !!html && /<script type="module" src="app\.js">/.test(html.content) && /<title>/.test(html.content), detail: html ? 'index.html loads app.js' : 'missing public/index.html' });
+    steps.push({ name: 'html entry', ok: !!html && /<script type="module" src="\/?app\.js">/.test(html.content) && /<title>/.test(html.content), detail: html ? 'index.html loads app.js' : 'missing public/index.html' });
+    const siteHtml = files.find((f) => f.path === 'public/site/index.html');
+    if (siteHtml) steps.push({ name: 'site entry', ok: /src="\/site\/site\.js"/.test(siteHtml.content) && /name="description"/.test(siteHtml.content) && !/__[A-Z_]+__/.test(siteHtml.content), detail: 'public site loads site.js, has SEO tags and no unfilled placeholders' });
     const ok = steps.every((s) => s.ok);
     let artifact = null;
     if (ok) {
@@ -138,6 +140,16 @@ export class WorldRunner {
       await check(`POST /api/${e.name} creates a record`, async () => { const r = await call('POST', `/api/${e.name}`, rec); if (r.status !== 201) throw new Error(`status ${r.status}: ${r.text.slice(0, 200)}`); id = r.json.id; return id; });
       await check(`GET /api/${e.name} returns it (persisted)`, async () => { const r = await call('GET', `/api/${e.name}`); if (!r.json?.items?.some((x) => x.id === id)) throw new Error('record not found'); const disk = JSON.parse(fs.readFileSync(path.join(dataDir, 'db.json'), 'utf8')); if (!disk[e.name]?.some((x) => x.id === id)) throw new Error('not on disk'); return 'in API and on disk'; });
       await check('invalid input is rejected (400)', async () => { const r = await call('POST', `/api/${e.name}`, { notAField: 1 }); if (r.status !== 400) throw new Error(`status ${r.status}`); return '400'; });
+      if (schema.site) {
+        await check('public site: home page with SEO tags', async () => { const r = await call('GET', '/', null, false); if (!/og:title/.test(r.text) || !/application\/ld\+json/.test(r.text)) throw new Error('SEO tags missing'); return 'title, description, Open Graph, JSON-LD'; });
+        await check('public site: sitemap.xml and robots.txt', async () => { const a = await call('GET', '/sitemap.xml', null, false); const b = await call('GET', '/robots.txt', null, false); if (!/<urlset/.test(a.text) || !/Sitemap:/.test(b.text)) throw new Error('missing'); return 'served'; });
+        await check('public site: catalog is public, contact form saves', async () => {
+          const name = schema.site.commerce === 'store' ? 'products' : 'services';
+          const list = await call('GET', `/api/public/${name}`, null, false); if (list.status !== 200 || !list.json?.items?.length) throw new Error(`no public ${name}`);
+          const l = await call('POST', '/api/leads', { name: 'Verify', email: 'verify@example.com', message: 'JARVIS verification' }, false); if (l.status !== 201) throw new Error(`lead ${l.status}`);
+          return `${list.json.items.length} ${name}, lead saved`;
+        });
+      }
     } catch (e) { checks.push({ name: 'process starts and listens', ok: false, detail: e.message }); }
     finally { app?.child.kill('SIGTERM'); fs.rmSync(dataDir, { recursive: true, force: true }); }
     return { ok: checks.length > 0 && checks.every((c) => c.ok), checks };
